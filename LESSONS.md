@@ -11,3 +11,11 @@ at work).
 
 | Domain | Lesson | Added |
 |---|---|---|
+| powershell | Escape curly braces correctly in strings | 2026-07-12 |
+| powershell | Save scripts as UTF-8 without BOM | 2026-07-12 |
+| powershell | HKCU under SYSTEM is the wrong hive | 2026-07-12 |
+| powershell | Set $ErrorActionPreference = 'Stop' at the top | 2026-07-12 |
+| powershell | Never use Write-Host in logging | 2026-07-12 |
+| powershell | Put #Requires -RunAsAdministrator first | 2026-07-12 |
+| powershell | schtasks stderr becomes a terminating error under Stop | 2026-07-12 |
+| powershell | Use ASCII only in scripts | 2026-07-12 |
