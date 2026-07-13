@@ -57,7 +57,17 @@ Copy the "## Agent-Improvement Loop" section from this machine's global CLAUDE.m
 (`C:\Users\Matt\.claude\CLAUDE.md`) into the work machine's global CLAUDE.md
 (`C:\Users\matthewgr\.claude\CLAUDE.md`), verbatim.
 
-## 7. Verify
+## 7. Wire the it-fleet agents to read the store
+
+So dispatched agents actually consume lessons (not just the main session), run the
+idempotent wiring script - it inserts a "read the store first" directive into the
+PowerShell/sysadmin-facing agents:
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\matthewgr\agent-improvement\scripts\wire-agents.ps1
+
+Safe to re-run; it skips agents already wired. Only affects agents that exist on the machine.
+
+## 8. Verify
 
 - Start a new Claude Code session. The SessionStart hook should inject the LESSONS.md
   index (you will see the powershell domain lessons in context).
