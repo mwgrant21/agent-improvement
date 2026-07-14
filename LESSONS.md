@@ -31,3 +31,4 @@ at work).
 | loop-design | Never fix flaky tests with code changes | 2026-07-13 |
 | loop-design | Auto-merge only behind an explicit path allowlist | 2026-07-13 |
 | loop-design | Always keep a run log | 2026-07-13 |
+| app-dev | Write setup-completion flags only after long first-run work finishes | 2026-07-14 |
