@@ -40,6 +40,8 @@ L2 also requires worktree isolation. Not active at L1.
    (false positives observed, noisiest source, one adjustment for next run) -
    the Stop hook captures this for agent-learn.
 
+If a run fails before step 3, do NOT advance `last_run` or append a run line - report the failure in the digest slot; the hook will retry next session.
+
 ## Retrospective (every 10th run)
 
 Read ALL of `runs.jsonl` and `STATE.md`. Analyze: recurring noise, items
@@ -48,5 +50,5 @@ run), duration trend, dead sources. Output a NUMBERED refinement proposal:
 LOOP.md edits, threshold changes, source add/drop, and - if the graduation
 gate in `loops/README.md` is met - a promotion proposal. Apply ONLY
 human-approved items, via the loop-design skill. Append a `retrospective`
-event line and reset `runs_since_retro: 0`. This loop never edits its own
-LOOP.md without human approval.
+event line, set `last_run` to today, and reset `runs_since_retro: 0`. This
+loop never edits its own LOOP.md without human approval.

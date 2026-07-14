@@ -19,6 +19,7 @@ try {
     if ($paused -eq 'true') { exit 0 }
 
     $lastRun = [regex]::Match($state, '(?m)^last_run:\s*(\S+)').Groups[1].Value
+    if ($lastRun -notmatch '^\d{4}-\d{2}-\d{2}$') { $lastRun = '1970-01-01' }
     $today = Get-Date -Format 'yyyy-MM-dd'
     if ($lastRun -ge $today) { exit 0 }
 
