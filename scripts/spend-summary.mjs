@@ -48,7 +48,8 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '
   const yesterday = new Date(today.getTime() - 86400000);
   const dates = process.argv.slice(2).length ? process.argv.slice(2) : [isoDay(yesterday), isoDay(today)];
   const root = join(homedir(), '.claude', 'projects');
-  const cutoff = Date.now() - 3 * 86400000;   // skip files untouched for 3+ days
+  const oldest = dates.slice().sort()[0];
+  const cutoff = Math.min(Date.now() - 3 * 86400000, new Date(oldest + 'T00:00:00Z').getTime() - 86400000);
   const lines = [];
   for (const f of jsonlFiles(root)) {
     try {

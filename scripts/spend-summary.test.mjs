@@ -38,3 +38,17 @@ test('tolerates malformed lines and non-assistant records', () => {
   const s = summarizeUsage(['not json', '{"type":"user"}', ''], ['2026-07-13']);
   assert.equal(s.totals.output, 0);
 });
+
+test('records without message.id both count instead of collapsing', () => {
+  const lines = [
+    line(undefined, '2026-07-13T08:00:00.000Z', 'claude-fable-5', { input_tokens: 1, output_tokens: 10 }),
+    line(undefined, '2026-07-13T08:00:01.000Z', 'claude-fable-5', { input_tokens: 1, output_tokens: 25 }),
+  ];
+  const s = summarizeUsage(lines, ['2026-07-13']);
+  assert.equal(s.totals.output, 35);
+});
+
+test('cacheHitRate is 0 when there is no usage data (zero denominator)', () => {
+  const s = summarizeUsage([], ['2026-07-13']);
+  assert.equal(s.cacheHitRate, 0);
+});
