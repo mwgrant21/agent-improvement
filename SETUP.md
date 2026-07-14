@@ -74,3 +74,18 @@ Safe to re-run; it skips agents already wired. Only affects agents that exist on
 - Run `/agent-learn status` - it should report the lesson count and 0 pending sessions.
 - End the session, start another; confirm the previous session was captured and graded
   (a promote pass runs, silently if nothing qualifies).
+
+## 9. Loop conventions (added 2026-07-13)
+
+Install the loop-design skill and the daily-triage hook:
+
+    mkdir C:\Users\matthewgr\.claude\skills\loop-design
+    copy C:\Users\matthewgr\agent-improvement\skills\loop-design\SKILL.md C:\Users\matthewgr\.claude\skills\loop-design\SKILL.md
+    copy C:\Users\matthewgr\agent-improvement\hooks\daily-triage-onstart.ps1 C:\Users\matthewgr\.claude\hooks\daily-triage-onstart.ps1
+
+Add a third SessionStart entry to settings.json (same shape as the agent-learn
+one) pointing at daily-triage-onstart.ps1.
+
+Note: loop state (loops/daily-triage/STATE.md) is SHARED via the repo - the
+first machine to run triage on a given day sets last_run, so the other machine
+skips it after a pull. Requires Node on PATH for scripts/spend-summary.mjs.
