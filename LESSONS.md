@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-12
+last-updated: 2026-07-13
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -19,3 +19,4 @@ at work).
 | powershell | Put #Requires -RunAsAdministrator first | 2026-07-12 |
 | powershell | schtasks stderr becomes a terminating error under Stop | 2026-07-12 |
 | powershell | Use ASCII only in scripts | 2026-07-12 |
+| verification | Inspect the artifact itself, not proxies (git history, hashes) | 2026-07-13 |
