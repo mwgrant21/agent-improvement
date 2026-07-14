@@ -72,3 +72,18 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
 - Why: re-encoding mangles non-ASCII bytes and the script fails to parse.
 - Evidence: migrated from codex.md.
 - Added: 2026-07-12 (home-matt)
+
+### Validate extracted config values before using them in a comparison
+
+- When a regex pulls a field out of frontmatter/config text (e.g. a date string) for
+  use in an ordinal or `-ge`/`-le` comparison, validate its shape first and fall back to
+  a safe sentinel (e.g. `1970-01-01`) if it doesn't match. Do not trust the raw
+  extracted string.
+- Why: a malformed value (typo, stray text) can lexicographically compare `>=` a valid
+  value and silently suppress the intended branch forever - a fail-open hook becomes a
+  fail-closed one with no error or log line to point at it.
+- Evidence: daily-triage-onstart.ps1 - `$lastRun` was compared directly against
+  `$today` (`yyyy-MM-dd`); a non-date `last_run` value would compare `-ge` true and the
+  SessionStart trigger would never fire again. Fixed by validating
+  `$lastRun -match '^\d{4}-\d{2}-\d{2}$'` and defaulting to `1970-01-01` otherwise.
+- Added: 2026-07-14 (home-matt)
