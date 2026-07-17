@@ -31,8 +31,13 @@ loops/<loop-name>/
 {"ts":"ISO-8601","session_id":"...","level":1,
  "type":"run|retrospective|promotion|demotion",
  "findings":0,"actions":0,"escalations":0,"false_positives":0,
- "duration_s":0,"critique":"one-line self-critique"}
+ "duration_s":0,"critique":"one-line self-critique",
+ "notes":{}}
 ```
+
+`notes` is an optional object for per-run metrics that later runs use as
+baselines (e.g. daily-triage records `output_tokens_today` and
+`cache_hit_rate` so its 2x-median spend flag has history to compare against).
 
 Append-only. Never rewrite or delete lines.
 

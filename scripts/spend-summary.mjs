@@ -6,6 +6,13 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
+// Local-calendar day (YYYY-MM-DD). All date bucketing is local on purpose:
+// "yesterday/today" means the user's day, and toISOString() shifts evening
+// records onto the next UTC day (the today+tomorrow labeling bug).
+export function localDay(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function summarizeUsage(lines, isoDates) {
   const dates = new Set(isoDates);
   const byId = new Map();          // message id -> {model, usage} (last wins)
@@ -14,7 +21,9 @@ export function summarizeUsage(lines, isoDates) {
     let rec;
     try { rec = JSON.parse(raw); } catch { continue; }
     if (rec?.type !== 'assistant' || !rec.message?.usage) continue;
-    const day = String(rec.timestamp || '').slice(0, 10);
+    const t = new Date(rec.timestamp ?? NaN);
+    if (Number.isNaN(t.getTime())) continue;
+    const day = localDay(t);
     if (!dates.has(day)) continue;
     byId.set(rec.message.id ?? `anon-${anon++}`, rec.message);
   }
@@ -41,15 +50,13 @@ function* jsonlFiles(dir) {
   }
 }
 
-function isoDay(d) { return d.toISOString().slice(0, 10); }
-
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())) {
   const today = new Date();
-  const yesterday = new Date(today.getTime() - 86400000);
-  const dates = process.argv.slice(2).length ? process.argv.slice(2) : [isoDay(yesterday), isoDay(today)];
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const dates = process.argv.slice(2).length ? process.argv.slice(2) : [localDay(yesterday), localDay(today)];
   const root = join(homedir(), '.claude', 'projects');
   const oldest = dates.slice().sort()[0];
-  const cutoff = Math.min(Date.now() - 3 * 86400000, new Date(oldest + 'T00:00:00Z').getTime() - 86400000);
+  const cutoff = Math.min(Date.now() - 3 * 86400000, new Date(oldest + 'T00:00:00').getTime() - 86400000);
   const lines = [];
   for (const f of jsonlFiles(root)) {
     try {
