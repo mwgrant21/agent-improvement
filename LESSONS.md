@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-14
+last-updated: 2026-07-18
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -32,3 +32,5 @@ at work).
 | loop-design | Auto-merge only behind an explicit path allowlist | 2026-07-13 |
 | loop-design | Always keep a run log | 2026-07-13 |
 | app-dev | Write setup-completion flags only after long first-run work finishes | 2026-07-14 |
+| tooling | Wait-then-redispatch for unresponsive background subagents | 2026-07-18 |
+| tooling | Distinguish a subagent's nested child notifications from its own final report | 2026-07-18 |
