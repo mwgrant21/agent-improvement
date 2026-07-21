@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-18
+last-updated: 2026-07-20
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -34,3 +34,7 @@ at work).
 | app-dev | Write setup-completion flags only after long first-run work finishes | 2026-07-14 |
 | tooling | Wait-then-redispatch for unresponsive background subagents | 2026-07-18 |
 | tooling | Distinguish a subagent's nested child notifications from its own final report | 2026-07-18 |
+| verification | Direct reviewers at the single highest-risk claim, not a generic diff pass | 2026-07-20 |
+| verification | Cross-check a research subagent's findings against the actual codebase | 2026-07-20 |
+| app-dev | Persisted-state whitelists silently drop new fields unless added explicitly | 2026-07-20 |
+| app-dev | Fix an Electron sandbox/preload module-format mismatch by fixing the build, not disabling the sandbox | 2026-07-20 |
