@@ -46,3 +46,24 @@ Format per `README.md` in this directory.
   fix subagent was dispatched "forcing CJS output for the preload build (the
   correct fix) rather than disabling Electron's sandbox."
 - Added: 2026-07-20 (home-matt)
+
+### `tsc -b` and `--noEmit` conflict in composite/project-reference TypeScript setups
+
+- Never invoke `tsc --build` (`tsc -b`) together with `--noEmit`. In a tsconfig
+  using `composite`/project `references`, `tsc -b --noEmit` errors on the config
+  itself; plain `tsc -b` is the correct typecheck-and-build command in that
+  setup, matching whatever `npm run build` already runs. If a task brief
+  specifies the combined flag, fix the brief - do not let an implementer "fix"
+  the symptom by ripping out the composite project reference instead.
+- Why: an implementer facing the `tsc -b --noEmit` error removed the root
+  tsconfig's composite project reference to make the flag combination pass - an
+  unplanned, out-of-scope config change that the reviewer had to catch and
+  question before approving. The actual fix was simpler: drop `--noEmit` from
+  the command, not the project reference from the config.
+- Evidence: 2026-07-21 session (aether-os real-Active-Agents plan, Task 1) -
+  reviewer flagged "the implementer mentions an unplanned tsconfig change
+  ('removed composite project reference') - that's outside the brief's scope";
+  orchestrator then corrected all remaining task briefs to "use plain `tsc -b`,
+  NOT `tsc -b --noEmit` - this project's composite tsconfig setup errors on
+  that flag combination."
+- Added: 2026-07-21 (home-matt)

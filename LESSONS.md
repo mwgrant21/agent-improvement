@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-20
+last-updated: 2026-07-21
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -38,3 +38,5 @@ at work).
 | verification | Cross-check a research subagent's findings against the actual codebase | 2026-07-20 |
 | app-dev | Persisted-state whitelists silently drop new fields unless added explicitly | 2026-07-20 |
 | app-dev | Fix an Electron sandbox/preload module-format mismatch by fixing the build, not disabling the sandbox | 2026-07-20 |
+| app-dev | `tsc -b` and `--noEmit` conflict in composite/project-reference TypeScript setups | 2026-07-21 |
+| testing | A mis-scoped `ignorePatterns` can silently zero out a mutation-testing run | 2026-07-21 |
