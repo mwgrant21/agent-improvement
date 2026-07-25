@@ -32,3 +32,22 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   background dev-server check - not its final report. I'll wait for the actual
   completion notification before acting."
 - Added: 2026-07-18 (home-matt)
+
+### Order plan tasks so a type/action is defined before the task that produces it
+
+- When writing a multi-task implementation plan where one task's code (e.g.
+  an Electron/IPC layer) dispatches a new state action or type, and a later
+  task defines that action/type in the reducer or state layer, reorder so the
+  defining task comes first. Otherwise `tsc -b`/typecheck is transiently
+  broken between the two tasks' commits.
+- Why: caught during the plan's own self-review, before dispatch - avoids
+  leaving the repo unbuildable between two committed tasks, which would
+  otherwise force either an out-of-order task grouping or a broken
+  intermediate commit.
+- Evidence: aether-os Phase 3 Slice 7 (dispatch-usage tracking) plan
+  self-review, 2026-07-24 - original draft had Task 2 = electron threading
+  (dispatches `RECORD_DISPATCH_USAGE`), Task 3 = state/reducer (defines the
+  action) - swapped so state/reducer became Task 2 and electron threading
+  Task 3, with an explicit Global Constraints note added explaining the
+  ordering.
+- Added: 2026-07-24 (home-matt)

@@ -67,3 +67,27 @@ Format per `README.md` in this directory.
   NOT `tsc -b --noEmit` - this project's composite tsconfig setup errors on
   that flag combination."
 - Added: 2026-07-21 (home-matt)
+
+### Extend a well-tested data pipeline with an optional out-param and render-time lookups, not by changing its return type or coupling arrival order
+
+- Two techniques for adding new derived data to code that other tests/consumers
+  already depend on: (1) when a function's return type is exercised by many
+  existing tests, add the new data via an additional optional parameter (an
+  out-array the caller passes in) rather than changing the return type -
+  existing callers and tests are untouched by construction. (2) when multiple
+  independent consumers need to react to the new data as it arrives on its own
+  timeline, have each consumer look the data up by key at its own render/use
+  time (e.g. `state.newField[key]`) rather than threading it through at
+  creation time - this avoids ordering dependencies between independently
+  arriving data pipelines.
+- Why: preserves existing tests and callers untouched while adding new
+  capture logic; the render-time lookup pattern lets independent consumers
+  each pick up the new data with no coordination code between their arrival
+  order and the base pipeline.
+- Evidence: aether-os Phase 3 Slice 7 (real dispatch token/tool-use/duration
+  tracking), 2026-07-24 - `applyLinesToOpenDispatches` gained an optional
+  third `completedOut?` parameter instead of a new return shape, preserving
+  12 pre-existing tests; Memory/Chat/Analytics consumers each look up
+  `state.dispatchUsage[toolUseId]` at their own render/prompt-build time
+  rather than at creation time.
+- Added: 2026-07-24 (home-matt)
