@@ -68,6 +68,39 @@ Format per `README.md` in this directory.
   that flag combination."
 - Added: 2026-07-21 (home-matt)
 
+### Verify a bleeding-edge Node API's minimum version before setting the CI matrix
+
+- When a project uses a newer Node core API (e.g. `node:sqlite`), don't assume
+  the current LTS or an existing CI matrix entry (e.g. `20.x`) covers it. Check
+  the API's actual minimum Node version and set the CI matrix to match (e.g.
+  `22.x`/`24.x`), rather than discovering the gap when that matrix leg fails.
+- Why: the failure is silent until CI runs - the code works fine locally on a
+  newer local Node version, so the mismatch only surfaces as a CI-only failure
+  that looks unrelated to the actual cause.
+- Evidence: 2026-07-28 session (aether-os) - CI matrix included Node `20.x`;
+  `node:sqlite` (used throughout collector/electron store) requires Node 22.5+,
+  so that leg could never pass. Fixed by changing the matrix to `22.x`/`24.x`;
+  confirmed green afterward.
+- Added: 2026-07-29 (work-it)
+
+### A stale compiled `.js` file can silently shadow its `.ts` source in dev vs. packaged Electron modes
+
+- When a TS/Electron project has compiled `.js` output sitting alongside its
+  `.ts` source, check whether dev mode and the packaged/Electron build path
+  resolve the same file. If one path can pick up a stale compiled `.js` while
+  the other reads the live `.ts`, edits to the source silently stop taking
+  effect in whichever mode reads the stale file - with no error.
+- Why: this class of bug is invisible to a single task's review (the source
+  edit looks correct in isolation); it only surfaces when dev and packaged
+  behavior are compared directly, which is exactly what a final whole-branch
+  review does that per-task review does not - see [[final-whole-branch-review-catches-cross-task-bugs]].
+- Evidence: 2026-07-27 session (aether-os chat-ipc-correctness branch) - final
+  whole-branch review found "a compiled-`.js`-shadowing-source issue" (plus a
+  related silent key-parsing divergence between dev and Electron modes) after
+  all 7 per-task reviews had already passed clean; both fixed in one wave and
+  re-verified.
+- Added: 2026-07-29 (work-it)
+
 ### Extend a well-tested data pipeline with an optional out-param and render-time lookups, not by changing its return type or coupling arrival order
 
 - Two techniques for adding new derived data to code that other tests/consumers

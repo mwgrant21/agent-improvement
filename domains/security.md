@@ -26,3 +26,21 @@ credential handling, sandboxing) confirmed across projects. Format per
   `assertSafeName`) closed it, re-verified by an 11-case reviewer script and
   later a 19-vector final whole-branch review.
 - Added: 2026-07-24 (home-matt)
+
+### Warn before a secret enters the chat transcript, and offer the `!`-command alternative
+
+- When a user is about to paste a live credential or API key directly into
+  chat (e.g. to wire up a test run), proactively warn that the value will be
+  visible in the session transcript before they paste it, note that it can be
+  rotated afterward if that's a concern, and point to the `!`-prefixed
+  shell-command method as a way to use the secret without it landing in the
+  transcript at all.
+- Why: pasting a live secret into chat is often the fastest path for the user
+  in the moment, but the transcript-visibility tradeoff is easy to overlook
+  unless it's raised before the paste, not after.
+- Evidence: 2026-07-24 session (claude-token-tracker Electron test run) - agent
+  flagged "Quick heads-up since you picked this route: the key will be visible
+  in this chat transcript... you can still rotate it in the Anthropic console
+  after the test run, or switch to the `!`-command method" before the user
+  pasted an `sk-ant-` key.
+- Added: 2026-07-29 (work-it)

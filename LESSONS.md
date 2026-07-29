@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-24
+last-updated: 2026-07-29
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -43,3 +43,7 @@ at work).
 | security | A basename-only filename check does not stop path traversal - use resolve()-based containment | 2026-07-24 |
 | tooling | Order plan tasks so a type/action is defined before the task that produces it | 2026-07-24 |
 | app-dev | Extend a well-tested data pipeline with an optional out-param and render-time lookups | 2026-07-24 |
+| app-dev | Verify a bleeding-edge Node API's minimum version before setting the CI matrix | 2026-07-29 |
+| app-dev | A stale compiled `.js` file can silently shadow its `.ts` source in dev vs. packaged Electron modes | 2026-07-29 |
+| verification | A final whole-branch review is required after task-level reviews - catches cross-task bugs | 2026-07-29 |
+| security | Warn before a secret enters the chat transcript, offer the `!`-command alternative | 2026-07-29 |

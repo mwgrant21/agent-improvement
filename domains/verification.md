@@ -39,6 +39,27 @@
   elsewhere in the pipeline after the fix landed.
 - Added: 2026-07-20 (home-matt)
 
+### A final whole-branch review is required after task-level reviews - it catches cross-task interaction bugs no single task's review can see
+
+- In a multi-task implementer/reviewer pipeline, per-task review confirms each
+  task matches its own brief but cannot see how tasks interact once combined.
+  Always run one final review of the whole branch/diff after every task has
+  individually shipped clean, before merge.
+- Why: repeatedly, the whole-branch pass found real, previously-invisible bugs
+  that every individual task review had already passed - because the defect
+  only exists in the interaction between two tasks' changes, not within either
+  task alone.
+- Evidence: two separate 2026-07-27/28 aether-os multi-task branches. On
+  `chat-ipc-correctness` (7 tasks, all individually reviewed clean), the final
+  whole-branch review (run on Opus) found a compiled-`.js`-shadowing-source
+  issue and a silent key-parsing divergence between dev and Electron modes -
+  see [[a-stale-compiled-js-file-can-silently-shadow-its-ts-source]]. On
+  `fleet-session-picker` (12 tasks, all individually reviewed clean), the final
+  whole-branch review "caught two real Important issues no task-level review
+  could see (both cross-task interactions)," fixed in one wave and re-reviewed
+  clean before merge.
+- Added: 2026-07-29 (work-it)
+
 ### Cross-check a research subagent's findings against the actual codebase
 
 - When a dispatched research/exploration subagent reports findings that sound
