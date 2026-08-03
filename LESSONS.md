@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-02
+last-updated: 2026-08-03
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -49,3 +49,5 @@ at work).
 | security | Warn before a secret enters the chat transcript, offer the `!`-command alternative | 2026-07-29 |
 | testing | Test runner config must exclude `.worktrees/**` or false failures appear | 2026-08-02 |
 | tooling | Verify a research fork actually did real work before trusting its report | 2026-08-02 |
+| testing | Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail | 2026-08-03 |
+| app-dev | Before calling an Electron blank-screen bug a code regression, check the build output is actually complete | 2026-08-03 |

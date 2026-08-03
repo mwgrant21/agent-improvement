@@ -124,3 +124,24 @@ Format per `README.md` in this directory.
   `state.dispatchUsage[toolUseId]` at their own render/prompt-build time
   rather than at creation time.
 - Added: 2026-07-24 (home-matt)
+
+### Before treating an Electron "blank/white screen" as a code regression, check whether the build output is actually complete
+
+- When a packaged/dev Electron app loads to a blank or white window, check that
+  every expected subdirectory of the build output (e.g. `out/main/`,
+  `out/preload/`, `out/renderer/`) actually exists and is populated - not just
+  that the build command exited 0 or that the folder exists at all. A build
+  interrupted partway through (killed process, prior crashed session) can leave
+  `main`/`preload` present while `renderer` (the actual HTML/JS/CSS the window
+  loads) is entirely missing, which presents identically to a real loading bug.
+- Why: a partial build directory from an earlier interrupted run looks like a
+  normal, if stale, build output at a glance - the missing-subdirectory case
+  only surfaces by explicitly listing what's inside, not by assuming a build
+  that "ran before" is complete.
+- Evidence: 2026-07-30 session (aether-os) - white-screen bug diagnosed as
+  "not a code defect - a stale/incomplete local `out/` build was missing
+  `out/renderer/` entirely," likely "from an earlier interrupted build before
+  this session"; a full rebuild populated `index.html`/JS/CSS/fonts and the
+  full e2e suite (4/4, including previously-timing-out terminal/dashboard
+  tests) passed afterward.
+- Added: 2026-08-03 (work-it)

@@ -41,3 +41,21 @@ itself). Format per `README.md` in this directory.
   `vite.config.ts`'s exclude list doesn't skip `.worktrees/**`, so it also runs
   the copies of the suite living in" the worktrees.
 - Added: 2026-08-02 (home-matt)
+
+### Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail
+
+- When adding a new check/assertion whose whole point is to catch a specific
+  regression (e.g. a golden-file/parity harness, a round-trip encoding check),
+  don't stop at "the check passes." Temporarily revert the underlying fix,
+  re-run the check, and confirm it now fails for the expected reason - then
+  restore the fix. Only that failing-on-purpose run proves the check actually
+  detects the regression instead of passing regardless of what it's given.
+- Why: a check that always passes (wrong assertion target, comparing the wrong
+  field, a no-op comparison) looks identical to a correct one until something
+  regresses - by which point the false confidence has already shipped.
+- Evidence: 2026-07-30 session (aether-os go-collector-hardening, PR #6) - a
+  raw-bytes assertion was added to `runHookInstallParity`'s `compareState` for
+  an escaping round-trip fix; the implementer "empirically confirmed the new
+  harness check is non-vacuous (reverted the escaping fix as a throwaway test,
+  confirmed the harness correctly caught 12 failures)" before restoring the fix.
+- Added: 2026-08-03 (work-it)
