@@ -11,7 +11,6 @@ runs_since_retro: 7
 (none)
 
 ## Watch List
-- tarot: same 6 non-master branches still >14 days inactive - `portfolio-phase1`/`security-hardening` (31 days), `joint-second-order-hardening` (29 days), `portfolio-phase2`/`portfolio-phase3`/`portfolio-tscheck` (30 days). Unchanged tip commits since last run. NEW: `swap-thoth-to-plate-keeps` (last commit 07-18, 16 days) has now also crossed the 14-day threshold - previously the active branch with a clean working tree. [action: review and prune stale branches]
 - TarotApp: NEW - 5 of 6 non-master branches are >14 days inactive: `android-prompt-injection-parity`/`fix-android-image-manifest`/`joint-second-order-hardening` (29 days), `swap-thoth-to-plate-keeps` (21 days), `android-deck-parity` (20 days). First full branch audit of this repo. [action: review and prune stale branches]
 - TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) confirmed still absent from `mwgrant21/TarotApp` remote (verified via `gh api commits/<sha>` = 422 not found). No local clone on this machine to push from. [action: confirm intentional; push when ready from the machine holding these commits]
 - TokenMonitor: NEW - 7 non-active branches >14 days inactive: `design-v2-phase1`..`phase5` (23-24 days), `plan-aware-usage` (23 days), `token-tracker-impl` (25 days), `cli-copy-paste` (21 days). First full branch audit of this repo - sizeable stale-branch backlog. [action: review and prune]
@@ -29,6 +28,7 @@ runs_since_retro: 7
 (none)
 
 ## Resolved since last run
+- tarot: reviewed all 6 flagged stale branches by actual merge status (not just inactivity), not just prune-on-sight. 5 were pure dead weight, fully superseded by master (`portfolio-phase1/2/3/tscheck`, `security-hardening` - 0 unique commits each) - deleted. 2 had genuine unmerged work: `swap-thoth-to-plate-keeps` (Lenormand + Given Ground decks, v1.9.0 bump) was a clean fast-forward of master, applied directly (`3b98427`); `joint-second-order-hardening` (client-controlled second-order prompt fencing) had diverged 3/3 and needed a real merge - clean, no conflicts, verified (224/224 tests, typecheck clean, lint clean) via a scratch clone, pushed (`a020f31`). All 7 branches (2 merged + 5 stale) deleted from origin; only `master` remains.
 - Aether-OS PR #8 "Model policy (Stage 11.5): stop unpoliced model calls, add spend ceiling": merged 2026-08-03 (merge commit `a9fed62`), branch deleted.
 - Aether-OS: untracked `test-results/.last-run.json` resolved - `.gitignore` now has `test-results/` (commit `677400a`, pushed).
 - NMMTools `feature/jira-setup-dialog`: the "35 days inactive" signal was misleading - the feature was already fully implemented and merged into this machine's local `master` (`Desktop\NMMToolkit`) weeks ago, just never pushed. Reconciled with the 21 commits origin/master had picked up meanwhile (one small conflict in `tests/output.tests.ps1`, resolved by keeping both added Describe blocks), verified (148/148 Pester tests, build clean), and pushed to origin/master (`8edae9c`). Branch deleted locally and on origin, now fully closed out - not just quieted.
