@@ -4,32 +4,35 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-07-24
-runs_since_retro: 6
+last_run: 2026-08-03
+runs_since_retro: 7
 ---
 ## High Priority (waiting on human)
-(none this run)
+- NMMTools: `feature/jira-setup-dialog` inactive 35 days (last commit 06-29). Flagged 7 consecutive runs with zero human action — escalating from Watch List. [action: explicit decision needed - merge, keep, or delete]
 
 ## Watch List
-- NMMTools: `feature/jira-setup-dialog` inactive 25 days (last commit 06-29). Flagged 6th consecutive run, no human action yet. [action: review, merge or delete if abandoned]
-- tarot: 6 of 7 non-master branches still >14 days inactive — `portfolio-phase1`/`security-hardening` (21 days), `joint-second-order-hardening` (19 days), `portfolio-phase2`/`portfolio-phase3`/`portfolio-tscheck` (20 days). Unchanged since last run. [action: review and prune stale branches]
-- nmmtools: untracked `testResults.xml` still present. 3rd consecutive run unresolved. [action: delete or .gitignore]
-- TokenMonitor: 3 untracked plan docs under `docs/superpowers/plans/` — unchanged since last run (no new ones). [action: commit or discard]
-- TokenMonitor: unpushed commit `714bff9` (feat: adopt Stryker Mutator) on `terminal-project-cwd` still unpushed. 2nd consecutive run. [action: none urgent, confirm before losing local-only work]
-- TokenMonitor: open PR #1 "Terminal project folder + repo CLAUDE.md so Claude has context" — still open, last updated 2026-07-19. Tracking only.
-- TokenMonitor: new open PR #2 "fix: make the live feed actually follow the active session", updated today (2026-07-24). New this run — active work in progress. [action: none, tracking only]
-- aether-os: 6 untracked design-mockup jpgs in repo root — unchanged count since last run. [action: commit, move to a scratch dir, or .gitignore]
-- TarotApp: 2 unpushed commits on `master` (`7dcf7d2` deck parity, `f84f60a` merge) — not previously tracked, new finding. [action: confirm intentional; push when ready]
-- Meta: `~/agent-improvement` itself had the 2026-07-21 run's STATE.md/runs.jsonl edits sitting uncommitted locally (git discipline step apparently didn't complete that run). Committed as part of this run's write. [action: none, self-resolved by this run]
+- tarot: same 6 non-master branches still >14 days inactive - `portfolio-phase1`/`security-hardening` (31 days), `joint-second-order-hardening` (29 days), `portfolio-phase2`/`portfolio-phase3`/`portfolio-tscheck` (30 days). Unchanged tip commits since last run. NEW: `swap-thoth-to-plate-keeps` (last commit 07-18, 16 days) has now also crossed the 14-day threshold - previously the active branch with a clean working tree. [action: review and prune stale branches]
+- TarotApp: NEW - 5 of 6 non-master branches are >14 days inactive: `android-prompt-injection-parity`/`fix-android-image-manifest`/`joint-second-order-hardening` (29 days), `swap-thoth-to-plate-keeps` (21 days), `android-deck-parity` (20 days). First full branch audit of this repo. [action: review and prune stale branches]
+- TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) confirmed still absent from `mwgrant21/TarotApp` remote (verified via `gh api commits/<sha>` = 422 not found). No local clone on this machine to push from. [action: confirm intentional; push when ready from the machine holding these commits]
+- TokenMonitor: NEW - 7 non-active branches >14 days inactive: `design-v2-phase1`..`phase5` (23-24 days), `plan-aware-usage` (23 days), `token-tracker-impl` (25 days), `cli-copy-paste` (21 days). First full branch audit of this repo - sizeable stale-branch backlog. [action: review and prune]
+- TokenMonitor: `terminal-project-cwd` (holding unpushed commit `714bff9`, feat: adopt Stryker Mutator) has itself now crossed 14 days inactive (last commit 07-19). Local clone on this machine (`claude-token-tracker`) does not have this branch fetched, so it could not be re-verified locally this run - carried forward from GitHub view only. 3rd consecutive run. [action: none urgent, confirm before losing local-only work]
+- TokenMonitor: open PR #1 "Terminal project folder + repo CLAUDE.md so Claude has context" - still open, last updated 2026-07-19 (now 15 days stale). Tracking only.
+- TokenMonitor: open PR #2 "fix: make the live feed actually follow the active session" - still open, unchanged since 2026-07-24 (10 days stale, no new commits). [action: none, tracking only]
+- Aether-OS: NEW open PR #8 "Model policy (Stage 11.5): stop unpoliced model calls, add spend ceiling", updated 2026-08-02 - active work in progress. [action: none, tracking only]
+- Aether-OS: NEW untracked `test-results/.last-run.json` in local repo root (test-artifact pattern, same shape as the NMMTools testResults.xml issue that was just resolved). [action: delete or .gitignore]
+- NMMToolkit (local): uncommitted changes to 2 files (`src/core/05-ui-console.ps1`, `src/tools/business/Get-RingCentralStatus.ps1`) on checked-out branch `test/business-tools-20260722`; `master` is ahead 2/behind 21 and `feature/wpf-gui` ahead 1/behind 11 of their remotes. [action: commit or discard local WIP; review branch divergence]
+- claude-config: 2 local commits (`60ae270`, `e970169`) with no git remote configured on this clone at all - informational only, unclear if a remote is intended by design for this snapshot repo. [action: confirm whether this repo should have a remote]
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
-- TokenMonitor PR #1 re-flagged though it is the user's own active PR — mark [FP] if tracking own fresh PRs is noise. (Unmarked 4 runs running.)
+- TokenMonitor PR #1 re-flagged though it is the user's own active PR - mark [FP] if tracking own fresh PRs is noise. (Unmarked 5 runs running.)
 
 ## Human Decisions (overrides the loop must respect)
 (none set)
 
 ## Resolved since last run
-- NMMTools `feature/wpf-gui` / `codex/remote-business-tools` timestamp concern resolved: both still show the same 2026-07-18 tip commit three runs later with no further resets, confirming it was genuine activity that day, not a rebase artifact. No LOOP.md change needed.
-- aether-os: unpushed-commit backlog (was 5) cleared — pushed to master.
-- tarot: working tree remains clean on `swap-thoth-to-plate-keeps`.
+- nmmtools: untracked `testResults.xml` resolved - repo now gitignores it (commit "chore: ignore Pester -CI testResults.xml").
+- TokenMonitor: the 3 untracked plan docs under `docs/superpowers/plans/` are gone from the local clone's working tree (clean status on `master`) - presumably committed or discarded.
+- aether-os: the 6 untracked design-mockup jpgs are gone from the repo root.
+- NMMTools `feature/wpf-gui` / `codex/remote-business-tools` timestamp concern: closed out (no further resets across 4+ runs) - no LOOP.md change needed.
+- Meta: `~/agent-improvement` git status is clean and in sync with `origin/master` this run.
