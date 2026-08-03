@@ -8,7 +8,7 @@ last_run: 2026-08-03
 runs_since_retro: 7
 ---
 ## High Priority (waiting on human)
-(none - see Human Decisions: jira-setup-dialog is held intentionally)
+(none)
 
 ## Watch List
 - tarot: same 6 non-master branches still >14 days inactive - `portfolio-phase1`/`security-hardening` (31 days), `joint-second-order-hardening` (29 days), `portfolio-phase2`/`portfolio-phase3`/`portfolio-tscheck` (30 days). Unchanged tip commits since last run. NEW: `swap-thoth-to-plate-keeps` (last commit 07-18, 16 days) has now also crossed the 14-day threshold - previously the active branch with a clean working tree. [action: review and prune stale branches]
@@ -18,8 +18,6 @@ runs_since_retro: 7
 - TokenMonitor: `terminal-project-cwd` (holding unpushed commit `714bff9`, feat: adopt Stryker Mutator) has itself now crossed 14 days inactive (last commit 07-19). Local clone on this machine (`claude-token-tracker`) does not have this branch fetched, so it could not be re-verified locally this run - carried forward from GitHub view only. 3rd consecutive run. [action: none urgent, confirm before losing local-only work]
 - TokenMonitor: open PR #1 "Terminal project folder + repo CLAUDE.md so Claude has context" - still open, last updated 2026-07-19 (now 15 days stale). Tracking only.
 - TokenMonitor: open PR #2 "fix: make the live feed actually follow the active session" - still open, unchanged since 2026-07-24 (10 days stale, no new commits). [action: none, tracking only]
-- Aether-OS: NEW open PR #8 "Model policy (Stage 11.5): stop unpoliced model calls, add spend ceiling", updated 2026-08-02 - active work in progress. [action: none, tracking only]
-- Aether-OS: NEW untracked `test-results/.last-run.json` in local repo root (test-artifact pattern, same shape as the NMMTools testResults.xml issue that was just resolved). [action: delete or .gitignore]
 - NMMToolkit (local): uncommitted changes to 2 files (`src/core/05-ui-console.ps1`, `src/tools/business/Get-RingCentralStatus.ps1`) on checked-out branch `test/business-tools-20260722`; `master` is ahead 2/behind 21 and `feature/wpf-gui` ahead 1/behind 11 of their remotes. [action: commit or discard local WIP; review branch divergence]
 - claude-config: 2 local commits (`60ae270`, `e970169`) with no git remote configured on this clone at all - informational only, unclear if a remote is intended by design for this snapshot repo. [action: confirm whether this repo should have a remote]
 
@@ -31,6 +29,8 @@ runs_since_retro: 7
 (none)
 
 ## Resolved since last run
+- Aether-OS PR #8 "Model policy (Stage 11.5): stop unpoliced model calls, add spend ceiling": merged 2026-08-03 (merge commit `a9fed62`), branch deleted.
+- Aether-OS: untracked `test-results/.last-run.json` resolved - `.gitignore` now has `test-results/` (commit `677400a`, pushed).
 - NMMTools `feature/jira-setup-dialog`: the "35 days inactive" signal was misleading - the feature was already fully implemented and merged into this machine's local `master` (`Desktop\NMMToolkit`) weeks ago, just never pushed. Reconciled with the 21 commits origin/master had picked up meanwhile (one small conflict in `tests/output.tests.ps1`, resolved by keeping both added Describe blocks), verified (148/148 Pester tests, build clean), and pushed to origin/master (`8edae9c`). Branch deleted locally and on origin, now fully closed out - not just quieted.
 - nmmtools: untracked `testResults.xml` resolved - repo now gitignores it (commit "chore: ignore Pester -CI testResults.xml").
 - TokenMonitor: the 3 untracked plan docs under `docs/superpowers/plans/` are gone from the local clone's working tree (clean status on `master`) - presumably committed or discarded.
