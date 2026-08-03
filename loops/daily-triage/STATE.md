@@ -11,7 +11,6 @@ runs_since_retro: 8
 (none)
 
 ## Watch List
-- Aether-OS: today's cleanup pass (PR #8 merge + gitignore fix) did NOT touch 3 other remote branches, so the repo is not fully down to `master` yet. `reactor-redesign-stage8` (0 ahead/147 behind master) and `test-2026-07-24` (0 ahead/385 behind) are pure dead weight, safe to delete. `closing-the-loop` (1 ahead/125 behind, diverged) has exactly 1 unmerged commit and needs a look before any deletion. [action: review `closing-the-loop`'s 1 commit; delete the two dead-weight branches]
 - TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) confirmed still absent from `mwgrant21/TarotApp` remote (verified via `gh api commits/<sha>` = 422 not found). No local clone on this machine to push from. [action: confirm intentional; push when ready from the machine holding these commits]
 - TokenMonitor: `terminal-project-cwd`'s "feat: adopt Stryker Mutator" commit (`714bff9`) is CONFIRMED local-machine-only, not just unverified: `gh api commits/714bff9` = 422 (not on GitHub at all), `git cat-file -t 714bff9` fails in this machine's own `claude-token-tracker` clone (doesn't exist there either), and no commit mentioning "Stryker" appears anywhere in the 100 most recent commits reachable from `terminal-project-cwd` or in PR #1's own commit list. It exists only wherever it was originally authored (presumably the home machine) and was never pushed anywhere this account can reach. [action: push it from whichever machine has it, next time you're there - nothing further to investigate from this machine]
 - TokenMonitor: open PR #1 "Terminal project folder + repo CLAUDE.md so Claude has context" - still open, last updated 2026-07-19 (now 15 days stale, unchanged this run). Tracking only.
@@ -28,6 +27,7 @@ runs_since_retro: 8
 (none)
 
 ## Resolved since last run
+- Aether-OS: cleaned up the 3 branches the verification run found. `reactor-redesign-stage8` (0 ahead/147 behind) and `test-2026-07-24` (0 ahead/385 behind) were pure dead weight - deleted. `closing-the-loop`'s 1 "unmerged" commit turned out to be a merge commit with 0 file changes (a duplicate merge point - the content it ties together is already in master via a different path, not real unmerged work) - deleted too, no actual work lost. Repo now genuinely down to just `master`.
 - TarotApp GitHub-verified genuinely clean: only `master` remains (no stray branches) - confirms the branch cleanup described below actually stuck.
 - tarot GitHub-verified genuinely clean: only `master` remains.
 - TokenMonitor GitHub-verified genuinely clean: only `master` plus the two branches legitimately backing open PRs #1/#2 remain - no orphan branches slipped back in.
