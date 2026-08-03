@@ -8,9 +8,10 @@ last_run: 2026-08-03
 runs_since_retro: 7
 ---
 ## High Priority (waiting on human)
-- NMMTools: `feature/jira-setup-dialog` inactive 35 days (last commit 06-29). Flagged 7 consecutive runs with zero human action — escalating from Watch List. [action: explicit decision needed - merge, keep, or delete]
+(none - see Human Decisions: jira-setup-dialog is held intentionally)
 
 ## Watch List
+- NMMTools: `feature/jira-setup-dialog` inactive 35 days (last commit 06-29). Held per Human Decisions - user is working on it soon. [action: none, tracking only]
 - tarot: same 6 non-master branches still >14 days inactive - `portfolio-phase1`/`security-hardening` (31 days), `joint-second-order-hardening` (29 days), `portfolio-phase2`/`portfolio-phase3`/`portfolio-tscheck` (30 days). Unchanged tip commits since last run. NEW: `swap-thoth-to-plate-keeps` (last commit 07-18, 16 days) has now also crossed the 14-day threshold - previously the active branch with a clean working tree. [action: review and prune stale branches]
 - TarotApp: NEW - 5 of 6 non-master branches are >14 days inactive: `android-prompt-injection-parity`/`fix-android-image-manifest`/`joint-second-order-hardening` (29 days), `swap-thoth-to-plate-keeps` (21 days), `android-deck-parity` (20 days). First full branch audit of this repo. [action: review and prune stale branches]
 - TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) confirmed still absent from `mwgrant21/TarotApp` remote (verified via `gh api commits/<sha>` = 422 not found). No local clone on this machine to push from. [action: confirm intentional; push when ready from the machine holding these commits]
@@ -28,7 +29,7 @@ runs_since_retro: 7
 - TokenMonitor PR #1 re-flagged though it is the user's own active PR - mark [FP] if tracking own fresh PRs is noise. (Unmarked 5 runs running.)
 
 ## Human Decisions (overrides the loop must respect)
-(none set)
+- NMMTools `feature/jira-setup-dialog`: holding intentionally, user is working on it soon (set 2026-08-03). Stop escalating as High Priority; keep as a quiet Watch List tracking line until it moves or the user says otherwise.
 
 ## Resolved since last run
 - nmmtools: untracked `testResults.xml` resolved - repo now gitignores it (commit "chore: ignore Pester -CI testResults.xml").
