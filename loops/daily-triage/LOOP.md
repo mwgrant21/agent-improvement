@@ -17,6 +17,19 @@ L2 also requires worktree isolation. Not active at L1.
      open issues, open PRs and their age, branches with no activity > 14 days.
      Read-only. Command shapes: `gh search issues --owner mwgrant21 --state open`,
      `gh pr list -R mwgrant21/<repo> --json number,title,updatedAt`.
+     Branch-staleness cache (added 2026-08-03, after 5 multi-branch repos hit
+     their first full audit and the per-branch lookup got costly): list each
+     repo's branches with name + tip SHA in one call
+     (`gh api repos/mwgrant21/<repo>/branches --jq '.[] | {name,sha:.commit.sha}'`),
+     then diff against the `notes.branch_tips` map recorded in the most recent
+     `runs.jsonl` line (read the file tail, not a re-fetch). A branch whose tip
+     SHA is unchanged since last run cannot have gained new activity, so its
+     previously-recorded last-commit date is still correct - skip the
+     per-branch commit-date call for it and reuse that date. Only spend a
+     `gh api repos/mwgrant21/<repo>/commits/<sha>` call on branches that are new
+     or whose SHA changed. Carry the full current `{repo: {branch: {sha, date}}}`
+     map into this run's own `notes.branch_tips` (step 3) so the next run has
+     something to diff against.
    - **Token spend**: `node ~/agent-improvement/scripts/spend-summary.mjs`
      (yesterday + today), plus a second invocation with today's date only
      (`... spend-summary.mjs $(today as YYYY-MM-DD)`) for today's total.
@@ -39,7 +52,9 @@ L2 also requires worktree isolation. Not active at L1.
    `notes` object with today's spend metrics from step 1, e.g.
    `"notes":{"output_tokens_today":99700,"cache_hit_rate":0.944}` (today-only
    figures, not the two-day window) — this is the baseline the 2x-median
-   spend flag reads on later runs. Set `last_run`
+   spend flag reads on later runs. Also include this run's full
+   `branch_tips` map (`{repo: {branch: {sha, date}}}`) from step 1's
+   staleness cache, so the next run can diff against it. Set `last_run`
    to today, increment `runs_since_retro`.
 4. Return the digest: High Priority first, then Watch List, then one-line
    source summaries. End the FINAL message with the post-run critique

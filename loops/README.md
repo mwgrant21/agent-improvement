@@ -37,7 +37,10 @@ loops/<loop-name>/
 
 `notes` is an optional object for per-run metrics that later runs use as
 baselines (e.g. daily-triage records `output_tokens_today` and
-`cache_hit_rate` so its 2x-median spend flag has history to compare against).
+`cache_hit_rate` so its 2x-median spend flag has history to compare against;
+it also records a `branch_tips` map of `{repo: {branch: {sha, date}}}` so the
+next run can skip re-fetching commit dates for branches whose tip SHA hasn't
+moved).
 
 Append-only. Never rewrite or delete lines.
 
