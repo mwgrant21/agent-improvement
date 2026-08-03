@@ -24,3 +24,20 @@ itself). Format per `README.md` in this directory.
   "dist/**"]` and ported upstream to the skill's template before Task 3's full
   run confirmed a real 74.81% baseline.
 - Added: 2026-07-21 (home-matt)
+
+### Test runner config must exclude `.worktrees/**` or false failures appear
+
+- When a project uses git worktrees for parallel task execution (e.g. under
+  `.worktrees/` or `.claude/worktrees/`), the test runner's config (e.g.
+  `vite.config.ts`/`vitest.config.ts` exclude list) must exclude that directory.
+  Otherwise running the suite from the main checkout also picks up and runs the
+  copies of the suite living inside each worktree, producing spurious failures
+  that look like real regressions.
+- Why: worktrees are full working copies on disk; without an explicit exclude,
+  glob-based test discovery treats them as more source/test files to run,
+  masking the real signal with noise from in-progress or stale worktree state.
+- Evidence: 2026-08-02 session (TokenMonitor, model-policy-stage11.5) - "`npm
+  test` from the main checkout falsely reports 42 failures because
+  `vite.config.ts`'s exclude list doesn't skip `.worktrees/**`, so it also runs
+  the copies of the suite living in" the worktrees.
+- Added: 2026-08-02 (home-matt)

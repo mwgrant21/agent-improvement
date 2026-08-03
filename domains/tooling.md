@@ -51,3 +51,22 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   Task 3, with an explicit Global Constraints note added explaining the
   ordering.
 - Added: 2026-07-24 (home-matt)
+
+### Verify a research fork actually did real work before trusting its report
+
+- A dispatched research fork/subagent can return a report without having made
+  any real tool calls (no fetch, no file reads) - it just produces plausible-
+  sounding prose. Before trusting a research subagent's findings, check that it
+  shows evidence of real work (fetched URLs, read files, concrete quotes); if
+  it looks thin or generic, relaunch it with explicit instructions to make real
+  tool calls rather than accepting the first report.
+- Why: an ungrounded "research" report is indistinguishable from a grounded one
+  by tone alone, and downstream decisions (evaluate-repo verdicts, design specs)
+  inherit its errors silently.
+- Evidence: corroborated twice - 2026-07-30 session (Aether-OS, evaluate-repo
+  fork) "The first fork returned without doing any actual research, so I
+  relaunched it to fetch and analyze the repo for real"; 2026-07-30 session
+  (code-graph-mcp design research) "The first research attempt returned
+  immediately without doing any actual work, so I relaunched it with explicit
+  instructions to make real tool calls."
+- Added: 2026-08-02 (home-matt)

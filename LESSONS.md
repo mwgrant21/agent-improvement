@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-07-29
+last-updated: 2026-08-02
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -47,3 +47,5 @@ at work).
 | app-dev | A stale compiled `.js` file can silently shadow its `.ts` source in dev vs. packaged Electron modes | 2026-07-29 |
 | verification | A final whole-branch review is required after task-level reviews - catches cross-task bugs | 2026-07-29 |
 | security | Warn before a secret enters the chat transcript, offer the `!`-command alternative | 2026-07-29 |
+| testing | Test runner config must exclude `.worktrees/**` or false failures appear | 2026-08-02 |
+| tooling | Verify a research fork actually did real work before trusting its report | 2026-08-02 |
