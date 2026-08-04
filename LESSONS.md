@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-03
+last-updated: 2026-08-04
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -51,3 +51,5 @@ at work).
 | tooling | Verify a research fork actually did real work before trusting its report | 2026-08-02 |
 | testing | Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail | 2026-08-03 |
 | app-dev | Before calling an Electron blank-screen bug a code regression, check the build output is actually complete | 2026-08-03 |
+| app-dev | A static name-keyed lookup table silently drops namespaced/plugin-scoped variants of the key | 2026-08-04 |
+| app-dev | Snapshot a rolling baseline before recording the new value, not after | 2026-08-04 |

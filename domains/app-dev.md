@@ -101,6 +101,38 @@ Format per `README.md` in this directory.
   re-verified.
 - Added: 2026-07-29 (work-it)
 
+### A static name-keyed lookup table silently drops namespaced/plugin-scoped variants of the key
+
+- When a lookup table maps subagent/tool identifiers to behavior (e.g. a role or
+  voice map keyed by bare name like `code-reviewer`), check whether the real
+  dispatch strings can also arrive namespaced (e.g. `pr-review-toolkit:code-reviewer`).
+  A table with only the bare name silently falls through to the default/fallback
+  entry for every namespaced variant, with no error - add the namespaced forms
+  explicitly rather than assuming exact-match coverage.
+- Why: this is the same defect class as [[persisted-state-whitelists-silently-drop-new-fields]]
+  (a whitelist/lookup gate silently drops unlisted variants instead of erroring) applied
+  to a different lookup mechanism - static name-keyed maps, not persistence whitelists.
+- Evidence: 2026-08-04 session (aether-os Stage 12 voice packs follow-up) - `ROLE_MAP`
+  in `agentVoiceRoles.ts` only had plain names, so `pr-review-toolkit:code-reviewer`
+  fell through to the FORGE fallback; validated against real production transcripts
+  showing 44 real dispatches for the plugin-scoped form vs. 2 for the unmapped variant.
+- Added: 2026-08-04 (home-matt)
+
+### Snapshot a rolling baseline before recording the new value, not after
+
+- When computing a metric relative to a rolling baseline (e.g. "is this duration
+  slower than the median for this type"), read/snapshot the baseline BEFORE
+  updating it with the current observation, then record the observation after.
+  Recording first and comparing second makes every observation partially compare
+  against itself, skewing the metric toward "normal" no matter how anomalous the
+  real value is.
+- Why: self-comparison silently defeats the purpose of the baseline - the bug
+  produces no error, just quietly wrong severity/anomaly output.
+- Evidence: 2026-08-04 session (aether-os Stage 12 severity wiring) - `durationBaseline.ts`
+  implementation required getting `getMedianMs` before `recordDuration` in the same
+  tick to avoid the current sample skewing its own comparison.
+- Added: 2026-08-04 (home-matt)
+
 ### Extend a well-tested data pipeline with an optional out-param and render-time lookups, not by changing its return type or coupling arrival order
 
 - Two techniques for adding new derived data to code that other tests/consumers
