@@ -75,3 +75,24 @@
   calls... That agent appears to have been describing a different/hypothetical
   toolkit, not this one."
 - Added: 2026-07-20 (home-matt)
+
+### In a live, irreversible-risk incident, demand real diagnostic output before recommending any next step
+
+- During active incident response where a wrong guess could turn a
+  recoverable state into an unrecoverable one (e.g. a boot failure mid-
+  remediation), do not infer the system's state or suggest a fix from
+  what's merely plausible - ask for the actual command output (partition
+  table, `bcdedit /enum firmware`, directory listings) and wait for it
+  before recommending or issuing the next step, even under the user's time
+  pressure.
+- Why: this is distinct from post-hoc artifact inspection (see "Inspect the
+  artifact itself, not proxies" above) - it's about withholding action
+  during a live, high-blast-radius incident until the real state is
+  confirmed, not about how a finished output was verified afterward.
+- Evidence: 2026-08-04 session (EFIPartitionRemediation boot-failure
+  incident) - repeatedly declined to recommend boot-menu/BCD choices from
+  inference alone: "I'd rather confirm than have you guess under time
+  pressure," and asked for `diskpart list volume`, `dir D:\Windows`, and
+  `bcdedit /enum firmware` output at each step rather than acting on the
+  probable diagnosis.
+- Added: 2026-08-04 (work-it)

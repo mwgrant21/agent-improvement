@@ -44,3 +44,24 @@ credential handling, sandboxing) confirmed across projects. Format per
   after the test run, or switch to the `!`-command method" before the user
   pasted an `sk-ant-` key.
 - Added: 2026-07-29 (work-it)
+
+### A suspected secret in git history is a human-decision escalation, not an autonomous investigation
+
+- When a suspected real credential (e.g. a keystore password) may have been
+  committed to a still-public repo's history, escalate it as a High Priority
+  item for the user to confirm and decide on (was a real secret exposed? is a
+  history rewrite + credential rotation warranted?) rather than digging
+  further or attempting a fix autonomously. History rewrites (BFG/`git
+  filter-repo`) and credential rotation are high-stakes, hard-to-reverse
+  actions that need the repo owner's call, not an agent's.
+- Why: an agent-led investigation or rewrite of git history for a suspected
+  leaked secret risks acting on an unconfirmed finding with an irreversible
+  tool; the correct first move is surfacing the question, not answering it.
+- Evidence: 2026-08-03 session (TarotApp daily-triage sweep) - a possible
+  keystore password in a public commit was flagged and escalated as High
+  Priority with the explicit questions "was the real keystore password ever
+  committed to a still-public commit, and if so, is a history rewrite... plus
+  a fresh credential rotation warranted?" rather than acted on directly;
+  later closed out only after the finding was confirmed (no real secret was
+  ever actually committed).
+- Added: 2026-08-04 (work-it)

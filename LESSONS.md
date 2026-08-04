@@ -53,3 +53,5 @@ at work).
 | app-dev | Before calling an Electron blank-screen bug a code regression, check the build output is actually complete | 2026-08-03 |
 | app-dev | A static name-keyed lookup table silently drops namespaced/plugin-scoped variants of the key | 2026-08-04 |
 | app-dev | Snapshot a rolling baseline before recording the new value, not after | 2026-08-04 |
+| security | A suspected secret in git history is a human-decision escalation, not an autonomous investigation | 2026-08-04 |
+| verification | In a live, irreversible-risk incident, demand real diagnostic output before recommending any next step | 2026-08-04 |
