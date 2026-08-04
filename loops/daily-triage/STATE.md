@@ -4,13 +4,17 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-08-03
-runs_since_retro: 8
+last_run: 2026-08-04
+runs_since_retro: 9
 ---
 ## High Priority (waiting on human)
 (none)
 
 ## Watch List
+- TokenMonitor (this repo, `~/projects/TokenMonitor`): substantial uncommitted WIP on `terminal-project-cwd` - modified `README.md`, `package-lock.json`, `src/main/ipcHandlers.js`, `src/preload/preload.js`, `src/renderer/dashboard/panels/settingsPanel.js`, `src/renderer/index.html`, plus untracked `packages/`, `src/main/latestVersionReader.js`, `src/shared/versionCheck.js`, 2 new tests, 5 plan docs, and `.claude/`. Also an untracked 0-byte junk file literally named `}` (Jul 31, likely a shell-redirect typo) sitting at repo root. [action: commit/organize the WIP when ready; delete the stray `}` file]
+- tarot (`~/projects/tarot`): large uncommitted WIP - deck asset overhaul (rune/iching image renames+deletes, new "carried-set"/"found-set" files, several JS/route files modified). Not yet reviewed as a discrete change. [action: none yet, tracking only - review when the deck work is deemed complete]
+- Miriels-publish (`~/projects/Miriels-publish`): large uncommitted WIP, same deck-overhaul pattern as tarot (card JSON renames/deletes, matching JS/route changes). [action: none yet, tracking only]
+- nmmtools (`~/projects/nmmtools`, `master`): untracked `testResults.xml` has REGRESSED - a prior run (see Resolved) recorded this as fixed via `.gitignore`, but it's untracked again this run. [action: check whether the gitignore commit didn't reach this clone, or something removed the rule]
 - TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) confirmed still absent from `mwgrant21/TarotApp` remote (verified via `gh api commits/<sha>` = 422 not found). No local clone on this machine to push from. [action: confirm intentional; push when ready from the machine holding these commits]
 - TokenMonitor: `terminal-project-cwd`'s "feat: adopt Stryker Mutator" commit (`714bff9`) is CONFIRMED local-machine-only, not just unverified: `gh api commits/714bff9` = 422 (not on GitHub at all), `git cat-file -t 714bff9` fails in this machine's own `claude-token-tracker` clone (doesn't exist there either), and no commit mentioning "Stryker" appears anywhere in the 100 most recent commits reachable from `terminal-project-cwd` or in PR #1's own commit list. It exists only wherever it was originally authored (presumably the home machine) and was never pushed anywhere this account can reach. [action: push it from whichever machine has it, next time you're there - nothing further to investigate from this machine]
 - TokenMonitor: open PR #1 "Terminal project folder + repo CLAUDE.md so Claude has context" - still open, last updated 2026-07-19 (now 15 days stale, unchanged this run). Tracking only.
@@ -21,10 +25,10 @@ runs_since_retro: 8
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
-- TokenMonitor PR #1 re-flagged though it is the user's own active PR - mark [FP] if tracking own fresh PRs is noise. (Unmarked 6 runs running now - recommend converting to a Human Decision instead of re-flagging indefinitely.)
+(none new this run)
 
 ## Human Decisions (overrides the loop must respect)
-(none)
+- TokenMonitor PR #1 ("Terminal project folder + repo CLAUDE.md") is the user's own active PR, unmarked as noise for 7 runs running - promoted here per the last 2 runs' critiques. Track presence/staleness only, do not re-flag as an open question each run.
 
 ## Resolved since last run
 - Aether-OS: cleaned up the 3 branches the verification run found. `reactor-redesign-stage8` (0 ahead/147 behind) and `test-2026-07-24` (0 ahead/385 behind) were pure dead weight - deleted. `closing-the-loop`'s 1 "unmerged" commit turned out to be a merge commit with 0 file changes (a duplicate merge point - the content it ties together is already in master via a different path, not real unmerged work) - deleted too, no actual work lost. Repo now genuinely down to just `master`.
