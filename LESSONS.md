@@ -56,3 +56,7 @@ at work).
 | security | A suspected secret in git history is a human-decision escalation, not an autonomous investigation | 2026-08-04 |
 | verification | In a live, irreversible-risk incident, demand real diagnostic output before recommending any next step | 2026-08-04 |
 | security | When retiring a paid-API integration, check for key leakage into spawned child processes, not just the SDK call path | 2026-08-05 |
+| powershell | Gate a rescue script on the operation, not a snapshotted identifier | 2026-08-05 |
+| powershell | A diagnostic must refuse on an unmet precondition, not emit noise | 2026-08-05 |
+| powershell | Build fleet rescue USBs from full install media, not minimal WinPE | 2026-08-05 |
+| verification | Validation machines must match the fleet security-agent config | 2026-08-05 |

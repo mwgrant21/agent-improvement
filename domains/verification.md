@@ -96,3 +96,22 @@
   `bcdedit /enum firmware` output at each step rather than acting on the
   probable diagnosis.
 - Added: 2026-08-04 (work-it)
+
+### Validation machines must represent the fleet's security-agent configuration
+
+- Before declaring a fleet-wide change validated, confirm the pilot machines carry
+  the same EDR/AV/security agent configuration as the fleet. If they do not, the
+  validation proves nothing about the machines that will actually receive it, and
+  an agent exclusion or suspension may be an unwritten prerequisite for the whole
+  rollout.
+- Why: security agents intercept exactly the low-level operations (process
+  creation, disk/partition writes, driver load) that fleet remediation scripts
+  perform, so an endpoint with an agent is a materially different target than one
+  without - a distinction invisible in a pass/fail validation report.
+- Evidence: 2026-08-04 sessions (EFIPartitionRemediation, Andrew's laptop) - Phase1
+  killed a critical process twice on the same machine while the machines that had
+  "validated cleanly" apparently did not represent the fleet. The EDR interaction
+  itself remained a hypothesis pending a memory dump, but the representativeness
+  gap was established regardless: "that's a prerequisite nobody has written down
+  yet."
+- Added: 2026-08-05 (work-it)

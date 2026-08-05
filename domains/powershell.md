@@ -87,3 +87,51 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   SessionStart trigger would never fire again. Fixed by validating
   `$lastRun -match '^\d{4}-\d{2}-\d{2}$'` and defaulting to `1970-01-01` otherwise.
 - Added: 2026-07-14 (home-matt)
+
+### Gate a rescue/remediation script on what the operation implies, not on an identifier snapshotted earlier
+
+- When a script guards a destructive operation, prefer a guard derived from the
+  operation itself (partition size, type GUID, presence of the file being replaced)
+  over one that matches an identifier captured at an earlier point in time (volume
+  serial, drive letter, saved partition number). Snapshot identifiers go stale
+  exactly when the recovery path is needed.
+- Why: a stale-identity guard reads as safety but is really a time bomb - it refuses
+  to run, or worse targets the wrong object, precisely in the recovery scenario it
+  was written for.
+- Evidence: 2026-08-04 sessions (EFIPartitionRemediation / BootRescue incident).
+  `3-FLIP-ESPTYPE.cmd` gated on volume serial `5408-4987`; reformatting the ESP
+  produces a new serial, so the rescue script would have correctly refused to run
+  mid-incident on the machine it existed to rescue. Same class: a stale
+  `NewESPPartitionNumber` in saved state, and diskpart section labels that were
+  correct when written and wrong when used. Fix applied was parameterizing on
+  `/part` + `/size` - properties of the partition being operated on.
+- Added: 2026-08-05 (work-it)
+
+### A diagnostic script must refuse on an unmet precondition, not plough on emitting errors
+
+- Check the one precondition every section depends on (disk online, service
+  running, share reachable) at the top and exit with a clear message naming it.
+  Do not let the script run all its sections and emit a wall of
+  "cannot find the path specified".
+- Why: a diagnostic that fails quietly into noise is worse than one that refuses -
+  mid-incident the operator must read a dozen misleading failures to infer the one
+  real cause, and may misdiagnose from them.
+- Evidence: 2026-08-04 session (EFIPartitionRemediation) - the collection script
+  ran through twelve sections producing path errors while disk 0 was simply
+  offline; agent noted "a diagnostic tool that fails quietly into noise is worse
+  than one that refuses."
+- Added: 2026-08-05 (work-it)
+
+### Build a fleet rescue USB from full Windows install media, not a minimal WinPE image
+
+- Standardize rescue/recovery media on full Windows install media matching the
+  target build. A stripped Rufus/WinPE image silently lacks common tools and
+  storage drivers.
+- Why: the missing tool is discovered mid-incident on someone's unbootable laptop,
+  which is the worst possible time to find out.
+- Evidence: 2026-08-04 session (EFIPartitionRemediation boot incident) - a minimal
+  WinPE image lacked expected tools and could not read disk 0; the working
+  hypothesis became "switch to install media that ships broader storage drivers,"
+  which is a completely different remediation path than the BCD repair being
+  attempted.
+- Added: 2026-08-05 (work-it)
