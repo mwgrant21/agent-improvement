@@ -65,3 +65,23 @@ credential handling, sandboxing) confirmed across projects. Format per
   later closed out only after the finding was confirmed (no real secret was
   ever actually committed).
 - Added: 2026-08-04 (work-it)
+
+### When retiring a paid-API integration, check for key leakage into spawned child processes, not just the direct SDK call path
+
+- Removing a feature's direct SDK usage (imports, API calls) is not sufficient
+  to guarantee no more calls can happen. If the app auto-launches a child
+  process or pty (e.g. a `claude` CLI session) that inherits the parent's
+  environment, a leftover `ANTHROPIC_API_KEY` (or similar) in that environment
+  lets the child make paid calls even after the integration code is deleted.
+  Scrub the env var from the spawn call, not just delete the SDK code.
+- Why: a final whole-branch review that traced "does *any* path remain for a
+  paid API call" (rather than trusting the removal PR's own test) found this
+  exact gap - the actual mechanism most likely behind the incident that
+  prompted the teardown in the first place.
+- Evidence: 2026-08-04 session (TokenMonitor Chat-feature teardown branch,
+  Task 2/final-review fix wave) - `ANTHROPIC_API_KEY` was still present in the
+  environment of an auto-launched `claude` pty after the Chat feature's SDK
+  code, `.env` key loading, and IPC surface were removed; scrubbing it from
+  the pty spawn closed the last live path, independently re-verified in a
+  scoped re-review.
+- Added: 2026-08-05 (home-matt)

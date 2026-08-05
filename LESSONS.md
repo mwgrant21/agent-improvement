@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-04
+last-updated: 2026-08-05
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -55,3 +55,4 @@ at work).
 | app-dev | Snapshot a rolling baseline before recording the new value, not after | 2026-08-04 |
 | security | A suspected secret in git history is a human-decision escalation, not an autonomous investigation | 2026-08-04 |
 | verification | In a live, irreversible-risk incident, demand real diagnostic output before recommending any next step | 2026-08-04 |
+| security | When retiring a paid-API integration, check for key leakage into spawned child processes, not just the SDK call path | 2026-08-05 |
