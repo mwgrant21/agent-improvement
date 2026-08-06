@@ -87,3 +87,44 @@ modifying any loop.
 - Why: without history you cannot debug, tune, or grade a loop.
 - Evidence: imported from loop-engineering anti-pattern #10, 2026-07-13.
 - Added: 2026-07-13 (home-matt)
+
+### A loop must assert its scan root exists - a missing root reports as "nothing found"
+
+- Any loop step that enumerates a directory, glob, or repo list must verify the
+  root actually exists on THIS machine and report "source unavailable" when it
+  does not. A scan of a path that isn't there returns an empty set, which is
+  indistinguishable in the run log from a scan that genuinely found nothing.
+- The same applies to state carried between runs: an entry naming a clone that
+  exists only on the other machine gets re-checked and re-reported clean forever.
+  Tag each such entry with its owning `machineId` so a run on the wrong machine
+  skips it explicitly instead of silently passing it.
+- Why: these home directories differ (`mwgrant21` / `matthewgr` / `work-it`) and
+  so do the repo layouts, so any hardcoded scan root is a machine assumption. The
+  loop keeps reporting green while an entire source of findings is dead - the
+  same silent-zero failure class as
+  [[a-mis-scoped-ignorepatterns-can-silently-zero-out]].
+- Evidence: 2026-08-06 session (agent-improvement) - daily-triage's LOOP.md step 1
+  scanned `~/projects/*`, which does not exist on `work-it`; without a correction
+  it "would have reported local repo hygiene as a dead source." The same run found
+  four state entries (tarot, Miriels-publish, nmmtools, TarotApp) pointing at
+  clones absent from this machine and carried forward unverified every run.
+- Added: 2026-08-06 (work-it)
+
+### When two loops share one git-backed store, neither may end a pass with a dirty tree
+
+- If more than one loop writes to the same repo (e.g. daily-triage and agent-learn
+  both writing under `~/agent-improvement`), every pass must finish with
+  commit-and-push in the same run. Leaving edits uncommitted is not a neutral
+  "I'll finish later" state - it breaks the OTHER loop's opening
+  `git pull --rebase` guard, so the second loop fails or stalls on dirt it did
+  not create and cannot attribute.
+- Why: the loops are independently scheduled and neither can see the other's
+  intent. A dirty tree turns a shared store into a lock that nothing releases,
+  and the failure lands on whichever loop happens to run next - never on the one
+  that caused it. This is the git-level counterpart of
+  [[one-state-file-per-loop]].
+- Evidence: 2026-08-06 session (agent-improvement) - repeated pauses at "change is
+  uncommitted (` M domains/app-dev.md`), want me to commit and push it?" while a
+  second loop shared the same repo; noted that one loop leaving dirt "breaks the
+  *other* loop's `pull --rebase` guard."
+- Added: 2026-08-06 (work-it)

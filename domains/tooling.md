@@ -88,3 +88,24 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   under `TokenMonitorV2`, then corrected in the two later tasks carrying the same
   instruction.
 - Added: 2026-08-06 (work-it)
+
+### A config-snapshot repo whose documented recipe stops at "commit" protects nothing
+
+- For a repo whose job is to mirror live config for another machine
+  (`claude-config` mirroring `~/.claude`, dotfile snapshots, exported settings),
+  the update procedure must end at PUSH, and the README must say so. A recipe
+  that stops at "copy the file here and commit" buys local version history and
+  zero cross-machine protection - which is the entire reason the repo exists.
+- What to do: before trusting any such snapshot, DIFF it against the live file
+  rather than reading its commit date; a snapshot can be days stale in content
+  while looking maintained. Then fix the recipe, not just the drift.
+- Why: the drift is invisible from the side that matters. The machine that needs
+  the config never sees a missing push - it just quietly runs an old
+  configuration, and the failure surfaces as "why doesn't my hook exist over
+  here" weeks later.
+- Evidence: 2026-08-06 session (claude-config) - the snapshot was last updated
+  2026-07-22 and was missing the `PostToolUse` and `Notification` hook blocks
+  plus three top-level keys, so a portability fix made that day did not reach
+  the home machine at all. Root cause traced to the README's own instruction,
+  "Update by copying the live file(s) here and committing" - no push step.
+- Added: 2026-08-06 (work-it)

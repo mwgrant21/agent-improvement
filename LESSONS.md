@@ -64,5 +64,12 @@ at work).
 | testing | `[System.IO.File]` statics are not mockable in Pester 3 - declare the untestable path | 2026-08-06 |
 | verification | A read-back verifier comparing the last physical line is defeated by multi-line records | 2026-08-06 |
 | verification | A defect authored into the plan survives faithful implementation - do not prime the reviewer | 2026-08-06 |
-| security | Removing a secret from the build does not rotate the secret already deployed | 2026-08-06 |
+| security | Removing a secret from the build - or gitignoring it - does not rotate the secret | 2026-08-06 |
 | tooling | Scope a process-kill step by install path or PID, not by process name | 2026-08-06 |
+| testing | Pester 5 alongside Pester 3 reports 0 passed regardless of suite state | 2026-08-06 |
+| testing | Exercise cleanup and teardown on a failing run, not just a passing one | 2026-08-06 |
+| verification | Grep finds stale filenames, not stale concepts - read operator-facing strings | 2026-08-06 |
+| verification | Tell the reviewer which failures are meant to fail open | 2026-08-06 |
+| tooling | A config-snapshot repo whose recipe stops at "commit" protects nothing | 2026-08-06 |
+| loop-design | A loop must assert its scan root exists - a missing root reports as "nothing found" | 2026-08-06 |
+| loop-design | Two loops sharing a git-backed store must never end a pass with a dirty tree | 2026-08-06 |

@@ -161,3 +161,49 @@
   both were faithfully implementing the plan"; a later suspected plan-level defect
   was deliberately withheld from the reviewer to test unprompted detection.
 - Added: 2026-08-06 (work-it)
+
+### Grep finds stale filenames; it does not find stale concepts - read the operator-facing strings
+
+- After deleting, merging, or renaming a script, grepping the repo for the old
+  FILENAME proves only that no reference shaped like a filename survives. A
+  stale instruction that names the removed thing by concept - "run the
+  pre-flight first", "the gates live in the checker script" - matches no
+  pattern and sails straight through a clean grep.
+- What to do: for operator-facing text (READMEs, prompts, on-screen
+  instructions, runbooks), READ the strings rather than search them, and treat
+  "grep came back empty" as covering the mechanical half of the audit only. When
+  an audit method has already missed once, put a second pair of eyes on the
+  conclusion, not just on the fix.
+- Why: the failure is silent and lands on the operator, who follows a documented
+  step that no longer exists. It also produces false confidence: an empty grep
+  reads as a completed sweep.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - filename matching found the
+  first stale instruction and missed the second, which referred to "the
+  pre-flight" as a concept; a follow-up implementer's "nothing else found" claim
+  did not survive checking either. Related: prime the reviewer at the weak claim
+  per [[direct-reviewers-at-the-single-highest-risk-claim]].
+- Added: 2026-08-06 (work-it)
+
+### Tell the reviewer which failures are meant to fail OPEN, or correct behaviour gets flagged as a defect
+
+- In a codebase where nearly everything fails closed, a reviewer pattern-matches
+  "fail closed = correct" and will report a deliberately fail-open path as a bug.
+  Before dispatch, name the steps that are best-effort - forensics, telemetry,
+  optional logging, a diagnostic registry setting - and state that their failure
+  must NOT abort the operation.
+- What to do: classify each guard as blocking a *correctness/safety
+  precondition* (fail closed) or degrading *observability* (fail open), and put
+  that classification in the reviewer's brief and in the code comment. A machine
+  whose registry will not accept a forensics setting is still perfectly
+  operable; it just yields worse evidence if something goes wrong.
+- Why: the cost is not only a wasted finding. Acting on it converts a working
+  path into a refusal, so a review pass can make the tool strictly less usable
+  while appearing to harden it. Note this is the mirror of
+  [[a-defect-authored-into-the-plan-survives-faithful-implementation]] - stay
+  silent about suspected spec defects, but be explicit about intended
+  fail-open behaviour.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - a reviewer brief was written
+  to head this off: "Everything else in this codebase fails closed, so a
+  reviewer pattern-matching on 'fail closed = correct' could easily mark the
+  right behaviour as a defect here."
+- Added: 2026-08-06 (work-it)

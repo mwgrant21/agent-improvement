@@ -86,12 +86,17 @@ credential handling, sandboxing) confirmed across projects. Format per
   scoped re-review.
 - Added: 2026-08-05 (home-matt)
 
-### Removing a secret from the build does not rotate the secret already deployed
+### Removing a secret from the build - or gitignoring it - does not rotate the secret
 
 - A branch that strips a hardcoded token from the source and stops future builds
   from bundling it changes nothing about the copy already sitting in the install
   directory of every machine deployed before the fix. The vulnerability window
   does not close at merge; it closes at rotation.
+- The same holds for the containment moves that feel like fixes: adding a
+  `.gitignore` rule for an untracked `.env`, un-staging a file, or deleting it
+  from the working tree. Ignored is not rotated. Those steps stop the NEXT
+  exposure; they say nothing about whether the key is still live or who has
+  already seen it.
 - What to do: treat "stop shipping it" and "rotate it" as two separate items and
   say so explicitly. Keep rotation out of the automated scope - it is a human
   decision with blast radius - but never let the merged fix imply the exposure is
@@ -102,6 +107,10 @@ credential handling, sandboxing) confirmed across projects. Format per
 - Evidence: 2026-08-05 sessions (TokenMonitorV2) - a deployed GitHub token
   remained live on already-deployed machines after the branch removed it from the
   build; flagged repeatedly as out of scope and still outstanding at session end.
+  Corroborated 2026-08-06 (Aether-OS) - an untracked `.env` holding a possibly-live
+  key was protected only by never having been staged; adding the `.gitignore` rule
+  closed the exposure route and was explicitly recorded as not closing the key
+  ("Ignored != rotated"). Both remained open credential decisions for the user.
   See [[when-retiring-a-paid-api-integration-check-for-key-leakage]] for the
   companion case on the same project.
-- Added: 2026-08-06 (work-it)
+- Added: 2026-08-06 (work-it), updated 2026-08-06 (work-it)

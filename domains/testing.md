@@ -78,3 +78,42 @@ itself). Format per `README.md` in this directory.
   branch of a `WriteAllText` read-back verifier was declared untestable in the
   ledger rather than covered with a substitute failure.
 - Added: 2026-08-06 (work-it)
+
+### Pester 5 installed alongside Pester 3 reports 0 passed regardless of suite state
+
+- On machines carrying both Pester 3.4.0 (the Windows in-box module) and Pester
+  5.7.1, a suite written for Pester 3 run under 5 reports **0 passed** - not an
+  error, not a load failure, just zero. A wrong-version run is therefore
+  indistinguishable from having deleted or broken the entire suite.
+- What to do: pin the version explicitly (`Import-Module Pester -RequiredVersion
+  3.4.0`) in the runner, and warn any dispatched reviewer or implementer about
+  this before they run the suite. If a previously-green suite suddenly reports 0
+  passed, check the loaded module version BEFORE investigating the code.
+- Why: every other test failure mode this environment produces is loud. This one
+  is silent and points the investigation at the wrong artifact - the natural
+  reaction to "0 passed" is to go looking for what the last change destroyed.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - surfaced by a task reviewer
+  and thereafter included as an explicit warning in later reviewer briefs:
+  "under it the entire suite reports 0 passed regardless of state. Without that
+  warning, a wrong-Pester run looks exactly like having destroyed 113 tests."
+- See also [[system-io-file-statics-are-not-mockable-in-pester-3]] for the other
+  Pester-3 constraint this environment keeps hitting.
+- Added: 2026-08-06 (work-it)
+
+### Exercise cleanup and teardown on a FAILING run, not just a passing one
+
+- When a test or script sets up destructive/invasive state to exercise a path (a
+  Deny ACL, a stopped service, a renamed file, a mounted volume), verify that its
+  cleanup also runs when the body FAILS or is aborted - not only on the happy
+  path. Cleanup placed after the assertions, rather than in a `finally`/trap, is
+  the default mistake and it is invisible while everything passes.
+- Why: the artifact left behind lands on a real workstation, and it is left
+  behind precisely on the runs that were already going badly. A Deny ACL or a
+  half-mounted volume surviving an aborted test is a worse outcome than the
+  failure that caused it.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - a reviewer was explicitly
+  asked to "assess cleanup on a failing run, not just a passing one" for a test
+  that applied a Deny ACL to force a permission-denied path; the same session
+  also forced that failure path with a real Deny ACL rather than reasoning about
+  it, per [[prove-a-new-regression-detecting-check-is-not-vacuous]].
+- Added: 2026-08-06 (work-it)
