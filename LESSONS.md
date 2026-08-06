@@ -73,3 +73,4 @@ at work).
 | tooling | A config-snapshot repo whose recipe stops at "commit" protects nothing | 2026-08-06 |
 | loop-design | A loop must assert its scan root exists - a missing root reports as "nothing found" | 2026-08-06 |
 | loop-design | Two loops sharing a git-backed store must never end a pass with a dirty tree | 2026-08-06 |
+| loop-design | Measure the uncached path before adding a cache to a loop | 2026-08-06 |

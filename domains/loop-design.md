@@ -128,3 +128,23 @@ modifying any loop.
   second loop shared the same repo; noted that one loop leaving dirt "breaks the
   *other* loop's `pull --rebase` guard."
 - Added: 2026-08-06 (work-it)
+
+### Measure the uncached path before adding a cache to a loop
+
+- When a loop's per-run cost looks like it needs a cache (a stored SHA, a memoized
+  API result, a derived summary), time the uncached path FIRST. If it is already
+  fast enough, do not add the cache - a cache in a scheduled loop is a permanent
+  staleness liability traded for a speedup you may not need. If you do cache a
+  derived value, it is only as fresh as EVERY input it derives from; enumerate the
+  inputs explicitly, because the easy-to-miss one (e.g. the default-branch SHA
+  behind a "commits ahead" count) is what makes the cached value silently wrong.
+- Why: loops run unattended, so a stale cached value is reported as fact for as
+  many runs as it takes someone to notice. Unlike an interactive session, there is
+  no user in the loop to sanity-check the number. Correctness-per-run beats
+  latency-per-run for anything report-shaped; see [[always-keep-a-run-log]].
+- Evidence: 2026-08-06 session (agent-improvement) - a caching design for the
+  daily-triage PR scan was dropped after the uncached query was measured and
+  "returns exactly the two PRs STATE.md lists" fast enough; the same discussion
+  identified the default-branch SHA as an input a cached "branch is N commits
+  ahead" value would not track.
+- Added: 2026-08-06 (work-it)
