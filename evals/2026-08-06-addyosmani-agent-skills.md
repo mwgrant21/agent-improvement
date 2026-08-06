@@ -58,9 +58,21 @@ tests whether a skill *fires*; it only tests whether the file parses.
    Evidence: `scripts/lib/skill-lint.js:38-40` - "`const DESCRIPTION_TRIGGER = /\buse (this )?when\b|\buse (before|after|during)\b/i;`"
    and "Reject negated forms ("Do not use when ...", "Don't use when ...") - those
    describe exclusions, not trigger conditions."
-   Ours failing today: `it-ps-codex/skills/ps-codex/SKILL.md` (159 chars, no trigger)
-   and `it-workflows/skills/ps-script-learner/SKILL.md` (279 chars, no trigger).
    **Effort: low.**
+
+   > **Correction (applied 2026-08-06, `it-claude-marketplace@b2f39bc`).** This
+   > item originally claimed `ps-codex` and `ps-script-learner` fail the check
+   > "today". That was wrong, and the error was mine: I measured against
+   > upstream's *canonical-only* regex, which accepts "Use when" but not "Invoke
+   > when"/"Invoke after". Both descriptions do state a trigger - ps-codex says
+   > "Invoke when writing or reviewing PS scripts", ps-script-learner says
+   > "Invoke after writing or modifying any .ps1 file". The check as shipped
+   > accepts the natural trigger verbs, so all 4 skills passed unchanged and no
+   > description needed editing. The check guards future regressions only; it was
+   > verified non-vacuous by stripping ps-codex's trigger and watching the
+   > validator fail. Lesson: a lint rule copied from another repo carries that
+   > repo's phrasing conventions, and reporting "N of ours fail" before deciding
+   > which convention to adopt measures the wrong thing.
 
 3. **Make SessionStart hooks fail-safe and machine-portable** - change
    `~/.claude/settings.json`: the two SessionStart hooks are bare invocations of
