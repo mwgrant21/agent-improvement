@@ -14,7 +14,25 @@ runs_since_retro: 0
 - Refinements 1-6 APPROVED and applied to LOOP.md via the loop-design skill: loop-derived noise counting (1), revised spend/cache thresholds (2), discovered scan roots + source-unavailable reporting (3), machine-tagged hygiene items (4), stale-only uncommitted-changes reporting (5), and a verified commit/push of the loop's own state as step 5 (6).
 - Refinements 7 (branch staleness by commits-ahead rather than tip date) and 8 (cache PR/issue results for quiet repos) HELD by decision - re-evaluate at the next retrospective with post-refinement data.
 - L2 promotion HELD at the user's decision despite the gate being literally met. Re-evaluate only after 10 runs in which `false_positives` is actually being fed by refinement 1. [action: none until then]
-- Candidate refinement 9 for next time, NOT applied (out of the approved scope): have the retrospective itself check whether each previously proposed adjustment actually reached LOOP.md. Only 4 of 11 did across runs 1-10, and nothing in the protocol notices that.
+- Refinement 9 APPROVED and applied the same day: the retrospective now reconciles the Adjustment ledger (below) as its FIRST step, per-run critiques record a structured `notes.adjustment` entry, and an adjustment proposed `attempt_cap` (3) times without landing escalates instead of being re-proposed.
+
+## Adjustment ledger
+<!-- Seeded 2026-08-06 from the prose critiques of runs 1-10, which predate the structured notes.adjustment field. Retrospective step R1 reconciles this every 10th run by grepping LOOP.md and scripts/ - never by trusting this table's own text. Landed rows STAY here and get re-checked; a landed row that goes missing is REGRESSED and escalates. -->
+| id | first_proposed | times | status |
+|---|---|---|---|
+| batch-branch-commit-date-lookups | 2026-07-14 | 5 | LANDED 2026-08-03 (branch_tips cache, step 1) |
+| fix-spend-summary-date-window | 2026-07-17 | 1 | LANDED 2026-07-22 (scripts/spend-summary.mjs local-day bucketing) |
+| record-output-token-baseline | 2026-07-17 | 1 | LANDED 2026-07-18 (step 3 notes) |
+| flag-branches-20-commits-ahead | 2026-07-18 | 1 | OUTSTANDING (19 days) |
+| branch-staleness-by-commits-ahead | 2026-07-21 | 1 | HELD 2026-08-06 (retro refinement 7 - the SHA cache changed the picture; re-evaluate with post-refinement data) |
+| verify-loop-own-commit-completed | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 6, step 5) |
+| self-confirming-noise-without-fp-mark | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 1, step 2) |
+| promote-tokenmonitor-pr1-to-human-decisions | 2026-08-03 | 2 | LANDED 2026-08-06 (Human Decisions section) |
+| cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | HELD 2026-08-06 (retro refinement 8 - cost optimization; the expensive part is already cached) |
+| drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | LANDED 2026-08-06 (retro refinement 5, step 1) |
+| machine-tag-watchlist-items | 2026-08-06 | 1 | LANDED 2026-08-06 (retro refinement 4, step 2) |
+
+Ledger standing at seed: **8 of 11 landed**, 2 held by decision, 1 outstanding. Four of those eight landed today via the retrospective; before it, the figure was 4 of 11 across 23 days.
 
 ## Watch List
 - NMMToolkit (local, `Desktop\NMMToolkit`): `master` now ahead 2 of `origin/master` again - 2 new local-only doc commits (`docs: add design spec for USB device troubleshooter`, `docs: add design spec for version tracking`) since the prior "fully in sync" confirmation. Currently checked out on `master` (not the `test/business-tools-20260722` branch previously flagged - that branch's WIP status could not be re-checked this run since HEAD has moved off it). [action: push the 2 doc-spec commits when ready; re-check `test/business-tools-20260722` next run]

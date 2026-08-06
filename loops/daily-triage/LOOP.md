@@ -116,6 +116,13 @@ L2 also requires worktree isolation. Not active at L1.
    `branch_tips` map (`{repo: {branch: {sha, date}}}`) from step 1's
    staleness cache, so the next run can diff against it. Also include
    `dirty_repos` (step 1's stale-WIP cache) and `fp_source` (step 2).
+   Record step 4's one adjustment as a STRUCTURED entry (refinement 9), not
+   only as prose inside `critique`:
+   `"adjustment":{"id":"kebab-slug","text":"one line","first_proposed":"YYYY-MM-DD"}`.
+   Reuse the SAME `id` when re-proposing an adjustment from an earlier run,
+   and carry that run's `first_proposed` date forward unchanged - that is what
+   makes "proposed N times, still not landed" countable instead of a thing
+   someone has to notice by re-reading ten prose critiques.
    `duration_s` must be a REAL measured value - capture a start timestamp at
    step 0 and subtract; runs 9 and 10 both recorded `0`, which destroyed the
    duration trend the retrospective was supposed to read. Set `last_run`
@@ -126,7 +133,10 @@ L2 also requires worktree isolation. Not active at L1.
    (refinement 1) - silence there is what left the precision signal unfed for
    10 runs. End the FINAL message with the post-run critique (false positives
    observed, noisiest source, one adjustment for next run) - the Stop hook
-   captures this for agent-learn.
+   captures this for agent-learn. State the adjustment's `id` in the critique
+   text so the prose and the structured `notes.adjustment` entry cannot drift
+   apart. If that same `id` already sits in STATE.md's Adjustment ledger as
+   OUTSTANDING, say how many times it has now been proposed.
 5. Commit and push this run's own writes (refinement 6). `git -C
    ~/agent-improvement add -A && git commit && git push`, then VERIFY with
    `git status -sb` that the tree is clean and not ahead of origin. Never end
@@ -142,9 +152,67 @@ If a run fails before step 3, do NOT advance `last_run` or append a run line - r
 
 Read ALL of `runs.jsonl` and `STATE.md`. Analyze: recurring noise, items
 flagged 3+ runs without human action, precision trend (false_positives per
-run), duration trend, dead sources. Output a NUMBERED refinement proposal:
-LOOP.md edits, threshold changes, source add/drop, and - if the graduation
-gate in `loops/README.md` is met - a promotion proposal. Apply ONLY
-human-approved items, via the loop-design skill. Append a `retrospective`
-event line, set `last_run` to today, and reset `runs_since_retro: 0`. This
-loop never edits its own LOOP.md without human approval.
+run), duration trend, dead sources.
+
+### Step R1 - reconcile the Adjustment ledger FIRST (refinement 9)
+
+Before proposing anything new, audit what was already proposed. Collect every
+`notes.adjustment` entry across `runs.jsonl` (and, for runs predating that
+field, the seeded rows in STATE.md's Adjustment ledger). For each `id`,
+determine its status by INSPECTING THE ARTIFACT - grep this `LOOP.md` and the
+relevant file under `~/agent-improvement/scripts/` for the change itself:
+
+- LANDED - the change is present in the current LOOP.md or script. Record the
+  date, and KEEP it in the ledger; re-check it every retrospective.
+- REGRESSED - previously LANDED, now absent. Escalate immediately to High
+  Priority. Do not assume this cannot happen: run 9 (2026-08-04) found
+  `nmmtools/testResults.xml` back after being marked resolved two runs
+  earlier, so "fixed once" is not a durable state in this store.
+- OUTSTANDING - proposed, never applied. Record `times_proposed` and the age
+  in days since `first_proposed`.
+- HELD - explicitly declined by a human. Never silently re-propose a HELD item
+  as if it were new; if re-raising it, say it was previously held and why that
+  has changed.
+
+Do not infer status from the fact that a critique proposed it, that a past
+retrospective listed it, or that it sounds like something that was done. Only
+the file's current contents settle it - see `domains/verification.md`,
+"Inspect the artifact itself, not proxies".
+
+Then apply the attempt cap: any OUTSTANDING adjustment with
+`times_proposed >= attempt_cap` (3, per STATE.md frontmatter) is ESCALATED to
+High Priority with its full age and proposal count, not quietly re-proposed an
+Nth time. Refresh the ledger section in STATE.md, and report the headline
+number in the digest: `<landed>/<total> adjustments landed`.
+
+Why this step exists: across runs 1-10, eleven adjustments were proposed and
+only four ever reached LOOP.md. The branch-tips cache - the single biggest
+win, cutting run 10 from 17 repo lookups to 5 - was proposed five times over
+three weeks before it landed. Nothing in the protocol noticed, because
+"proposed" and "applied" were never compared. A loop that critiques itself
+well and cannot act on the critique is just a well-documented standstill.
+
+Note on self-verification: this step does not violate
+`domains/loop-design.md`, "Never let the maker verify its own work". The loop
+is not grading the quality of its own fixes - it is mechanically checking
+whether a string is present in a file it is forbidden to edit. Every actual
+change still requires human approval and the loop-design skill.
+
+### Step R2 - propose
+
+Output a NUMBERED refinement proposal: LOOP.md edits, threshold changes,
+source add/drop, and - if the graduation gate in `loops/README.md` is met - a
+promotion proposal. Carry forward every OUTSTANDING and ESCALATED item from
+R1 as a numbered candidate in its own right, so a twice-ignored adjustment
+competes for approval alongside the new ideas instead of dropping off the
+list. Before proposing promotion, confirm the gate's inputs are actually
+being MEASURED, not merely reading zero.
+
+### Step R3 - close out
+
+Apply ONLY human-approved items, via the loop-design skill. Append a
+`retrospective` event line (a second line recording what was applied is
+correct - `runs.jsonl` is append-only, so the analysis line is never edited
+to match the outcome). Set `last_run` to today, and reset
+`runs_since_retro: 0`. This loop never edits its own LOOP.md without human
+approval.
