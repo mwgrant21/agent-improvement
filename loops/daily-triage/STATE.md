@@ -8,8 +8,13 @@ last_run: 2026-08-06
 runs_since_retro: 0
 ---
 ## High Priority (waiting on human)
-- RETROSPECTIVE 2026-08-06 (runs 1-10): 8 numbered refinements proposed, none applied - the loop never edits its own LOOP.md without approval. Recommendation: apply 1-6, hold 7-8. [action: approve by number; applied via the loop-design skill]
-- Graduation gate is LITERALLY met (0 false_positives, 0 escalations over 10 runs) but promotion to L2 is NOT recommended: `false_positives` is fed only by a human `[FP]` mark that has never been made in 10 runs, so 0 measures nothing. Fix the precision signal first (refinement 1), then re-evaluate at the next retrospective. [action: human decision - promote anyway, or accept the hold]
+(none)
+
+## Retrospective outcome (2026-08-06, runs 1-10)
+- Refinements 1-6 APPROVED and applied to LOOP.md via the loop-design skill: loop-derived noise counting (1), revised spend/cache thresholds (2), discovered scan roots + source-unavailable reporting (3), machine-tagged hygiene items (4), stale-only uncommitted-changes reporting (5), and a verified commit/push of the loop's own state as step 5 (6).
+- Refinements 7 (branch staleness by commits-ahead rather than tip date) and 8 (cache PR/issue results for quiet repos) HELD by decision - re-evaluate at the next retrospective with post-refinement data.
+- L2 promotion HELD at the user's decision despite the gate being literally met. Re-evaluate only after 10 runs in which `false_positives` is actually being fed by refinement 1. [action: none until then]
+- Candidate refinement 9 for next time, NOT applied (out of the approved scope): have the retrospective itself check whether each previously proposed adjustment actually reached LOOP.md. Only 4 of 11 did across runs 1-10, and nothing in the protocol notices that.
 
 ## Watch List
 - NMMToolkit (local, `Desktop\NMMToolkit`): `master` now ahead 2 of `origin/master` again - 2 new local-only doc commits (`docs: add design spec for USB device troubleshooter`, `docs: add design spec for version tracking`) since the prior "fully in sync" confirmation. Currently checked out on `master` (not the `test/business-tools-20260722` branch previously flagged - that branch's WIP status could not be re-checked this run since HEAD has moved off it). [action: push the 2 doc-spec commits when ready; re-check `test/business-tools-20260722` next run]
