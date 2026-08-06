@@ -85,3 +85,23 @@ credential handling, sandboxing) confirmed across projects. Format per
   the pty spawn closed the last live path, independently re-verified in a
   scoped re-review.
 - Added: 2026-08-05 (home-matt)
+
+### Removing a secret from the build does not rotate the secret already deployed
+
+- A branch that strips a hardcoded token from the source and stops future builds
+  from bundling it changes nothing about the copy already sitting in the install
+  directory of every machine deployed before the fix. The vulnerability window
+  does not close at merge; it closes at rotation.
+- What to do: treat "stop shipping it" and "rotate it" as two separate items and
+  say so explicitly. Keep rotation out of the automated scope - it is a human
+  decision with blast radius - but never let the merged fix imply the exposure is
+  resolved. Carry it as an open item until the user confirms rotation.
+- Why: the code change is visible and satisfying and produces a green branch,
+  which is precisely what makes it easy to mistake for remediation. The live
+  credential is unaffected by any amount of clean code.
+- Evidence: 2026-08-05 sessions (TokenMonitorV2) - a deployed GitHub token
+  remained live on already-deployed machines after the branch removed it from the
+  build; flagged repeatedly as out of scope and still outstanding at session end.
+  See [[when-retiring-a-paid-api-integration-check-for-key-leakage]] for the
+  companion case on the same project.
+- Added: 2026-08-06 (work-it)

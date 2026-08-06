@@ -105,6 +105,14 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   `NewESPPartitionNumber` in saved state, and diskpart section labels that were
   correct when written and wrong when used. Fix applied was parameterizing on
   `/part` + `/size` - properties of the partition being operated on.
+- Corollary (2026-08-05, work-it): the same staleness applies on the TIME axis
+  within a single run. A precondition that can lapse mid-run - a suspended
+  security agent, a maintenance window, a lease, a token - must be re-checked
+  immediately before EVERY destructive step, not once at script entry. Evidence:
+  EFIPartitionRemediation, where the SentinelOne minifilter can re-arm between
+  steps; the settled design re-checks the filter before each destructive step
+  rather than gating once at the top, because "verified at entry" is a snapshot
+  of a value that is free to change while the script is still running.
 - Added: 2026-08-05 (work-it)
 
 ### A diagnostic script must refuse on an unmet precondition, not plough on emitting errors
@@ -135,3 +143,21 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   which is a completely different remediation path than the BCD repair being
   attempted.
 - Added: 2026-08-05 (work-it)
+
+### `mountvol` reports success on invalid usage, and the Storage provider caches away the letter it just added
+
+- Two traps when scripting ESP/volume work with `mountvol`:
+  1. `mountvol` invoked with a missing or malformed drive-letter argument exits
+     **0**. `$LASTEXITCODE -eq 0` is therefore not evidence the mount happened -
+     verify by testing the path itself (`Test-Path "$Letter\EFI"`), not the exit code.
+  2. The Storage provider caches volume state, so `Get-Volume` / `Get-Partition`
+     can report no drive letter for a volume `mountvol` just lettered. Re-query
+     through the filesystem or force a provider refresh instead of trusting the
+     first read back.
+- Why: together these produce the worst failure shape - the script believes the
+  mount succeeded (exit 0), then the verification step believes it failed (stale
+  cache), so the true state is invisible from either signal alone.
+- Evidence: 2026-08-06 session (EFI-wt-migration, Task 3 review) - both traps had
+  already caused real failures on this box and the task review was aimed
+  specifically at them.
+- Added: 2026-08-06 (work-it)

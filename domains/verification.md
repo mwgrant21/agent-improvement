@@ -115,3 +115,49 @@
   gap was established regardless: "that's a prerequisite nobody has written down
   yet."
 - Added: 2026-08-05 (work-it)
+
+### A read-back verifier that compares the last physical line is defeated by records that may span lines
+
+- When code appends a record and then verifies by re-reading the file, comparing
+  only the file's LAST LINE against what was handed in is correct only while every
+  record is exactly one physical line. The moment the format legally allows an
+  embedded newline - RFC4180 CSV quoting, pretty-printed JSON, a multi-line log
+  entry - the comparison sees only the record's tail, so a truncated or corrupted
+  write verifies clean.
+- What to do: compare the whole appended region (seek to the pre-write length and
+  read forward), or parse the file back with the same reader the format demands.
+  Match the granularity of the verification to the granularity of the record, not
+  to the granularity of a line.
+- Why: this fails in exactly one direction - false success. The verifier exists to
+  catch partial writes, and it silently stops catching them the moment a quoting
+  feature elsewhere in the codebase starts producing multi-line records. The two
+  changes can land in different tasks, so neither task's review sees the pairing.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - `Add-RecordLine` verified by
+  last-line comparison while Task 2's RFC4180 quoting had made a field containing
+  a newline span multiple physical lines. Caught by task review before Task 5
+  built on it.
+- Added: 2026-08-06 (work-it)
+
+### A defect authored into the plan survives faithful implementation - the reviewer must not be primed with the plan's reasoning
+
+- In an implementer/reviewer pipeline, a bug that originates in the PLAN is the
+  blind spot both roles share: the implementer reproduces it faithfully because
+  reproducing the plan is the job, and a reviewer told "check this against the
+  plan" confirms the match and passes it. The defect is invisible to conformance
+  checking by construction - it can only be found by reviewing against
+  correctness.
+- What to do: when a suspected defect came from the plan itself, do NOT tell the
+  reviewer where to look. An independent reviewer that finds it unprompted is
+  evidence the review layer is real; one that has to be pointed at it has only
+  confirmed your own reading. This is the deliberate exception to
+  [[direct-reviewers-at-the-single-highest-risk-claim]] - prime the reviewer when
+  the risk is an unverified IMPLEMENTER claim, stay silent when the risk is a
+  defect in the spec they would both be conforming to.
+- Why: conformance review and correctness review are different acts, and only the
+  second catches spec-level bugs. Priming destroys the only evidence that the
+  second is happening.
+- Evidence: 2026-08-06 session (EFI-wt-migration) - two escalations in four tasks,
+  both on plan-mandated defects that no implementer would have caught "because
+  both were faithfully implementing the plan"; a later suspected plan-level defect
+  was deliberately withheld from the reviewer to test unprompted detection.
+- Added: 2026-08-06 (work-it)

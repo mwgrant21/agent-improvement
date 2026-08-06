@@ -59,3 +59,22 @@ itself). Format per `README.md` in this directory.
   harness check is non-vacuous (reverted the escaping fix as a throwaway test,
   confirmed the harness correctly caught 12 failures)" before restoring the fix.
 - Added: 2026-08-03 (work-it)
+
+### `[System.IO.File]` statics are not mockable in Pester 3 - declare the untestable path instead of faking it
+
+- Pester 3 cannot mock .NET static methods, so any code path routed through
+  `[System.IO.File]::WriteAllText` / `AppendAllText` / `ReadAllText` cannot have
+  its failure branch exercised by a mock. A permission-denied write throws inside
+  the static call, before execution ever reaches the read-back verification that
+  the test was written to check.
+- What to do: record the path in the ledger/test file as explicitly untested, with
+  the reason. Do not paper over it with a test that constructs a different failure
+  and therefore proves nothing about the real one. An honestly declared coverage
+  gap is auditable; a vacuous passing test is worse than no test, because it
+  reports the branch as covered.
+- Note this is the same file-write idiom the PowerShell rules mandate for
+  BOM-free output, so the gap recurs across any script following that convention.
+- Evidence: 2026-08-06 session (EFI-wt-migration, Task 6) - the permission-denied
+  branch of a `WriteAllText` read-back verifier was declared untestable in the
+  ledger rather than covered with a substitute failure.
+- Added: 2026-08-06 (work-it)

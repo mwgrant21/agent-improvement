@@ -70,3 +70,21 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   immediately without doing any actual work, so I relaunched it with explicit
   instructions to make real tool calls."
 - Added: 2026-08-02 (home-matt)
+
+### Scope a process-kill step by install path or PID, not by process name
+
+- Any plan step that kills a process before a build, install, or file swap must
+  target the specific instance - filter on the executable's path under the project
+  directory, or on a PID captured when that instance was launched. Killing by
+  process name (`Stop-Process -Name app`, `taskkill /IM app.exe`) also kills the
+  user's own running copy, any other checkout, and any packaged install of the
+  same app.
+- Why: it is a silent, out-of-scope destructive action on the user's environment,
+  and it becomes far more likely exactly when it hurts most - v1-vs-v2 migrations,
+  side-by-side comparisons, and dev-vs-packaged testing all mean two same-named
+  processes are running on purpose.
+- Evidence: 2026-08-05 session (TokenMonitorV2) - a plan step would have killed
+  the user's other running app; caught before dispatch and rescoped to processes
+  under `TokenMonitorV2`, then corrected in the two later tasks carrying the same
+  instruction.
+- Added: 2026-08-06 (work-it)

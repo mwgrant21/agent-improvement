@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-05
+last-updated: 2026-08-06
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -60,3 +60,9 @@ at work).
 | powershell | A diagnostic must refuse on an unmet precondition, not emit noise | 2026-08-05 |
 | powershell | Build fleet rescue USBs from full install media, not minimal WinPE | 2026-08-05 |
 | verification | Validation machines must match the fleet security-agent config | 2026-08-05 |
+| powershell | mountvol exits 0 on invalid usage; the Storage provider caches away the letter it just added | 2026-08-06 |
+| testing | `[System.IO.File]` statics are not mockable in Pester 3 - declare the untestable path | 2026-08-06 |
+| verification | A read-back verifier comparing the last physical line is defeated by multi-line records | 2026-08-06 |
+| verification | A defect authored into the plan survives faithful implementation - do not prime the reviewer | 2026-08-06 |
+| security | Removing a secret from the build does not rotate the secret already deployed | 2026-08-06 |
+| tooling | Scope a process-kill step by install path or PID, not by process name | 2026-08-06 |
