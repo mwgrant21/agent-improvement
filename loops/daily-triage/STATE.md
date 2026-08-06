@@ -5,10 +5,11 @@ paused: false
 attempt_cap: 3
 budget: soft
 last_run: 2026-08-06
-runs_since_retro: 10
+runs_since_retro: 0
 ---
 ## High Priority (waiting on human)
-(none)
+- RETROSPECTIVE 2026-08-06 (runs 1-10): 8 numbered refinements proposed, none applied - the loop never edits its own LOOP.md without approval. Recommendation: apply 1-6, hold 7-8. [action: approve by number; applied via the loop-design skill]
+- Graduation gate is LITERALLY met (0 false_positives, 0 escalations over 10 runs) but promotion to L2 is NOT recommended: `false_positives` is fed only by a human `[FP]` mark that has never been made in 10 runs, so 0 measures nothing. Fix the precision signal first (refinement 1), then re-evaluate at the next retrospective. [action: human decision - promote anyway, or accept the hold]
 
 ## Watch List
 - NMMToolkit (local, `Desktop\NMMToolkit`): `master` now ahead 2 of `origin/master` again - 2 new local-only doc commits (`docs: add design spec for USB device troubleshooter`, `docs: add design spec for version tracking`) since the prior "fully in sync" confirmation. Currently checked out on `master` (not the `test/business-tools-20260722` branch previously flagged - that branch's WIP status could not be re-checked this run since HEAD has moved off it). [action: push the 2 doc-spec commits when ready; re-check `test/business-tools-20260722` next run]
