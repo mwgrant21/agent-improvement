@@ -207,3 +207,28 @@
   reviewer pattern-matching on 'fail closed = correct' could easily mark the
   right behaviour as a defect here."
 - Added: 2026-08-06 (work-it)
+
+### A probe that cannot distinguish "not yet" from "never" is not a verification
+
+- Before trusting a probe as proof, ask what a negative result actually rules out. Some
+  APIs report on state that is populated lazily, so a falsy answer means either "the
+  thing is broken" or "nothing has demanded it yet" - and the probe cannot tell you
+  which. Prefer the API that FORCES the work and then reports, over the one that only
+  observes current state. Concrete instance: `document.fonts.check(spec)` never triggers
+  a font fetch, so in an offscreen/unpainted window it returns `false` for a perfectly
+  correct `@font-face`; `await document.fonts.load(spec)` forces the fetch and its
+  result (empty array / rejection) is real evidence about the URL.
+- Why: this failure mode is worse than no check, because it manufactures false alarms
+  that get "fixed." Following the probe's stated criterion would have meant rewriting
+  correct paths to chase a `false` that only reflected laziness. The same shape appears
+  wherever state is demand-driven: caches, lazy imports, connection pools, deferred
+  registrations. Related: a green suite can still be wrong
+  [[a-test-suite-can-be-unanimously-green-and-still-wrong]].
+- Also: when the probe is a plan's stated acceptance criterion, correct the plan once the
+  gap is found - a known-wrong criterion re-fires on the next reader.
+- Evidence: 2026-08-06 session (TokenMonitorV2, reskin Task 3) - the plan specified
+  `document.fonts.check('700 12px Rajdhani')` expecting `true`, with `false` meaning a
+  bad path. First run returned `false` for all six faces with ZERO failed network
+  requests and every face registered as `unloaded`; switching to `document.fonts.load()`
+  returned `loaded`/`true` for all six against the same unchanged CSS.
+- Added: 2026-08-06 (work-it)
