@@ -80,6 +80,21 @@ L2 also requires worktree isolation. Not active at L1.
      - Report **unpushed commits immediately** (`git log --branches --not
        --remotes --oneline`) - machine-local-only work is the real risk this
        source exists to catch.
+     - **Escalate on VOLUME, not just presence** (adjustment
+       `flag-branches-20-commits-ahead`, proposed run 3 / 2026-07-18, applied
+       2026-08-06). A branch more than **20 commits** ahead of its tracking
+       remote - or with no upstream at all and more than 20 commits on no
+       remote - goes to **High Priority**, not the Watch List. This PROMOTES
+       the existing unpushed-commits finding; it does not add a second line
+       for the same branch.
+       Rationale: the bare check detects presence but flattens severity, so
+       "3 unpushed doc commits" and "51 unpushed commits" read identically.
+       They are not the same risk - the second is a single disk failure away
+       from being the only copy. Run 3 (2026-07-18) caught aether-os sitting
+       51 commits ahead only because a human noticed it inside routine
+       hygiene noise, which is exactly the accident this rule removes.
+       L1 boundary reminder: this REPORTS the exposure with a suggested
+       action. The loop never pushes the work itself, at any volume.
      - Report **uncommitted changes only when STALE** (refinement 5): compare
        each repo's `git status --porcelain` line count against
        `notes.dirty_repos` from the previous run-log line. Flag only when the
