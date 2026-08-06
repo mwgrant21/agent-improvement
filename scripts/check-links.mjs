@@ -32,10 +32,21 @@ export function headingSlugs(content) {
     .map(l => slugify(l.slice(4)));
 }
 
-/** Extract [[wikilinks]] with 1-based line numbers. */
+/**
+ * Extract [[wikilinks]] with 1-based line numbers.
+ *
+ * Links inside fenced blocks or inline backticks are documentation examples,
+ * not real links - domains/README.md shows the link syntax itself, and flagging
+ * its placeholder would make the check unusable on its own docs. Blank out code
+ * rather than dropping the line, so line numbers stay accurate.
+ */
 export function extractLinks(content) {
   const out = [];
-  content.split(/\r?\n/).forEach((line, i) => {
+  let inFence = false;
+  content.split(/\r?\n/).forEach((raw, i) => {
+    if (/^\s*(```|~~~)/.test(raw)) { inFence = !inFence; return; }
+    if (inFence) return;
+    const line = raw.replace(/`[^`]*`/g, '');
     for (const m of line.matchAll(/\[\[([a-z0-9-]+)\]\]/g)) {
       out.push({ target: m[1], line: i + 1 });
     }

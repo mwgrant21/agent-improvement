@@ -24,6 +24,16 @@ test('extractLinks reports 1-based line numbers and multiple links per line', ()
   ]);
 });
 
+test('links inside inline backticks are documentation examples, not links', () => {
+  const md = 'Link a related lesson with `[[a-prefix-of-its-slugified-heading]]`.';
+  assert.deepEqual(extractLinks(md), []);
+});
+
+test('links inside fenced blocks are ignored, and line numbers survive', () => {
+  const md = ['```', 'see [[not-a-real-link]]', '```', 'but [[real-one]] counts'].join('\n');
+  assert.deepEqual(extractLinks(md), [{ target: 'real-one', line: 4 }]);
+});
+
 test('a link that prefixes exactly one heading resolves', () => {
   const slugs = ['a-final-whole-branch-review-is-required-after-task-level-reviews-it-catches-more'];
   const problems = checkLinks(
