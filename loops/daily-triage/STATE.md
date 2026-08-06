@@ -24,7 +24,7 @@ runs_since_retro: 0
 | fix-spend-summary-date-window | 2026-07-17 | 1 | LANDED 2026-07-22 (scripts/spend-summary.mjs local-day bucketing) |
 | record-output-token-baseline | 2026-07-17 | 1 | LANDED 2026-07-18 (step 3 notes) |
 | flag-branches-20-commits-ahead | 2026-07-18 | 1 | LANDED 2026-08-06 (step 1, local hygiene - promotes a >20-ahead branch to High Priority) |
-| branch-staleness-by-commits-ahead | 2026-07-21 | 1 | HELD 2026-08-06 (retro refinement 7 - the SHA cache changed the picture; re-evaluate with post-refinement data) |
+| branch-staleness-by-commits-ahead | 2026-07-21 | 1 | LANDED 2026-08-06 (step 1, GitHub - held earlier the same day, then applied by explicit decision; implemented as author-date staleness + `ahead_by` as a separate signal, NOT as the literal "replace date with commits-ahead", which would have removed the time dimension entirely) |
 | verify-loop-own-commit-completed | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 6, step 5) |
 | self-confirming-noise-without-fp-mark | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 1, step 2) |
 | promote-tokenmonitor-pr1-to-human-decisions | 2026-08-03 | 2 | LANDED 2026-08-06 (Human Decisions section) |
@@ -32,7 +32,9 @@ runs_since_retro: 0
 | drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | LANDED 2026-08-06 (retro refinement 5, step 1) |
 | machine-tag-watchlist-items | 2026-08-06 | 1 | LANDED 2026-08-06 (retro refinement 4, step 2) |
 
-Ledger standing after the 2026-08-06 retrospective: **9 of 11 landed**, 2 held by decision, **0 outstanding**. Five of those nine landed that day; before the retrospective the figure was 4 of 11 across 23 days. The two HELD rows are decisions, not debt - they need a reason to be revisited, not a reminder.
+Ledger standing after the 2026-08-06 retrospective: **10 of 11 landed**, 1 held by decision, **0 outstanding**. Six of those ten landed that day; before the retrospective the figure was 4 of 11 across 23 days. The remaining HELD row (`cache-quiet-repo-pr-issue-results`) is a decision, not debt - it needs a reason to be revisited, not a reminder.
+
+Note for the next retrospective's step R1: `branch-staleness-by-commits-ahead` deviates from its original proposal text on purpose, and the ledger row says how. When reconciling, check the file for what was ACTUALLY built (author-date staleness plus a separate `ahead_by` signal), not for the phrase the run-5 critique used.
 
 ## Watch List
 - NMMToolkit (local, `Desktop\NMMToolkit`): `master` now ahead 2 of `origin/master` again - 2 new local-only doc commits (`docs: add design spec for USB device troubleshooter`, `docs: add design spec for version tracking`) since the prior "fully in sync" confirmation. Currently checked out on `master` (not the `test/business-tools-20260722` branch previously flagged - that branch's WIP status could not be re-checked this run since HEAD has moved off it). [action: push the 2 doc-spec commits when ready; re-check `test/business-tools-20260722` next run]

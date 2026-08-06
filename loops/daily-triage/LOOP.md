@@ -25,6 +25,24 @@ L2 also requires worktree isolation. Not active at L1.
      open issues, open PRs and their age, branches with no activity > 14 days.
      Read-only. Command shapes: `gh search issues --owner mwgrant21 --state open`,
      `gh pr list -R mwgrant21/<repo> --json number,title,updatedAt`.
+     Staleness is measured on the tip commit's **AUTHOR date**
+     (`--jq '.commit.author.date'`), never its committer date (adjustment
+     `branch-staleness-by-commits-ahead`, proposed run 5 / 2026-07-21, held
+     2026-08-06, then applied the same day by explicit decision).
+     Rationale: `git rebase` preserves the author date and writes a NEW
+     committer date, so a rebase with no new work resets a committer-date
+     staleness clock and a genuinely abandoned branch silently drops off the
+     stale list. Run 5 caught exactly this - NMMTools `feature/wpf-gui`
+     appeared to be 3 days old with no apparent new work. The old protocol
+     never specified WHICH date it read, which is half of why the bug was
+     possible at all.
+     Also record `ahead_by` against the repo's default branch
+     (`gh api repos/mwgrant21/<repo>/compare/<default>...<branch> --jq
+     '.ahead_by'`) and report it alongside the age. Age and divergence are
+     different signals: age says "nobody has touched this", ahead_by says
+     "there is unmerged work in it". A branch that is 0 ahead and 40 days
+     stale is dead weight worth deleting; one that is 12 ahead and 40 days
+     stale is unmerged work at risk. Do not collapse them into one number.
      Branch-staleness cache (added 2026-08-03, after 5 multi-branch repos hit
      their first full audit and the per-branch lookup got costly): list each
      repo's branches with name + tip SHA in one call
@@ -35,9 +53,25 @@ L2 also requires worktree isolation. Not active at L1.
      previously-recorded last-commit date is still correct - skip the
      per-branch commit-date call for it and reuse that date. Only spend a
      `gh api repos/mwgrant21/<repo>/commits/<sha>` call on branches that are new
-     or whose SHA changed. Carry the full current `{repo: {branch: {sha, date}}}`
-     map into this run's own `notes.branch_tips` (step 3) so the next run has
-     something to diff against.
+     or whose SHA changed. Carry the full current
+     `{repo: {branch: {sha, author_date, ahead_by}}}` map into this run's own
+     `notes.branch_tips` (step 3) so the next run has something to diff against.
+     Cache rules for the two fields, so adding `ahead_by` does NOT undo this
+     optimization (it took five proposals across three weeks to land - do not
+     casually regress it):
+     - `author_date`: refetch only when the branch's own SHA changed. A
+       rebase changes the SHA and busts the cache, but the refetched author
+       date comes back unchanged, so the staleness clock correctly does not
+       reset.
+     - `ahead_by`: refetch when the branch's SHA changed **or** when the
+       repo's DEFAULT-branch SHA changed. `ahead_by` is relative, so it goes
+       stale when the base moves even if the branch does not - and the
+       default branch's SHA is already in the same one-call branch listing,
+       so this costs nothing extra to detect.
+     - Pre-2026-08-06 cache entries carry `date` instead of `author_date` and
+       no `ahead_by`. Treat a missing field as a cache miss and refetch that
+       branch once; do not assume the old `date` was an author date, because
+       the protocol never said which one it was.
    - **Token spend**: `node ~/agent-improvement/scripts/spend-summary.mjs`
      (yesterday + today), plus a second invocation with today's date only
      (`... spend-summary.mjs $(today as YYYY-MM-DD)`) for today's total.
