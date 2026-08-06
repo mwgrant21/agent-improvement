@@ -93,7 +93,8 @@ Format per `README.md` in this directory.
 - Why: this class of bug is invisible to a single task's review (the source
   edit looks correct in isolation); it only surfaces when dev and packaged
   behavior are compared directly, which is exactly what a final whole-branch
-  review does that per-task review does not - see [[final-whole-branch-review-catches-cross-task-bugs]].
+  review does that per-task review does not - see
+  [[a-final-whole-branch-review-is-required-after-task-level-reviews]].
 - Evidence: 2026-07-27 session (aether-os chat-ipc-correctness branch) - final
   whole-branch review found "a compiled-`.js`-shadowing-source issue" (plus a
   related silent key-parsing divergence between dev and Electron modes) after
