@@ -21,8 +21,20 @@ L2 also requires worktree isolation. Not active at L1.
    If `runs_since_retro >= 10` -> run the Retrospective (below) instead.
 1. Gather, tolerating per-source failure (a dead source becomes one
    "unavailable" line, never a failed run):
-   - **GitHub**: open issues, open PRs and their age, branches with no
-     activity > 14 days. Read-only.
+   - **GitHub**: open issues, open PRs and their age, and NON-DEFAULT
+     branches with no activity > 14 days. Read-only.
+     **Default branches are excluded from the staleness rule** (adjustment
+     `exclude-default-branches-from-staleness`, proposed and applied
+     2026-08-06). A dormant repo's `master`/`main` being old is not stale
+     feature work - it is just a repo nobody is working in, which is a normal
+     and permanent condition, not something to action. On 2026-08-06 three of
+     six staleness hits were exactly this shape (`Jira-Autoticketing/master`
+     29d, `learning-profile/main` 24d, `cli-shared-memory/master` 15d).
+     Nothing is lost by excluding them: unmerged work is caught by `ahead_by`
+     below, unpushed local work by the local-hygiene source, and the default
+     branch's author date is still recorded in `notes.branch_tips` for any
+     future retrospective that wants it. Excluded from the FINDING, not from
+     the data.
      Get PRs and issues FLEET-WIDE in two calls, not per repo (adjustment
      `cache-quiet-repo-pr-issue-results`, proposed run 9 / 2026-08-04, held
      2026-08-06, then applied the same day by explicit decision):

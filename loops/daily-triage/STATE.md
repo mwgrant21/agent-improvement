@@ -32,8 +32,9 @@ runs_since_retro: 1
 | cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | LANDED 2026-08-06 (step 1, GitHub - held earlier the same day, then applied by explicit decision; implemented by ELIMINATING the per-repo sweep via one fleet-wide `gh search prs`/`gh search issues` call, NOT by caching a quiet-repo negative, which would have created a window where a new PR goes unreported) |
 | drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | LANDED 2026-08-06 (retro refinement 5, step 1) |
 | machine-tag-watchlist-items | 2026-08-06 | 1 | LANDED 2026-08-06 (retro refinement 4, step 2) |
+| exclude-default-branches-from-staleness | 2026-08-06 | 1 | LANDED 2026-08-06 (step 1, GitHub - proposed by run 11's critique and applied same day; implemented literally) |
 
-Ledger standing after the 2026-08-06 retrospective: **11 of 11 landed**, 0 held, 0 outstanding. Every adjustment proposed across runs 1-10 is now applied. Seven of the eleven landed on 2026-08-06; before the retrospective the figure was 4 of 11 across 23 days.
+Ledger standing: **12 of 12 landed**, 0 held, 0 outstanding. Eleven were proposed across runs 1-10; the twelfth (`exclude-default-branches-from-staleness`) was proposed by run 11's critique and applied the same day - the first adjustment to go proposal-to-applied within one run, versus a prior average of weeks. Before the 2026-08-06 retrospective the figure was 4 of 11 across 23 days.
 
 Note for the next retrospective's step R1: two rows deviate from their original proposal text ON PURPOSE, and each row says how. When reconciling, check the file for what was ACTUALLY built, not for the phrase the critique used - `branch-staleness-by-commits-ahead` became author-date staleness plus a separate `ahead_by` signal, and `cache-quiet-repo-pr-issue-results` became a fleet-wide search that removes the calls rather than a cache of their answers. Both would read as never-landed under a naive text match.
 
@@ -48,7 +49,6 @@ Note for the next retrospective's step R1: two rows deviate from their original 
 - Aether-OS (`Desktop\Aether-OS`): 1 uncommitted file and 1 commit on no remote. The `.env` exposure route from last run is closed (`.gitignore` rule added), but per `domains/security.md` that is containment, not rotation - the key itself remains a decision for the user. [action: push the local commit; rotate the key if it was ever live] [machine: work-it]
 - TarotApp: 2 unpushed commits (`7dcf7d2` deck parity, `f84f60a` merge) still absent from `mwgrant21/TarotApp`. Not verifiable on `work-it` - no local clone here. [action: confirm/push from the machine holding these] [machine: home-matt]
 - tarot, Miriels-publish, nmmtools: not verifiable on `work-it` - no local clones here. Previously carried forward as if checked; now explicitly skipped per refinement 4 rather than re-asserted blind. [action: re-verify on the owning machine] [machine: home-matt]
-- Quiet default branches over 14 days by author date: `Jira-Autoticketing/master` (29d), `learning-profile/main` (24d), `cli-shared-memory/master` (15d). These are dormant repos, not stale feature work - see this run's critique, the staleness rule should probably exclude default branches. [action: none] [machine: any]
 - Desktop stray `.git` (`C:\Users\IT\Desktop`): present, no remote, tracks the whole Desktop tree. Known/by-design; now skipped explicitly by the discovery step rather than re-reported. [action: none] [machine: work-it]
 
 ## Recent Noise (ignored this run)
