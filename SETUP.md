@@ -1,91 +1,64 @@
-# Work-machine setup (one time, ~10 minutes)
+# Setting up the learning loop on a machine
 
-Brings the work account (`C:\Users\matthewgr`) into the agent-improvement loop so
-lessons sync home <-> work. Paths below use `matthewgr`; adjust if the account differs.
+The lessons in this repo are useless on a machine where nothing feeds them. This
+file is the whole install.
 
-## 1. Clone the repo to the home directory
+## New machine, from scratch
 
-    gh repo clone mwgrant21/agent-improvement C:\Users\matthewgr\agent-improvement
+```powershell
+git clone https://github.com/mwgrant21/agent-improvement.git $env:USERPROFILE\agent-improvement
+powershell -File $env:USERPROFILE\agent-improvement\bootstrap.ps1
+```
 
-## 2. Set this machine's local state (gitignored, so it does NOT come from the clone)
+`bootstrap.ps1` copies the `agent-learn` and `loop-design` skills into
+`~/.claude/skills/` and prompts once for this machine's `machineId`
+(`home-matt`, `matthewgr`, `work-it`, ...). Run `bootstrap.ps1 -Check` any time
+to audit without writing.
 
-Create `C:\Users\matthewgr\agent-improvement\local-state.json` with a DISTINCT machineId:
+Then confirm `~/.claude/settings.json` wires the three hooks. If it came from
+the `claude-config` snapshot it already does.
 
-    {"machineId": "work-matthewgr", "lastProcessedSession": null}
+## What lives where, and why
 
-The machineId must differ from home's `home-matt` - it labels which machine a lesson
-came from and names the local capture buffer.
+| Thing | Location | Travels by |
+|---|---|---|
+| Lessons (`LESSONS.md`, `domains/*.md`) | this repo | git |
+| Loop protocol + state (`loops/`) | this repo | git |
+| Hook scripts (`hooks/*.ps1`) | this repo | git - referenced in place, no install |
+| `agent-learn` / `loop-design` skills | this repo `skills/` | git, then `bootstrap.ps1` copies them |
+| `settings.json` (the hook wiring) | `~/.claude/` | the `claude-config` repo |
+| `machineId` (`local-state.json`) | this repo, gitignored | never - per machine |
+| Capture buffer (`candidates/`) | this repo, gitignored | never - per machine |
 
-## 3. Install the agent-learn skill (copy, do not symlink)
+Hooks are referenced directly out of this repo rather than copied into
+`~/.claude/hooks/`, so `git pull` updates them with no install step. Skills are
+the exception: Claude Code only discovers skills under `~/.claude/skills/`, so
+those get copied and `bootstrap.ps1` must be re-run after a pull that changes
+them.
 
-    mkdir C:\Users\matthewgr\.claude\skills\agent-learn\references
-    copy C:\Users\matthewgr\agent-improvement\skills\agent-learn\SKILL.md                       C:\Users\matthewgr\.claude\skills\agent-learn\SKILL.md
-    copy C:\Users\matthewgr\agent-improvement\skills\agent-learn\references\grading-rubric.md    C:\Users\matthewgr\.claude\skills\agent-learn\references\grading-rubric.md
-    copy C:\Users\matthewgr\agent-improvement\skills\agent-learn\references\sync.md              C:\Users\matthewgr\.claude\skills\agent-learn\references\sync.md
+## Why the hooks announce themselves when missing
 
-## 4. Install the hook scripts
+Before 2026-08-06 the wiring was:
 
-    copy C:\Users\matthewgr\agent-improvement\hooks\capture-lesson-buffer.ps1  C:\Users\matthewgr\.claude\hooks\capture-lesson-buffer.ps1
-    copy C:\Users\matthewgr\agent-improvement\hooks\agent-learn-onstart.ps1    C:\Users\matthewgr\.claude\hooks\agent-learn-onstart.ps1
+```sh
+S="$USERPROFILE/.claude/hooks/agent-learn-onstart.ps1"; [ -f "$S" ] && powershell ... ; exit 0
+```
 
-The scripts resolve the store via `$env:USERPROFILE\agent-improvement`, so they need no
-per-machine edits.
+`settings.json` syncs between machines. The `.ps1` files did not - they were in
+no git repo at all. So a second machine would read a settings file declaring all
+three hooks, fail the `[ -f ]` test, and **exit 0**. No lessons injected, no
+sessions captured, no triage - and no error. The loop was not broken; it was
+absent, which looked identical to working.
 
-## 5. Wire the hooks into settings.json
+The wiring now warns on stdout instead of exiting silently, and `bootstrap.ps1`
+audits the whole chain. Same failure class as the `~/projects/*` scan root that
+daily-triage was reading as "nothing found" for weeks - see
+`domains/loop-design.md`, "A loop must assert its scan root exists".
 
-In `C:\Users\matthewgr\.claude\settings.json`, under `"hooks"`, ADD a second
-`SessionStart` entry and a `Stop` block (merge with any existing entries - do not
-overwrite them):
+## Two lanes, do not cross them
 
-    "SessionStart": [
-      { "hooks": [ { "type": "command",
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\matthewgr\\.claude\\hooks\\agent-learn-onstart.ps1\"",
-        "timeout": 30, "statusMessage": "Loading agent-improvement lessons..." } ] }
-    ],
-    "Stop": [
-      { "hooks": [ { "type": "command",
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\matthewgr\\.claude\\hooks\\capture-lesson-buffer.ps1\"",
-        "timeout": 30, "statusMessage": "Capturing session for agent-learn..." } ] }
-    ]
+- **Agent lane** - this repo. What the agent/tooling learned.
+- **User lane** - `~/learning-profile` (repo `mwgrant21/learning-profile`), via
+  the separate `learning` skill. What the USER prefers.
 
-Validate afterward: `powershell -Command "Get-Content ~\.claude\settings.json -Raw | ConvertFrom-Json"`
-should not error.
-
-## 6. Add the CLAUDE.md section
-
-Copy the "## Agent-Improvement Loop" section from this machine's global CLAUDE.md
-(`C:\Users\Matt\.claude\CLAUDE.md`) into the work machine's global CLAUDE.md
-(`C:\Users\matthewgr\.claude\CLAUDE.md`), verbatim.
-
-## 7. Wire the it-fleet agents to read the store
-
-So dispatched agents actually consume lessons (not just the main session), run the
-idempotent wiring script - it inserts a "read the store first" directive into the
-PowerShell/sysadmin-facing agents:
-
-    powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\matthewgr\agent-improvement\scripts\wire-agents.ps1
-
-Safe to re-run; it skips agents already wired. Only affects agents that exist on the machine.
-
-## 8. Verify
-
-- Start a new Claude Code session. The SessionStart hook should inject the LESSONS.md
-  index (you will see the powershell domain lessons in context).
-- Run `/agent-learn status` - it should report the lesson count and 0 pending sessions.
-- End the session, start another; confirm the previous session was captured and graded
-  (a promote pass runs, silently if nothing qualifies).
-
-## 9. Loop conventions (added 2026-07-13)
-
-Install the loop-design skill and the daily-triage hook:
-
-    mkdir C:\Users\matthewgr\.claude\skills\loop-design
-    copy C:\Users\matthewgr\agent-improvement\skills\loop-design\SKILL.md C:\Users\matthewgr\.claude\skills\loop-design\SKILL.md
-    copy C:\Users\matthewgr\agent-improvement\hooks\daily-triage-onstart.ps1 C:\Users\matthewgr\.claude\hooks\daily-triage-onstart.ps1
-
-Add a third SessionStart entry to settings.json (same shape as the agent-learn
-one) pointing at daily-triage-onstart.ps1.
-
-Note: loop state (loops/daily-triage/STATE.md) is SHARED via the repo - the
-first machine to run triage on a given day sets last_run, so the other machine
-skips it after a pull. Requires Node on PATH for scripts/spend-summary.mjs.
+Never write one lane's data into the other.
