@@ -28,13 +28,13 @@ runs_since_retro: 0
 | verify-loop-own-commit-completed | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 6, step 5) |
 | self-confirming-noise-without-fp-mark | 2026-07-24 | 1 | LANDED 2026-08-06 (retro refinement 1, step 2) |
 | promote-tokenmonitor-pr1-to-human-decisions | 2026-08-03 | 2 | LANDED 2026-08-06 (Human Decisions section) |
-| cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | HELD 2026-08-06 (retro refinement 8 - cost optimization; the expensive part is already cached) |
+| cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | LANDED 2026-08-06 (step 1, GitHub - held earlier the same day, then applied by explicit decision; implemented by ELIMINATING the per-repo sweep via one fleet-wide `gh search prs`/`gh search issues` call, NOT by caching a quiet-repo negative, which would have created a window where a new PR goes unreported) |
 | drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | LANDED 2026-08-06 (retro refinement 5, step 1) |
 | machine-tag-watchlist-items | 2026-08-06 | 1 | LANDED 2026-08-06 (retro refinement 4, step 2) |
 
-Ledger standing after the 2026-08-06 retrospective: **10 of 11 landed**, 1 held by decision, **0 outstanding**. Six of those ten landed that day; before the retrospective the figure was 4 of 11 across 23 days. The remaining HELD row (`cache-quiet-repo-pr-issue-results`) is a decision, not debt - it needs a reason to be revisited, not a reminder.
+Ledger standing after the 2026-08-06 retrospective: **11 of 11 landed**, 0 held, 0 outstanding. Every adjustment proposed across runs 1-10 is now applied. Seven of the eleven landed on 2026-08-06; before the retrospective the figure was 4 of 11 across 23 days.
 
-Note for the next retrospective's step R1: `branch-staleness-by-commits-ahead` deviates from its original proposal text on purpose, and the ledger row says how. When reconciling, check the file for what was ACTUALLY built (author-date staleness plus a separate `ahead_by` signal), not for the phrase the run-5 critique used.
+Note for the next retrospective's step R1: two rows deviate from their original proposal text ON PURPOSE, and each row says how. When reconciling, check the file for what was ACTUALLY built, not for the phrase the critique used - `branch-staleness-by-commits-ahead` became author-date staleness plus a separate `ahead_by` signal, and `cache-quiet-repo-pr-issue-results` became a fleet-wide search that removes the calls rather than a cache of their answers. Both would read as never-landed under a naive text match.
 
 ## Watch List
 - NMMToolkit (local, `Desktop\NMMToolkit`): `master` now ahead 2 of `origin/master` again - 2 new local-only doc commits (`docs: add design spec for USB device troubleshooter`, `docs: add design spec for version tracking`) since the prior "fully in sync" confirmation. Currently checked out on `master` (not the `test/business-tools-20260722` branch previously flagged - that branch's WIP status could not be re-checked this run since HEAD has moved off it). [action: push the 2 doc-spec commits when ready; re-check `test/business-tools-20260722` next run]

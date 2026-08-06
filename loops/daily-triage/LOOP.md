@@ -21,10 +21,31 @@ L2 also requires worktree isolation. Not active at L1.
    If `runs_since_retro >= 10` -> run the Retrospective (below) instead.
 1. Gather, tolerating per-source failure (a dead source becomes one
    "unavailable" line, never a failed run):
-   - **GitHub**: for each mwgrant21 repo (`gh repo list mwgrant21 --json name`):
-     open issues, open PRs and their age, branches with no activity > 14 days.
-     Read-only. Command shapes: `gh search issues --owner mwgrant21 --state open`,
-     `gh pr list -R mwgrant21/<repo> --json number,title,updatedAt`.
+   - **GitHub**: open issues, open PRs and their age, branches with no
+     activity > 14 days. Read-only.
+     Get PRs and issues FLEET-WIDE in two calls, not per repo (adjustment
+     `cache-quiet-repo-pr-issue-results`, proposed run 9 / 2026-08-04, held
+     2026-08-06, then applied the same day by explicit decision):
+     `gh search prs --owner mwgrant21 --state open --json
+     repository,number,title,updatedAt,isDraft,url --limit 100`
+     `gh search issues --owner mwgrant21 --state open --json
+     repository,number,title,updatedAt,url --limit 100`
+     A repo absent from those results has no open PRs/issues. That is a
+     positive fact established by an authoritative call, NOT a cached
+     negative - which is why this replaces the per-repo `gh pr list` sweep
+     instead of caching its result. Run 9 asked to cache "quiet repo" answers
+     for repos confirmed quiet twice running; that would have introduced a
+     window in which a newly opened PR goes unreported, on a loop whose only
+     job is surfacing things. Eliminating the call beats caching its answer.
+     **Always pass `--limit` explicitly and check for truncation.** The
+     default is 30. If the returned count EQUALS the limit, the result is
+     probably truncated - say so in the digest and re-run with a higher
+     limit. A silently truncated list reads as "fewer open PRs", which is the
+     same silent-under-report class as a mis-scoped test glob.
+     `gh pr list -R mwgrant21/<repo> --json number,title,updatedAt` is now
+     only for drilling into one repo's PR detail, never for the fleet sweep.
+     Repo enumeration (`gh repo list mwgrant21 --json name`) is still needed
+     for the branch checks below.
      Staleness is measured on the tip commit's **AUTHOR date**
      (`--jq '.commit.author.date'`), never its committer date (adjustment
      `branch-staleness-by-commits-ahead`, proposed run 5 / 2026-07-21, held
