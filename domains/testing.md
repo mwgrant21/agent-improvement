@@ -36,11 +36,21 @@ itself). Format per `README.md` in this directory.
 - Why: worktrees are full working copies on disk; without an explicit exclude,
   glob-based test discovery treats them as more source/test files to run,
   masking the real signal with noise from in-progress or stale worktree state.
+- The exclude glob must match where the worktrees ACTUALLY live, and a
+  root-anchored pattern is the trap: `.worktrees/**` never matches
+  `.claude/worktrees/<branch>/`, so a config that "already excludes worktrees"
+  still runs them. The repo convention and the harness's own choice differ -
+  Claude Code creates worktrees under `.claude/worktrees/`. Use unanchored
+  patterns covering both (`'**/.worktrees/**'`, `'**/worktrees/**'`), and
+  confirm by the collected test count dropping, not by reading the config.
 - Evidence: 2026-08-02 session (TokenMonitor, model-policy-stage11.5) - "`npm
   test` from the main checkout falsely reports 42 failures because
   `vite.config.ts`'s exclude list doesn't skip `.worktrees/**`, so it also runs
-  the copies of the suite living in" the worktrees.
-- Added: 2026-08-02 (home-matt)
+  the copies of the suite living in" the worktrees. Recurred 2026-08-07
+  (Aether-OS, Stage 15): the exclude list DID contain `.worktrees/**`, yet a
+  stale `.claude/worktrees/aether-packages-core-task4` still produced 6 false
+  failures and doubled suite collection because the anchored glob never matched.
+- Added: 2026-08-02 (home-matt); updated 2026-08-07 (work-it)
 
 ### Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail
 
@@ -117,3 +127,23 @@ itself). Format per `README.md` in this directory.
   also forced that failure path with a real Deny ACL rather than reasoning about
   it, per [[prove-a-new-regression-detecting-check-is-not-vacuous]].
 - Added: 2026-08-06 (work-it)
+
+### When you split an aggregate into buckets, assert the parts sum to the whole in a test
+
+- Any view that partitions a total (per-project, per-model, per-day slices of one
+  all-up number) needs a test asserting `sum(buckets) + catch-all == grand total`,
+  with an explicit named bucket (`unscoped`, `unknown`, `residual`) for rows the
+  partition key cannot classify. Never let unclassifiable rows be silently
+  dropped, and never normalize the residual away to make the numbers look tidy.
+- Why: a dropped-row bug in a partition is invisible - each per-bucket figure
+  looks individually plausible, and only the failure to reconcile against the
+  grand total exposes it. Users compare the detail view to the summary view and
+  find the discrepancy before any test does; at that point every number in the
+  product is suspect, not just the broken one.
+- Evidence: 2026-08-07 sessions (Aether-OS, Stages 15-16) - the Stage 15 review
+  caught a residual being normalized away in the Ledger's cost aggregation
+  ("residual not normalized away, `number | null` buckets never defaulting to
+  `0`"); Stage 16's per-project plan then made the reconciliation a hard
+  requirement - per-project totals plus `unscoped` must sum to the all-transcripts
+  total - "a test, not a hope."
+- Added: 2026-08-07 (work-it)

@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-06
+last-updated: 2026-08-07
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -47,7 +47,7 @@ at work).
 | app-dev | A stale compiled `.js` file can silently shadow its `.ts` source in dev vs. packaged Electron modes | 2026-07-29 |
 | verification | A final whole-branch review is required after task-level reviews - catches cross-task bugs | 2026-07-29 |
 | security | Warn before a secret enters the chat transcript, offer the `!`-command alternative | 2026-07-29 |
-| testing | Test runner config must exclude `.worktrees/**` or false failures appear | 2026-08-02 |
+| testing | Test runner config must exclude worktrees - and the glob must match `.claude/worktrees/` too | 2026-08-07 |
 | tooling | Verify a research fork actually did real work before trusting its report | 2026-08-02 |
 | testing | Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail | 2026-08-03 |
 | app-dev | Before calling an Electron blank-screen bug a code regression, check the build output is actually complete | 2026-08-03 |
@@ -75,3 +75,5 @@ at work).
 | loop-design | Two loops sharing a git-backed store must never end a pass with a dirty tree | 2026-08-06 |
 | loop-design | Measure the uncached path before adding a cache to a loop | 2026-08-06 |
 | verification | A probe that cannot distinguish "not yet" from "never" is not a verification | 2026-08-06 |
+| testing | Assert partition buckets plus a catch-all sum to the grand total | 2026-08-07 |
+| verification | Structural gates all green says nothing about the visual layer - name the gap | 2026-08-07 |

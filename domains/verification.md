@@ -232,3 +232,24 @@
   requests and every face registered as `unloaded`; switching to `document.fonts.load()`
   returned `loaded`/`true` for all six against the same unchanged CSS.
 - Added: 2026-08-06 (work-it)
+
+### Types, tests, builds, and CI all green says nothing about the visual layer - name that gap explicitly
+
+- When every gate a session ran was structural (typecheck, unit tests, build,
+  CI), do not let "all checks pass" stand in for the app having been looked at.
+  If the change alters what a user sees, either open the app and look, or write
+  the unverified check down where the next reader will hit it (`PROGRESS.md`
+  under "Not verified", the PR body) - as an outstanding item, not a caveat
+  buried in prose. Mounting without errors is not the same as the cards
+  rendering sensible numbers.
+- Why: structural green reads as done to everyone downstream, so an unstated
+  visual gap ships silently and gets discovered by the user. Stating it costs
+  one line and converts an invisible risk into a tracked task. This is the
+  general case of [[inspect-the-artifact-itself-not-proxies]] - a passing suite
+  is a proxy for the artifact, not the artifact.
+- Evidence: 2026-08-07 session (Aether-OS, Stages 14-15) - the Ledger view was
+  merged to `master` with every structural gate green while "nobody has opened
+  the app"; the gap was recorded in `PROGRESS.md` and the PR body rather than
+  left implied, and a later session confirmed only that it mounts and the nav
+  entry and copy render - the cards with real numbers in them were still unseen.
+- Added: 2026-08-07 (work-it)
