@@ -177,4 +177,56 @@ Format per `README.md` in this directory.
   this session"; a full rebuild populated `index.html`/JS/CSS/fonts and the
   full e2e suite (4/4, including previously-timing-out terminal/dashboard
   tests) passed afterward.
+- A fresh clone is the cheap way to rule this class out entirely: it carries no
+  `out/` history, so whatever launches is provably built from the commit under
+  test rather than from something an earlier run left on disk. Prefer live-testing
+  a throwaway clone over the working copy when the question is "does this commit
+  work," not "does my working tree work."
 - Added: 2026-08-03 (work-it)
+
+### A fallback that fires only when the data source is UNAVAILABLE will serve stale data forever
+
+- When a read path prefers a cache/store and falls back to a live computation,
+  make the fallback condition include STALENESS, not just unavailability. A
+  guard of the shape `if (store.read() === null) rescan()` fires for an
+  unopenable DB or an outdated schema - and never for a store that opens fine,
+  matches the schema, and stopped being written to weeks ago. Check the newest
+  row's timestamp, not just that rows came back, and surface "this data source is
+  dead" rather than rendering its emptiness as a real zero.
+- Why: a dead-but-readable source is the common failure, and it produces a
+  plausible number instead of an error. A dashboard that reports "you used
+  nothing this month" is indistinguishable from a correct one until it is
+  compared against another view derived from the live path - which is how this
+  was caught, not by any test.
+- Evidence: 2026-08-10 live-test session (Aether-OS v0.2.0) - `scanAndPushUsage()`
+  in `electron/main.ts:337` fell back to a full transcript scan only when
+  `readUsageEventsSince` returned `null`. `~/.aether-os/collector.db` opened fine
+  at schema v4 with 8,728 rows, but its newest row was 2026-07-30 - the collector
+  had been dead 11 days. It returned 5,324 stale non-null rows, the fallback
+  never fired, and every dashboard usage tile rendered `0` while the Ledger -
+  derived from an unconditional fresh scan in the same pass - read $889.44. Filed
+  as issue #19.
+- Added: 2026-08-10 (work-it)
+
+### Never sum cache-read tokens into a context-window figure, and clamp any derived percentage
+
+- Claude usage records report `cacheReadInputTokens` as the whole accumulated
+  context re-counted on every turn. Summing all four token fields of the latest
+  turn therefore measures cumulative reads, not occupancy - it produces figures
+  far larger than the window itself. Context-window utilization is input +
+  output (+ cache-creation), never cache reads. Independently, clamp any
+  percentage rendered from a computed ratio: an unclamped bar is what turns a
+  units bug into a visibly absurd number instead of a quietly wrong one.
+- Why: this trap recurs within the same codebase - one token-math function gets
+  fixed for it and a later one reintroduces it, because the field sits alongside
+  the legitimate ones in the same record and summing "all tokens" looks correct.
+  Treat any new token-math site as suspect by default and check which fields it
+  sums. Watch for a second symptom nearby: two views disagreeing on the window
+  denominator.
+- Evidence: 2026-08-10 live-test session (Aether-OS v0.2.0) - the footer CONTEXT
+  WINDOW card rendered **663% USED** (828,967 / 128,000) because
+  `computeContextWindow` summed all four fields including `cacheReadInputTokens`
+  - the exact trap `usageTokens()` had already been fixed for once per the repo's
+  own PROGRESS.md. The Dashboard tile and the footer card also disagreed on the
+  denominator (200.0K vs 128,000). Filed as issue #20.
+- Added: 2026-08-10 (work-it)

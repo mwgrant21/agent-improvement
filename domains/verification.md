@@ -223,7 +223,7 @@
   correct paths to chase a `false` that only reflected laziness. The same shape appears
   wherever state is demand-driven: caches, lazy imports, connection pools, deferred
   registrations. Related: a green suite can still be wrong
-  [[a-test-suite-can-be-unanimously-green-and-still-wrong]].
+  [[types-tests-builds-and-ci-all-green]].
 - Also: when the probe is a plan's stated acceptance criterion, correct the plan once the
   gap is found - a known-wrong criterion re-fires on the next reader.
 - Evidence: 2026-08-06 session (TokenMonitorV2, reskin Task 3) - the plan specified

@@ -147,3 +147,27 @@ itself). Format per `README.md` in this directory.
   requirement - per-project totals plus `unscoped` must sum to the all-transcripts
   total - "a test, not a hope."
 - Added: 2026-08-07 (work-it)
+
+### A DOM text-length assertion on a widget's ROOT element is satisfied by the library's own injected CSS
+
+- Never assert "this widget produced output" by measuring `textContent` length on
+  the widget's root/container element. Many UI libraries inject a `<style>` block
+  INSIDE that root, and `textContent` includes the text of that style block - so
+  the assertion passes on CSS alone, whether or not the widget ever rendered a
+  byte of real content. Target the specific content sub-element instead (for
+  xterm.js: `.xterm-rows`, not `.xterm-screen`), and when auditing a suspect
+  assertion, measure the split - total length vs. the `<style>` share - rather
+  than eyeballing whether the number "looks big enough."
+- Why: this is a vacuous test that reports as a passing integration test, i.e. the
+  most expensive kind. It specifically defeats the tests guarding the hardest
+  thing to test - that a real subprocess/pty/canvas actually produced output -
+  and the threshold looks deliberately chosen and reasonable in the source.
+- Evidence: 2026-08-10 live-test session (Aether-OS v0.2.0, `e2e/app.spec.ts:36`)
+  - the committed pty test asserted `.xterm-screen` textContent `> 40` chars;
+  measured live, that element held **56,039** chars of which **55,148** was
+  xterm's injected `<style>` and only **826** was actual row content - the
+  assertion was satisfied ~1,380x over by CSS alone. Filed as issue #21.
+- See also [[prove-a-new-regression-detecting-check-is-not-vacuous]] - reverting
+  the behavior under test is the general way to catch this class before shipping
+  it.
+- Added: 2026-08-10 (work-it)

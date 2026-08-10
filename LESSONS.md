@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-07
+last-updated: 2026-08-10
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -77,3 +77,6 @@ at work).
 | verification | A probe that cannot distinguish "not yet" from "never" is not a verification | 2026-08-06 |
 | testing | Assert partition buckets plus a catch-all sum to the grand total | 2026-08-07 |
 | verification | Structural gates all green says nothing about the visual layer - name the gap | 2026-08-07 |
+| testing | A text-length assertion on a widget root passes on the library's injected CSS | 2026-08-10 |
+| app-dev | A fallback keyed on "source unavailable" serves stale data forever | 2026-08-10 |
+| app-dev | Never sum cache-read tokens into a context-window figure; clamp the percentage | 2026-08-10 |
