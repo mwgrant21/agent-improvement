@@ -71,6 +71,7 @@ at work).
 | verification | Grep finds stale filenames, not stale concepts - read operator-facing strings | 2026-08-06 |
 | verification | Tell the reviewer which failures are meant to fail open | 2026-08-06 |
 | tooling | A config-snapshot repo whose recipe stops at "commit" protects nothing | 2026-08-06 |
+| tooling | Use absolute executable paths for Windows stdio MCP servers | 2026-08-10 |
 | loop-design | A loop must assert its scan root exists - a missing root reports as "nothing found" | 2026-08-06 |
 | loop-design | Two loops sharing a git-backed store must never end a pass with a dirty tree | 2026-08-06 |
 | loop-design | Measure the uncached path before adding a cache to a loop | 2026-08-06 |

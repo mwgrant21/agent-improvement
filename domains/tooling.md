@@ -89,6 +89,18 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   instruction.
 - Added: 2026-08-06 (work-it)
 
+### Use absolute executable paths for Windows stdio MCP servers
+
+- Configure a Windows stdio MCP server with an absolute path to its runtime (for
+  example, `C:\\Program Files\\nodejs\\node.exe`) and an absolute server-script
+  path; do not rely on an interactive shell's PATH.
+- Why: MCP hosts spawn the child directly and can inherit a different or incomplete
+  environment, causing a server that works in a terminal to fail at startup.
+- Evidence: 2026-08-10 home-matt `code-graph` MCP registration initially hit a
+  Windows PATH launch issue; changing both paths to absolute values made the Claude
+  MCP health check report the server connected.
+- Added: 2026-08-10 (home-matt)
+
 ### A config-snapshot repo whose documented recipe stops at "commit" protects nothing
 
 - For a repo whose job is to mirror live config for another machine
