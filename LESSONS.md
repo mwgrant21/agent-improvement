@@ -77,6 +77,10 @@ at work).
 | verification | A probe that cannot distinguish "not yet" from "never" is not a verification | 2026-08-06 |
 | testing | Assert partition buckets plus a catch-all sum to the grand total | 2026-08-07 |
 | verification | Structural gates all green says nothing about the visual layer - name the gap | 2026-08-07 |
+| loop-design | Formal policy gates, not config convention (permit/block/escalate, default-deny on eval failure) | 2026-08-07 |
+| loop-design | Revision-bound evidence and approval supersession - stale-diff approvals go void | 2026-08-07 |
 | testing | A text-length assertion on a widget root passes on the library's injected CSS | 2026-08-10 |
 | app-dev | A fallback keyed on "source unavailable" serves stale data forever | 2026-08-10 |
 | app-dev | Never sum cache-read tokens into a context-window figure; clamp the percentage | 2026-08-10 |
+| app-dev | Only swallow ENOENT on fs read errors - propagate everything else, don't silently undercount | 2026-08-10 |
+| app-dev | Suppress shell profile/rc loading when a pty/subprocess controls env vars, or rc files can silently re-export stripped vars | 2026-08-10 |

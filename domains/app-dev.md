@@ -230,3 +230,37 @@ Format per `README.md` in this directory.
   own PROGRESS.md. The Dashboard tile and the footer card also disagreed on the
   denominator (200.0K vs 128,000). Filed as issue #20.
 - Added: 2026-08-10 (work-it)
+
+### When catching filesystem read errors, only swallow ENOENT - propagate everything else instead of silently undercounting
+
+- A `try { readdir/readFile } catch { treat as empty/zero }` pattern should only
+  catch the specific case the fallback is meant for (path legitimately doesn't
+  exist yet - `ENOENT`). Any other error (permissions, I/O failure, corrupt
+  data) must propagate as a real error, not get folded into the same "treat as
+  empty" branch - that turns a real failure into a silent undercount with no
+  error signal.
+- Why: the two failure modes look identical from the caller's side (both
+  produce a lower-than-expected count) but have opposite correct handling -
+  one is expected and recoverable, the other is a bug that needs surfacing.
+- Evidence: 2026-08-08 session (aether-os PR #14) - fix verified and pushed:
+  "non-ENOENT subagent-directory read errors now propagate instead of
+  silently undercounting," 1006/1006 tests passing afterward.
+- Added: 2026-08-10 (home-matt)
+
+### Suppress shell profile/rc loading when a pty/subprocess is used to control environment variables
+
+- When code spawns a shell inside a pty (or any subprocess) specifically to
+  control or strip environment variables, pass the shell's no-profile flag
+  (`-NoProfile` for PowerShell, `--norc --noprofile` for bash, `-f` for zsh).
+  Without it, the user's own `~/.bashrc`/`$PROFILE`/etc. can silently
+  re-export a variable that the calling code just stripped, defeating the
+  intended env control with no error.
+- Why: the leak is invisible from the calling code's perspective - it set the
+  environment correctly before spawning: the re-export happens entirely
+  inside the shell's own startup sequence, outside the parent process's view.
+- Evidence: 2026-08-09 session (aether-os `fix/pty-shell-profile-leak`,
+  merged as PR #18) - fix applied `-NoProfile` (PowerShell), `--norc
+  --noprofile` (bash), and `-f` (zsh) "so `~/.bashrc`/`$PROFILE` can't
+  silently re-export a var that was just stripped from the pty's
+  environment"; 991/991 tests passing on master afterward.
+- Added: 2026-08-10 (home-matt)
