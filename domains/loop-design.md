@@ -88,6 +88,7 @@ modifying any loop.
 - Evidence: imported from loop-engineering anti-pattern #10, 2026-07-13.
 - Added: 2026-07-13 (home-matt)
 
+<<<<<<< Updated upstream
 ### A loop must assert its scan root exists - a missing root reports as "nothing found"
 
 - Any loop step that enumerates a directory, glob, or repo list must verify the
@@ -148,3 +149,42 @@ modifying any loop.
   identified the default-branch SHA as an input a cached "branch is N commits
   ahead" value would not track.
 - Added: 2026-08-06 (work-it)
+=======
+### Formal policy gates, not config convention
+
+- Before any consequential operation (spend, deploy, merge, delete), evaluate
+  it against an explicit permit/block/escalate check as a real gate step -
+  not a config flag/boolean the operation merely consults by convention, and
+  never a check that fails open on its own I/O errors.
+- Why: Aether OS's `modelPolicy.ts` was configured to block Opus calls but a
+  Sonnet/Haiku call path it never anticipated slipped through anyway
+  (2026-07-31, $24 incident); its spend-ceiling guard also failed open on
+  file I/O errors by design. A toggleable convention is not the same
+  guarantee as a structurally-enforced gate the operation cannot bypass.
+- How to apply: for any loop that can spend money, merge, deploy, or delete,
+  design the gate as a mandatory evaluate-then-act step with a default-deny
+  (block/escalate) posture on any evaluation failure - not a boolean flag
+  that can silently drift out of sync with what the code actually calls, and
+  not a check that permits on error.
+- Evidence: steal-the-shape from github.com/Mathews-Tom/Enginery's policy-gate
+  engine (see enginery-evaluation.md, TokenMonitor project memory) applied to
+  a real incident already seen twice in this fleet.
+- Added: 2026-08-07 (home-matt)
+
+### Revision-bound evidence and approval supersession
+
+- A verification, approval, or "tests passed" result is only valid for the
+  exact revision/diff it was computed against. If the base commit or diff
+  changes after approval, treat the prior approval as void - do not carry it
+  forward as still-satisfied.
+- Why: stale-diff approvals silently going stale is a real failure mode -
+  code changes after a human or verifier signs off, and the signoff gets
+  treated as still covering the new state.
+- How to apply: bind evidence/approval records to a revision digest (commit
+  hash, diff hash); before treating a prior approval as satisfied, confirm
+  the digest still matches current state, not just that an approval exists.
+- Evidence: steal-the-idea from github.com/Mathews-Tom/Enginery's approval
+  supersession pattern (see enginery-evaluation.md, TokenMonitor project
+  memory).
+- Added: 2026-08-07 (home-matt)
+>>>>>>> Stashed changes
