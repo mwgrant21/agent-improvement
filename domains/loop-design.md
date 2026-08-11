@@ -88,7 +88,6 @@ modifying any loop.
 - Evidence: imported from loop-engineering anti-pattern #10, 2026-07-13.
 - Added: 2026-07-13 (home-matt)
 
-<<<<<<< Updated upstream
 ### A loop must assert its scan root exists - a missing root reports as "nothing found"
 
 - Any loop step that enumerates a directory, glob, or repo list must verify the
@@ -149,7 +148,7 @@ modifying any loop.
   identified the default-branch SHA as an input a cached "branch is N commits
   ahead" value would not track.
 - Added: 2026-08-06 (work-it)
-=======
+
 ### Formal policy gates, not config convention
 
 - Before any consequential operation (spend, deploy, merge, delete), evaluate
@@ -187,4 +186,3 @@ modifying any loop.
   supersession pattern (see enginery-evaluation.md, TokenMonitor project
   memory).
 - Added: 2026-08-07 (home-matt)
->>>>>>> Stashed changes
