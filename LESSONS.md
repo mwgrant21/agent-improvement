@@ -87,3 +87,7 @@ at work).
 | app-dev | Fix a rule on one code path, apply and test it on the nested path too | 2026-08-11 |
 | app-dev | A guard against recurrence heals nothing already broken; migrate off the physical schema | 2026-08-11 |
 | testing | Two implementations of one contract need a parity harness over a shared fixture corpus | 2026-08-11 |
+| testing | Fixtures must mirror the real producer's record shape | 2026-08-11 |
+| verification | A savings estimate must exclude costs paid regardless of the fix | 2026-08-11 |
+| verification | Grep the whole file for a config key - never sample the head | 2026-08-11 |
+| tooling | Claude Code can't switch its own model; routing is agent-frontmatter delegation | 2026-08-11 |

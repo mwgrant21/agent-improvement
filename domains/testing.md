@@ -197,3 +197,28 @@ itself). Format per `README.md` in this directory.
 - See also [[when-you-fix-a-rule-on-one-code-path]] and
   [[prove-a-new-regression-detecting-check-is-not-vacuous]].
 - Added: 2026-08-11 (work-it)
+
+### Test fixtures must mirror the real producer's record shape, or they validate a shape that does not exist
+
+- When a rule/predicate consumes records emitted by a parser, build fixtures by
+  reproducing the parser's ACTUAL output sequence, not a convenient one-object
+  shorthand. If one logical unit of work spans several emitted records, the
+  fixture must span them too. Before trusting a "does NOT fire" test, ask which
+  record the assertion's discriminating field really lands on in production.
+- Why: a fixture that concentrates a whole unit's data into one record can make
+  a threshold check pass that is nearly vacuous against real data. The suite
+  goes green while the predicate is wrong for every real input, and the wrongness
+  is invisible precisely because the fixture never produces the failing shape.
+- Evidence: 2026-08-11 TokenMonitor PR #3. `findUndelegatedLookup` gated on
+  `outputTokens < 300` per record. `transcriptParser` emits one record per JSONL
+  line, so a human turn is assistant(tool_use) -> user(tool_result) ->
+  assistant(prose); the tool-call record's output is always tiny, making the
+  ceiling near-vacuous and flagging lookup-then-analyze turns as "pure lookup".
+  The tests passed only because their fixtures put the turn's entire output on
+  the tool-call record - a shape real transcripts never produce. Caught in review,
+  not by the suite. Fixed in `4a2a9a2` by grouping records between human prompts;
+  re-running the OLD predicate against the corrected fixtures flags 3 records
+  that must not be flagged, proving the new guard discriminates.
+- See also [[prove-a-new-regression-detecting-check-is-not-vacuous]] and
+  [[two-implementations-of-one-contract-need-a-parity-harness]].
+- Added: 2026-08-11 (work-it)

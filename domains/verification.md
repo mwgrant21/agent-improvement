@@ -253,3 +253,48 @@
   left implied, and a later session confirmed only that it mounts and the nav
   entry and copy render - the cards with real numbers in them were still unseen.
 - Added: 2026-08-07 (work-it)
+
+### A savings estimate must exclude costs paid whether or not the remediation is applied
+
+- Before reporting "applying this fix reclaims $X", decompose the measured cost
+  and remove every component the system still pays AFTER the fix. Only the
+  genuinely avoided portion is the estimate's basis. A fixed fudge factor
+  ("discount by 40% for overhead") cannot correct a wrong basis - it multiplies
+  the error rather than bounding it, and it looks principled while doing so.
+- Why: overstatement concentrates in exactly the workloads a waste-finding rule
+  targets, so the number is least trustworthy where it matters most. A remediation
+  estimate is a claim about a counterfactual; if you never subtract what the
+  counterfactual still costs, you are pricing the whole operation as if it
+  disappeared.
+- Evidence: 2026-08-11 TokenMonitor PR #3. The delegation rule priced savings as
+  `costForEvent(event) - costForEvent({...event, model: haiku})`, and
+  `costForEvent` includes `cacheReadInputTokens` - the conversation context
+  replayed on every request. Delegating a lookup to a subagent does not remove
+  that context: the main loop still makes the request that dispatches the
+  subagent, so it still pays it. Measured against the old basis, an otherwise
+  identical turn with 900k tokens of replayed context reported **151x** the
+  reclaimable spend of a lean turn. Fixed in `4a2a9a2` with a `delegableCost()`
+  that prices only marginal input and generated output; a new test asserts a
+  900k-token replayed context changes the estimate by exactly zero.
+- See also [[never-sum-cache-read-tokens-into-a-context-window-figure]].
+- Added: 2026-08-11 (work-it)
+
+### To check whether a config key is set, grep the whole file - never sample the first N lines
+
+- When answering "does this file declare X?", grep the entire file for the key.
+  Reading the head is not a check: config formats routinely place keys after a
+  long block (a multi-line YAML `description: |`, a big comment header), and
+  key order carries no guarantee.
+- Why: a head-sample produces a confident WRONG answer rather than an uncertain
+  one, and it scales - sampling five files the same way yields five wrong answers
+  that agree with each other, which reads as corroboration.
+- Evidence: 2026-08-11, diagnosing why every turn ran on Opus. Checked
+  `~/.claude/agents/*.md` with `sed -n '1,12p' | grep '^model:'` and reported to
+  the user that none of the five agents declared a model and were therefore
+  inheriting the session model. All five DID declare one, at line 20/26, below
+  the multi-line `description: |` block. `grep -n '^model:'` over whole files
+  showed it immediately. The bad reading had already been acted on - duplicate
+  `model:` keys were written into all five files, one of them (`app-architect`)
+  conflicting opus-vs-sonnet - and had to be reverted.
+- See also [[grep-finds-stale-filenames-it-does-not-find-stale-concepts]].
+- Added: 2026-08-11 (work-it)

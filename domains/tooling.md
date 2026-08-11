@@ -109,3 +109,26 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   the home machine at all. Root cause traced to the README's own instruction,
   "Update by copying the live file(s) here and committing" - no push step.
 - Added: 2026-08-06 (work-it)
+
+### Claude Code cannot switch its own model mid-session - routing is delegation via agent frontmatter
+
+- A running session's model is resolved by the harness before inference. No
+  skill, hook, CLAUDE.md line, or in-session instruction can change it. The only
+  real levers are: `settings.json` `"model"` (session default), `/model`
+  (manual), and `model:` in an agent's frontmatter (per subagent). "Route cheap
+  work to a cheaper model" therefore means DELEGATE to a subagent that declares
+  that model - not switch. There is likewise no automatic "escalate when stuck"
+  trigger; escalation is a judgment call to dispatch, or a manual `/model`.
+- Why: writing model-routing policy into CLAUDE.md is a control-plane/data-plane
+  confusion. The file is data the assistant reads; model selection is resolved
+  before it reads anything. The result is a documented policy that no component
+  enforces - and it fails silently, because the text is present and looks obeyed.
+- Evidence: 2026-08-11. "Everything keeps running on Opus" traced to a single
+  line, `settings.json` `"model": "opus"`; the agents were already routed
+  correctly. A token-tracker rule had been "remediating" this by upserting
+  "Prefer Sonnet for short/trivial turns" into `~/.claude/CLAUDE.md`, which the
+  assistant can read and can do nothing about. Separately, Aether-OS's deleted
+  `modelPolicy.ts` (tier->model table) governed that app's own outbound API
+  calls, never Claude Code's session model - a conflation worth not repeating.
+- See also [[a-config-snapshot-repo-whose-documented-recipe-stops-at-commit]].
+- Added: 2026-08-11 (work-it)
