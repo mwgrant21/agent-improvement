@@ -264,3 +264,51 @@ Format per `README.md` in this directory.
   silently re-export a var that was just stripped from the pty's
   environment"; 991/991 tests passing on master afterward.
 - Added: 2026-08-10 (home-matt)
+
+### When you fix a rule on one code path, apply and TEST it on the sibling/nested path in the same pass
+
+- Scanners, ingesters and walkers usually have a top-level loop and a nested
+  (child/subagent/recursive) loop. A rule added to one is routinely absent from
+  the other, and the miss is invisible: the feature demonstrably works, just on
+  half the corpus. Enumerate every loop that handles the same entity before
+  calling such a fix done, and assert the new behaviour on the nested path
+  specifically - a pre-existing test that covers a NEIGHBOURING behaviour on
+  that path reads as coverage of the path and is why these gaps survive.
+- Why: the failure is silent and quantitatively large, not a crash. Totals stay
+  plausible while a majority of the input is skipped, so no error surfaces to
+  prompt the check.
+- Evidence: 2026-08-10 Aether-OS - the nested `subagents/*.jsonl` loop ingested
+  tool calls and anomalies but never called `ingestUsageEvent`. Fix off vs on
+  over the real `~/.claude/projects` corpus: 12,514 -> 26,420 usage events and
+  15.3M -> 21.5M tokens, i.e. 53% of events and 28.6% of tokens (6.15M) were
+  invisible; the scan tracks 373 nested files against 58 top-level ones. The
+  existing nested-subagent test asserted tool calls only, which is exactly why
+  the gap survived (commit `278e76b`, issue #25). Three defects that day had
+  this identical shape, including `collector-go` having no `subagents/` handling
+  at all and a missing `tool_calls.source_file_rel` write (#29, #32).
+- See also [[cross-implementation-parity-harness]] - the harness that turns this
+  class from "found by running the app" into a red test.
+- Added: 2026-08-11 (work-it)
+
+### A guard that stops a bad state RECURRING heals nothing already in it - migrations must read the physical schema, not the recorded version
+
+- Two fixes are needed whenever a bug has been writing bad persistent state:
+  stop it happening again, AND converge machines already broken. Shipping only
+  the guard leaves the exact population the fix most needed to reach still
+  crashing. Concretely for schema migrations: drive column migrations off the
+  columns physically present (`pragma_table_info` / `addColumnIfMissing`), never
+  off a recorded version integer, so a database that is version-ahead, stamped
+  backwards, or partly migrated converges instead of throwing.
+- Why: a version-gated block (`if (currentVersion < 5) ALTER TABLE ... ADD
+  COLUMN`) re-runs against a column that already exists and throws `duplicate
+  column name`, and an unguarded throw at startup means the user cannot rescue
+  the machine by upgrading either. Verifying the fix on a FRESH database says
+  nothing - the round trip runs clean there by construction.
+- Evidence: 2026-08-10 Aether-OS - #31's guard stopped `collector-go` stamping
+  the version downwards, but a database physically at v6/v7 recorded as 4 (the
+  state the pre-#31 Go collector left behind) still crashed both collectors at
+  `index.ts:49`. Caught by a Codex P1 review on PR #35 after the crash had been
+  demonstrated and not noticed. Fixed in `b08ae74` and proven end to end -
+  migrate to v7, stamp back to 4, migrate again - with a regression test in both
+  collectors watched failing first on the real error.
+- Added: 2026-08-11 (work-it)

@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-10
+last-updated: 2026-08-11
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -84,3 +84,6 @@ at work).
 | app-dev | Never sum cache-read tokens into a context-window figure; clamp the percentage | 2026-08-10 |
 | app-dev | Only swallow ENOENT on fs read errors - propagate everything else, don't silently undercount | 2026-08-10 |
 | app-dev | Suppress shell profile/rc loading when a pty/subprocess controls env vars, or rc files can silently re-export stripped vars | 2026-08-10 |
+| app-dev | Fix a rule on one code path, apply and test it on the nested path too | 2026-08-11 |
+| app-dev | A guard against recurrence heals nothing already broken; migrate off the physical schema | 2026-08-11 |
+| testing | Two implementations of one contract need a parity harness over a shared fixture corpus | 2026-08-11 |

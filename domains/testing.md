@@ -171,3 +171,29 @@ itself). Format per `README.md` in this directory.
   the behavior under test is the general way to catch this class before shipping
   it.
 - Added: 2026-08-10 (work-it)
+
+### Two implementations of one contract need a parity harness over a committed fixture corpus, not two independent test suites
+
+- When a rewrite/port is claimed to be a "drop-in swap" for an existing
+  implementation, assert it: commit a miniature fixture corpus, have EACH
+  implementation process it into a throwaway store, and assert both match one
+  golden file. Keep the check language-agnostic - neither side runs the other -
+  and guard identity keys (paths, ids) alongside row counts and totals, with
+  each side normalising its platform separator against a canonical form in the
+  golden. Passing suites on both sides prove each meets its own tests, not that
+  the two agree.
+- Why: equivalence asserted in a design doc is not equivalence, and a divergence
+  in a shared store is worse than a crash. Two implementations keying the same
+  file differently make it scanned twice and double counted - numbers stay
+  plausible while being wrong in both directions.
+- Evidence: 2026-08-10 Aether-OS (PR #33, commit `360c9b8`) -
+  `test-fixtures/collector-parity/` plus `parity.test.ts` /
+  `parity_test.go`. The Go side went red on its first run and caught all four
+  dimensions at once (usage_events 1 vs 2, token totals 100 vs 7,100 input,
+  tool_calls 1 vs 2, and a missing `transcript_files` key): `collector-go` had
+  no `subagents/` handling at all, though Stage 10 shipped it as a "drop-in swap
+  behind the Stage 2 contract." A cutover would have silently reduced what was
+  collected.
+- See also [[when-you-fix-a-rule-on-one-code-path]] and
+  [[prove-a-new-regression-detecting-check-is-not-vacuous]].
+- Added: 2026-08-11 (work-it)
