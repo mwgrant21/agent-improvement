@@ -27,13 +27,44 @@ try {
     if (-not (Test-Path $candDir)) { New-Item -ItemType Directory -Path $candDir -Force | Out-Null }
     $bufferPath = Join-Path $candDir "$machineId-buffer.jsonl"
 
+    # Resolve the transcript. The payload's transcript_path is tried first, but it
+    # is NOT trusted: on 2026-08-12 a promote pass found 36 of 60 buffered records
+    # unusable because the payload named a file under the HOME project directory
+    # for sessions whose cwd was a project directory, where their transcripts do
+    # not live. Test-Path failed, the summary came out empty, and the record was
+    # written anyway - so two passes reported "N pending" while capturing nothing
+    # from any real project work.
+    #
+    # Fall back to locating the transcript by session_id across every project
+    # directory, which is the one identifier that cannot be misfiled.
+    $tp = $data.transcript_path
+    $resolved = $null
+    $source = 'unavailable'
+
+    if ($tp -and (Test-Path $tp)) {
+        $resolved = $tp
+        $source = 'payload'
+    }
+    elseif ($data.session_id) {
+        try {
+            $projRoot = Join-Path $env:USERPROFILE '.claude\projects'
+            if (Test-Path $projRoot) {
+                $hit = Get-ChildItem -Path $projRoot -Filter "$($data.session_id).jsonl" -Recurse -File -ErrorAction SilentlyContinue |
+                    Select-Object -First 1
+                if ($hit) {
+                    $resolved = $hit.FullName
+                    $source = 'session-id-search'
+                }
+            }
+        } catch {}
+    }
+
     # Cheap summary: last assistant text block in the transcript tail. Best-effort;
     # the promote pass opens the transcript itself when it needs more.
     $summary = ''
-    $tp = $data.transcript_path
-    if ($tp -and (Test-Path $tp)) {
+    if ($resolved) {
         try {
-            $tail = Get-Content -Path $tp -Tail 80 -ErrorAction Stop
+            $tail = Get-Content -Path $resolved -Tail 80 -ErrorAction Stop
             foreach ($line in $tail) {
                 try {
                     $entry = $line | ConvertFrom-Json
@@ -48,12 +79,19 @@ try {
     }
     $summary = ($summary -replace '\s+', ' ').Trim()
     if ($summary.Length -gt 300) { $summary = $summary.Substring($summary.Length - 300) }
+    if ($summary.Length -eq 0 -and $source -ne 'unavailable') { $source = 'transcript-had-no-text' }
 
+    # summary_source makes a capture FAILURE distinguishable from a session that
+    # genuinely had nothing to say. Without it an empty summary is ambiguous, and
+    # the ambiguity is what let the defect above survive two promote passes: the
+    # record count kept climbing, which reads as a healthy pipeline.
     $record = [ordered]@{
         session_id      = $data.session_id
         ended_at        = (Get-Date -Format 's')
         cwd             = $data.cwd
-        transcript_path = $tp
+        transcript_path = $resolved
+        payload_path    = $tp
+        summary_source  = $source
         summary         = $summary
     }
     $json = $record | ConvertTo-Json -Compress
