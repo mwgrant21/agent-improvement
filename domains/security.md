@@ -114,3 +114,27 @@ credential handling, sandboxing) confirmed across projects. Format per
   See [[when-retiring-a-paid-api-integration-check-for-key-leakage]] for the
   companion case on the same project.
 - Added: 2026-08-06 (work-it), updated 2026-08-06 (work-it)
+
+### Match hardening effort to the actual threat model before recommending it
+
+- Before proposing security hardening (ACL tightening, SID sets, inheritance
+  rules, verification pipelines), name the concrete threat actors first: other
+  local accounts, local admins, SYSTEM, malware under the user's own token.
+  On a single-user Windows machine with no other logins, no shared service,
+  and no elevation boundary, most of these threats either don't exist or
+  can't be defended against with ACLs anyway (admins/SYSTEM can always take
+  ownership; malware under the user's token already has the user's access).
+  Proposing enterprise multi-tenant hardening (explicit SID grants, reparse-
+  point handling, ACL repair/verify UI) in that context is engineering effort
+  spent on theater, not defense - and it displaces time from the gaps that
+  are actually real (in this case, project scoping and dispatch persistence).
+- Why: an adversarial review had flagged the missing hardening as a "critical
+  gap," but a threat-model walkthrough showed Windows' default inherited
+  ACLs already exclude non-admin accounts since Vista, and no proposed
+  control changed the admin/SYSTEM/malware-under-own-token picture at all.
+- Evidence: 2026-08-10 session (aether-os `~/.aether-os/` ACL hardening
+  question) - walked through each threat actor, found the SID-set/
+  inheritance/reparse-point engineering addressed only enterprise multi-
+  tenant scenarios, and recommended dropping it entirely for a confirmed
+  single-account machine in favor of two real functional gaps.
+- Added: 2026-08-11 (home-matt)

@@ -92,6 +92,7 @@ at work).
 | verification | A savings estimate must exclude costs paid regardless of the fix | 2026-08-11 |
 | verification | Grep the whole file for a config key - never sample the head | 2026-08-11 |
 | tooling | Claude Code can't switch its own model; routing is agent-frontmatter delegation | 2026-08-11 |
+| security | Match hardening effort to the actual threat model before recommending it | 2026-08-11 |
 | app-dev | Centralizing a setting is not centralizing its guarantee | 2026-08-12 |
 | git | A commit missing from master is not the same as its content missing | 2026-08-12 |
 | powershell | ConvertFrom-Json is case-insensitive and rejects case-only-different keys | 2026-08-12 |
