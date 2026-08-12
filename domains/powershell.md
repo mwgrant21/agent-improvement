@@ -161,3 +161,22 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   already caused real failures on this box and the task review was aimed
   specifically at them.
 - Added: 2026-08-06 (work-it)
+
+### `ConvertFrom-Json` is case-insensitive and rejects keys that differ only in case
+
+- PS 5.1's `ConvertFrom-Json` builds a case-INSENSITIVE dictionary, so a JSON
+  file containing two keys differing only in case throws
+  `DuplicateKeysInJsonString` and NOTHING in the file parses. JavaScript is
+  case-sensitive and reads the same file fine. When a JSON file is owned by a
+  JS/Node tool, parse it with Node, not PowerShell - match the semantics of
+  whatever writes it.
+- Why: the failure is total and misleading. It looks like file corruption rather
+  than a dialect difference, and it blocks the whole document over two keys that
+  the owning application considers distinct and valid.
+- Evidence: 2026-08-12, snapshotting `~/.claude.json`. It held
+  `C:/Users/IT/.claude`, `C:/users/it/.claude`, and `C:/Users/it/.claude` -
+  three keys for one Windows directory, created by launching `claude` from
+  differently-cased shells. `ConvertFrom-Json` refused the entire 63KB file;
+  Node parsed it without complaint. The snapshot scripts were rewritten in Node
+  for that reason, and a dedupe script later collapsed the variants.
+- Added: 2026-08-12 (work-it)

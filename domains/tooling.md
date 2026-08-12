@@ -132,3 +132,22 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   calls, never Claude Code's session model - a conflation worth not repeating.
 - See also [[a-config-snapshot-repo-whose-documented-recipe-stops-at-commit]].
 - Added: 2026-08-11 (work-it)
+
+### `gh auth login` mints a fresh scope set - re-login silently drops scopes you still need
+
+- To ADD a scope use `gh auth refresh -h github.com -s <scope>`, which is
+  additive. To REMOVE one, a fresh `gh auth login` works - it mints a new token
+  with the default scope set rather than the union - but it drops every
+  non-default scope at once, not just the one being removed. After either, run
+  `gh auth status` and compare the scope list against what the repos actually
+  need.
+- Why: the collateral loss is latent. Nothing fails at the time; the missing
+  scope surfaces later as an unrelated-looking failure, and `workflow` is the
+  common casualty - without it any `git push` touching `.github/workflows/` is
+  rejected with a message that reads like a repo permission problem.
+- Evidence: 2026-08-12. `delete_repo` was granted for a one-off repo deletion,
+  then removed with a fresh `gh auth login` - which also dropped `workflow`,
+  silently breaking future CI edits in four repos that have GitHub Actions.
+  Restored with `gh auth refresh -s workflow`, which added it back without
+  reinstating `delete_repo`.
+- Added: 2026-08-12 (work-it)

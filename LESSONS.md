@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-11
+last-updated: 2026-08-12
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -91,3 +91,8 @@ at work).
 | verification | A savings estimate must exclude costs paid regardless of the fix | 2026-08-11 |
 | verification | Grep the whole file for a config key - never sample the head | 2026-08-11 |
 | tooling | Claude Code can't switch its own model; routing is agent-frontmatter delegation | 2026-08-11 |
+| app-dev | Centralizing a setting is not centralizing its guarantee | 2026-08-12 |
+| git | A commit missing from master is not the same as its content missing | 2026-08-12 |
+| powershell | ConvertFrom-Json is case-insensitive and rejects case-only-different keys | 2026-08-12 |
+| tooling | gh auth login mints a fresh scope set - re-login silently drops scopes | 2026-08-12 |
+| loop-design | Verify a loop's capture actually captured, not that records accumulated | 2026-08-12 |

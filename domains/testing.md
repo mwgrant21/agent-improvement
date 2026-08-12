@@ -50,7 +50,20 @@ itself). Format per `README.md` in this directory.
   (Aether-OS, Stage 15): the exclude list DID contain `.worktrees/**`, yet a
   stale `.claude/worktrees/aether-packages-core-task4` still produced 6 false
   failures and doubled suite collection because the anchored glob never matched.
-- Added: 2026-08-02 (home-matt); updated 2026-08-07 (work-it)
+- **The test runner is not the only config that names the old path.** When a
+  tool's directory convention moves, EVERY config referencing the old location
+  goes stale at once, and only the noisiest one gets noticed. After fixing the
+  runner, grep the whole repo for the old path - `.gitignore`, editor and
+  linter ignore files, dev-server watch lists, packaging excludes, CI paths.
+- Evidence for that generalisation: 2026-08-12 (TokenMonitor). The vitest config
+  had been corrected to cover `.claude/worktrees/`, but `.gitignore` still
+  listed only `.worktrees/`, so `?? .claude/` showed as an untracked change and
+  a daily-triage loop flagged it as unresolved WIP for FIVE consecutive runs
+  before anyone read the rule rather than the symptom. It was never noise; the
+  ignore rule had simply never caught up with the move. Fixed by adding
+  `.claude/worktrees/` - scoped to worktrees, not all of `.claude/`, so
+  project-level agents/skills/settings stay trackable.
+- Added: 2026-08-02 (home-matt); updated 2026-08-07 and 2026-08-12 (work-it)
 
 ### Prove a new regression-detecting check is not vacuous by reverting the fix and watching it fail
 

@@ -312,3 +312,26 @@ Format per `README.md` in this directory.
   migrate to v7, stamp back to 4, migrate again - with a regression test in both
   collectors watched failing first on the real error.
 - Added: 2026-08-11 (work-it)
+
+### Centralizing a setting is not centralizing its guarantee
+
+- When moving a setting into a shared helper so callers "no longer have to
+  remember it", check whether the setting's EFFECT is also centralized. If the
+  value still only takes effect when each caller does something else as well,
+  the helper has moved the code without moving the invariant - and the comment
+  claiming otherwise makes it harder to spot, not easier.
+- Why: a setting that reads as centrally guaranteed but is conditionally
+  effective fails exactly when a second caller appears. The first caller usually
+  works by coincidence, so the defect ships green and stays invisible until
+  someone adds the caller that does not know the extra step.
+- Evidence: 2026-08-12 Aether-OS issue #41. `schema.OpenDatabase` set
+  `PRAGMA busy_timeout = 5000` via `db.Exec` after `sql.Open`, commented "set
+  here rather than left to each caller to remember". True of the pragma, false
+  of the guarantee: a PRAGMA binds to the connection that ran it, and
+  `database/sql` hands later queries any pooled connection. Holding four
+  connections open reported `5000, 0, 0, 0`. Production was unexposed only
+  because the single caller also set `SetMaxOpenConns(1)` for an unrelated
+  reason. Fixed by moving it into the DSN, where the driver applies it per
+  connection regardless of caller.
+- See also [[a-static-name-keyed-lookup-table-silently-drops]].
+- Added: 2026-08-12 (work-it)

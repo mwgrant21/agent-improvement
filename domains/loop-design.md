@@ -186,3 +186,26 @@ modifying any loop.
   supersession pattern (see enginery-evaluation.md, TokenMonitor project
   memory).
 - Added: 2026-08-07 (home-matt)
+
+### Verify a loop's capture actually captured, not that records accumulated
+
+- A loop that harvests its own inputs must be checked end to end: assert the
+  captured records contain usable PAYLOAD, not merely that rows are arriving.
+  Where a record only references an artifact by path, verify the path resolves
+  at capture time, and re-verify at processing time - the artifact may be
+  written somewhere else, or be gone by the time the loop reads it.
+- Why: an accumulating buffer reads as a healthy pipeline. Volume is the metric
+  most likely to be watched and the one least likely to reveal that every record
+  is empty, so the loop reports "N pending" for months while capturing nothing.
+- Evidence: 2026-08-12, agent-learn promote pass. 36 of 60 buffered records
+  across two sessions carried an empty `summary` and a `transcript_path` that
+  resolved to no file, making them unusable; the same session had already been
+  dropped for this on the previous pass. The correlation was exact: the one
+  session whose cwd was the HOME directory had all 24 summaries, and both
+  sessions whose cwd was a project directory had zero - their recorded
+  transcript path pointed under the home directory's project folder, where their
+  transcripts do not live. Every session doing real work in a project directory
+  was being silently discarded.
+- See also [[a-probe-that-cannot-distinguish]] and
+  [[a-loop-must-assert-its-scan-root-exists]].
+- Added: 2026-08-12 (work-it)
