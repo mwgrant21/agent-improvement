@@ -151,3 +151,20 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   Restored with `gh auth refresh -s workflow`, which added it back without
   reinstating `delete_repo`.
 - Added: 2026-08-12 (work-it)
+
+### `run_in_background` can report exit code 0 for a GUI app that actually crashed
+
+- Launching a GUI/Electron app via `run_in_background` is not a reliable
+  reproduction method for a bug report: the process can throw and die, yet the
+  background job still reports exit code 0. A clean exit code from a
+  background-launched GUI app is therefore not evidence the app ran correctly
+  - relaunch it in a real (foreground) terminal before trusting that signal,
+  especially when reproducing a specific crash/bug report.
+- Why: the false-positive exit code makes a crash look like a successful run,
+  which would have led to closing or misdiagnosing the bug as unreproducible.
+- Evidence: 2026-08-12 session (agent-improvement) - "launching this app via
+  `run_in_background` will reliably fail this way, so #22 reproduction
+  attempts need a real terminal; and the exit code was reported as 0 despite
+  the throw, which means a background launch of this app can look successful
+  while having crashed."
+- Added: 2026-08-13 (work-it)

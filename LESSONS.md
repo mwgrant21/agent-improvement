@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-12
+last-updated: 2026-08-13
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -96,3 +96,4 @@ at work).
 | powershell | ConvertFrom-Json is case-insensitive and rejects case-only-different keys | 2026-08-12 |
 | tooling | gh auth login mints a fresh scope set - re-login silently drops scopes | 2026-08-12 |
 | loop-design | Verify a loop's capture actually captured, not that records accumulated | 2026-08-12 |
+| tooling | run_in_background can report exit 0 for a GUI app that actually crashed | 2026-08-13 |
