@@ -98,3 +98,4 @@ at work).
 | loop-design | Verify a loop's capture actually captured, not that records accumulated | 2026-08-12 |
 | tooling | run_in_background can report exit 0 for a GUI app that actually crashed | 2026-08-13 |
 | browser-automation | claude-in-chrome does not see an already-open window automatically | 2026-08-14 |
+| git | A .gitignore pattern with a mid-string slash is root-anchored, not any-depth | 2026-08-14 |

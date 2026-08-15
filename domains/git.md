@@ -28,3 +28,30 @@ and does not prove. Format per `README.md` in this directory.
   preserve a redundant change.
 - See also [[inspect-the-artifact-itself-not-proxies]].
 - Added: 2026-08-12 (work-it)
+
+### A `.gitignore` pattern containing a mid-string slash is anchored to the repo root, not "any depth"
+
+- A pattern like `env/.env.local` looks like it should match that path anywhere
+  in the tree, but any pattern containing a `/` other than a trailing one is
+  anchored to the directory holding the `.gitignore` (repo root, if it's the
+  top-level file) — it only matches `env/.env.local` directly under root, not
+  `teams-tab/env/.env.local` one level down. Only a bare filename pattern
+  (`*.local.json`, no slash) or an explicit `**/` prefix (`**/.env.local`)
+  matches at any depth.
+- Why: this is invisible by inspection — the line reads as correct, gitignore
+  syntax gives no error or warning for an under-matching rule, and `git status`
+  showing the *other* correctly-matched patterns as ignored made the broken one
+  easy to miss in a batch check. Only a per-file `git check-ignore -v <path>`
+  (exit 1 = not ignored) on the specific nested path caught it.
+- Evidence: 2026-08-14, uw-router-teams-tab. `.gitignore` at the repo root had
+  `env/.env.local` intended to cover `teams-tab/env/.env.local`; `git status
+  --ignored` showed the sibling `*.local.json` fixture files correctly ignored,
+  which made the rule look like it was working. Only calling `git check-ignore
+  -v teams-tab/env/.env.local` directly (exit 1) exposed that this one pattern
+  never matched. Fixed by switching to `**/.env.local`.
+- How to apply: for any `.gitignore` rule meant to protect a file that isn't
+  directly under the repo root, either drop the slash (bare filename/extension
+  glob) or prefix with `**/`, and verify with `git check-ignore -v <exact
+  nested path>` — not just a general `git status --ignored` scan — before
+  trusting it protects a secret or company-data file.
+- Added: 2026-08-14 (work-it)
