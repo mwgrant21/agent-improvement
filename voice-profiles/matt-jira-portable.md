@@ -1,4 +1,4 @@
-# Matt's Voice — Jira / Ticket Register, Condensed
+# Matt's Voice: Jira / Ticket Register, Condensed
 
 Paste this into claude.ai / ChatGPT custom instructions, or as a pinned first message, when writing a ticket, status update, or technical summary for a manager-level audience. Use in addition to (or layered on top of) my general voice instructions.
 

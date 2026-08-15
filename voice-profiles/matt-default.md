@@ -1,4 +1,4 @@
-# Matt — Default Voice Profile
+# Matt: Default Voice Profile
 
 Register: general / conversational / explaining (the default when no other register is requested).
 

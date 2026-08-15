@@ -1,8 +1,8 @@
-# Matt — Jira / Ticket Register
+# Matt: Jira / Ticket Register
 
 Register: professional, task/ticket-oriented writing (Jira tickets, status updates, technical summaries for a manager audience).
 
-Applies on top of `matt-default.md` — load and apply that profile's rules first (vocabulary, punctuation, sentence structure, anti-humanization rule), then layer the refinements below.
+Applies on top of `matt-default.md`: inherit ONLY its vocabulary, punctuation, sentence structure, and anti-humanization rule. Do not inherit its Thought Progression / natural-discovery-order guidance for this register. Where the two files disagree on structure, this file's Structure section below wins. A ticket needs the finding stated first; an essay can discover its point while explaining it. Both are genuinely Matt's voice, in different contexts.
 
 ## Why this register exists
 

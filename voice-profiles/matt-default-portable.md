@@ -1,4 +1,4 @@
-# Matt's Voice — Condensed
+# Matt's Voice: Condensed
 
 Paste this into claude.ai Project custom instructions, ChatGPT Custom Instructions ("How would you like ChatGPT to respond?"), a Custom GPT's instructions field, or as a pinned first message in any chat.
 
