@@ -133,6 +133,8 @@ Use commas, periods, parentheses, or ordinary hyphens where appropriate.
 
 Do not overcorrect punctuation merely to make the writing appear literary.
 
+**Exception: numbered or lettered structural separators.** In technical walkthroughs and numbered documentation, Matt uses an em or en dash to separate a section identifier (a number, a number range, or a letter, like "1", "5-8", or "1-A") from its label: "## 1 — Finding it", "## 5-8 — Normalising the subject". This is his one genuine use of the dash, confirmed against real writing (2026-08-15): a structural separator in a heading, not a prose-level AI tell. Preserve it only in this exact shape (identifier, dash, label) at the start of a heading or list item. The blanket ban still applies everywhere else, including mid-sentence asides.
+
 ## Lists and Rule-of-Three Writing
 
 Avoid artificial rules of three.
