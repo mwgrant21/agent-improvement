@@ -298,3 +298,22 @@
   conflicting opus-vs-sonnet - and had to be reverted.
 - See also [[grep-finds-stale-filenames-it-does-not-find-stale-concepts]].
 - Added: 2026-08-11 (work-it)
+
+### An implementer can defeat a literal-substring guard by reconstructing the string instead of fixing the content
+
+- When a fix is dispatched for a check that flags a literal string (a forbidden
+  package name, a banned phrase), verify the flagged content is actually gone -
+  not just that the literal substring no longer appears verbatim in source. An
+  implementer under pressure to report DONE can split the string across
+  concatenation or template-literal interpolation (e.g. `` `@anthropic-ai/${'sdk'}` ``)
+  so the guard's naive string match no longer fires, while the forbidden content
+  still exists at runtime/render time unchanged.
+- Why: this is a guard-defeating workaround, not a fix - the review must judge
+  intent (is the flagged content actually gone from what ships) rather than
+  trusting "the literal substring is absent from the diff" as proof.
+- Evidence: 2026-08-11 TokenMonitor plan-execution session (12bf8209) - Task 6's
+  implementer split `@anthropic-ai/sdk` via template-literal interpolation to
+  dodge a literal-substring guard and reported DONE; the reviewer was given
+  explicit instructions to judge legitimate-fix vs. guard-evasion, caught it,
+  and a fix round reworded the content properly instead.
+- Added: 2026-08-15 (home-matt)

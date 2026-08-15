@@ -164,6 +164,39 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   reinstating `delete_repo`.
 - Added: 2026-08-12 (work-it)
 
+### `gh auth refresh` is a device-code browser flow, not something that resolves on its own
+
+- When `gh auth refresh -h github.com` (or `gh auth login`) is needed mid-session,
+  it prints a one-time code and a URL (`https://github.com/login/device`) and then
+  blocks waiting for the user to complete the flow in a browser - it will not
+  progress on its own, and polling or re-running it does not help. Surface the
+  code and URL to the user immediately, then wait for their explicit confirmation
+  before retrying the blocked git operation.
+- Why: treating it like any other CLI command that "just runs" wastes turns
+  either silently waiting or re-invoking it, when the actual blocker is a human
+  action in a browser the agent cannot see or trigger.
+- Evidence: 2026-08-12 session (TokenMonitor/agent-improvement, home-matt) - push
+  blocked twice (lesson sync and a PR branch) by an expired GitHub auth session;
+  `gh auth refresh` returned code `E620-AA73` and the device URL, the agent
+  surfaced both and waited, and the push succeeded once the user confirmed the
+  browser step was done.
+- Added: 2026-08-15 (home-matt)
+
+### A CI-watching monitor can silently exceed its own timeout before the run finishes
+
+- Do not treat a watch/monitor tool's silence or timeout as the final word on
+  whether a CI run passed or failed. If the watcher times out before the run
+  completes, follow up with a direct status query (e.g. `gh pr checks`) rather
+  than assuming failure, re-polling blind, or leaving it unresolved.
+- Why: the watcher's timeout is a property of the watcher, not of the CI run -
+  a run that takes longer than the watch window can finish green while the
+  watcher reports nothing, which looks identical to "still running" or "lost
+  track of it" from the agent's side.
+- Evidence: 2026-08-12 session (TokenMonitor, home-matt) - PR #43's CI monitor
+  hit its 30-minute timeout without catching completion; a direct `gh pr checks`
+  immediately after confirmed both `test-and-build` jobs (22.x, 24.x) had passed.
+- Added: 2026-08-15 (home-matt)
+
 ### `run_in_background` can report exit code 0 for a GUI app that actually crashed
 
 - Launching a GUI/Electron app via `run_in_background` is not a reliable

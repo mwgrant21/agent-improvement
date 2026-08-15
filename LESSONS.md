@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-14
+last-updated: 2026-08-15
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -101,3 +101,7 @@ at work).
 | tooling | run_in_background can report exit 0 for a GUI app that actually crashed | 2026-08-13 |
 | browser-automation | claude-in-chrome does not see an already-open window automatically | 2026-08-14 |
 | git | A .gitignore pattern with a mid-string slash is root-anchored, not any-depth | 2026-08-14 |
+| app-dev | A restrictive shell Job Object can mask as a GPU/driver crash in Electron | 2026-08-12 |
+| tooling | gh auth refresh is a device-code browser flow, does not resolve on its own | 2026-08-15 |
+| tooling | A CI-watching monitor can silently exceed its timeout before the run finishes | 2026-08-15 |
+| verification | An implementer can defeat a literal-substring guard by reconstructing the string | 2026-08-15 |

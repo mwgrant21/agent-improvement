@@ -335,3 +335,30 @@ Format per `README.md` in this directory.
   connection regardless of caller.
 - See also [[a-static-name-keyed-lookup-table-silently-drops]].
 - Added: 2026-08-12 (work-it)
+
+### A restrictive shell Job Object can break Chromium's sandboxed subprocess creation, masquerading as a GPU/driver crash
+
+- When an Electron app's GPU process crashes on startup (e.g.
+  `STATUS_BREAKPOINT`/"GPU process isn't usable") and every GPU-flag
+  workaround (disable-hardware-acceleration, in-process-gpu,
+  disable-gpu-sandbox, disable-gpu-compositing) either fails to fix it or
+  "fixes" the crash while breaking rendering entirely, suspect the sandboxed
+  subprocess creation path itself rather than the GPU/driver. A restrictive
+  shell Job Object (e.g. one applied by a CLI runner or terminal wrapper) can
+  block Chromium's sandbox from spawning subprocesses, which presents
+  identically to a GPU/driver fault. Diagnose with `--no-sandbox` before
+  cycling further GPU flags.
+- Why: multiple sessions independently chased this as a wedged GPU/WDDM
+  session state or a hybrid-AMD-driver mismatch - both plausible-looking
+  explanations that cost several diagnostic passes (cache clears, driver
+  inventory, reboot recommendation) before the real cause (sandboxed
+  subprocess creation blocked by the invoking shell's Job Object) was found
+  and verified end to end via the actual launch command, not a manual
+  electron.exe invocation.
+- Evidence: 2026-08-11 sessions (tarot/TokenMonitor, home-matt) - four
+  GPU-flag combinations tried and ruled out one at a time; root cause
+  identified as the restrictive shell Job Object breaking Chromium's
+  sandboxed subprocess creation; fix verified via `npm run electron`
+  launching clean; `GPU-CRASH-NOTES.md` updated to prevent the stale WDDM
+  theory from misleading a future session.
+- Added: 2026-08-12 (home-matt)
