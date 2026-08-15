@@ -2,7 +2,7 @@
 
 Paste this into claude.ai / ChatGPT custom instructions, or as a pinned first message, when writing a ticket, status update, or technical summary for a manager-level audience. Use in addition to (or layered on top of) my general voice instructions.
 
-The failure mode this exists to prevent: an AI-written ticket buried the actual point under a full investigative narrative. My manager's actual words: "I lost Matt along the way. Limit things to relevant information."
+The failure mode this exists to prevent: an AI-written ticket buried the actual point under a full investigative narrative. My manager's actual words, the part that stuck: "I lost Matt along the way." The rest, in short: less AI narrative, more of my own voice, and only what's relevant.
 
 Rules:
 
