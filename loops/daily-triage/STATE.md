@@ -6,7 +6,13 @@ attempt_cap: 3
 budget: soft
 last_run: 2026-08-15
 runs_since_retro: 9
+constrained_scopes: []
 ---
+## Constrained Scopes
+<!-- Human-added/removed only (loops/README.md, Intervention ladder step 2).
+     Each entry: {scope, reason, since, reconsider}. Empty currently -->
+(none currently)
+
 ## High Priority (waiting on human)
 - **Adjustment `distinguish-broken-probe-from-dead-source` remains AT `attempt_cap` (3).** Proposed by runs 14, 15 and 16, escalated at run 17, unchanged since - still awaiting a decision. The change: a source that fails for **100% of its targets** is a BROKEN PROBE, not a dead source - it should abort and report the probe failure rather than emit per-target "unavailable" lines beside a clean finding. [decision needed: apply to LOOP.md via the loop-design skill, or mark HELD with a reason]
 - **NEW: untracked `secrets/` directory in `TokenMonitor` (home-matt) holds plaintext credential files not covered by `.gitignore`.** `secrets/publish-token.txt` and `secrets/update-token.txt` exist as untracked working-tree content; `.gitignore` has no `secrets/` entry, so a broad `git add -A` in that repo would stage and could commit live tokens. Contents were not read (security discipline: this is a human-decision item, not something to inspect further). [action: add `secrets/` to `.gitignore` immediately; if either token has ever been staged/committed anywhere, rotate it - gitignoring does not rotate] [machine: home-matt]

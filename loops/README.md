@@ -24,6 +24,7 @@ loops/<loop-name>/
 | budget | `soft` or a token number; enforced at L2+ (breach -> paused: true) |
 | last_run | YYYY-MM-DD of last completed run (gates once-per-day loops) |
 | runs_since_retro | counter; at >= 10 the next run is a retrospective |
+| constrained_scopes | list of `{scope, reason, since, reconsider}` objects - sources/finding-types currently narrowed without pausing the whole loop. Empty list by default. See Intervention ladder. |
 
 ## runs.jsonl line schema
 
@@ -55,6 +56,31 @@ Append-only. Never rewrite or delete lines.
   Budget breach at L2+ -> set `paused: true` immediately.
 - Humans mark false positives by annotating items in the STATE.md body
   (Recent Noise / Human Decisions); the loop counts them next run.
+
+## Intervention ladder
+
+Per-scope escalation, ORTHOGONAL to the L1/L2/L3 autonomy level above - a
+loop can be constrained without being demoted, and demoted without anything
+being constrained. Adapted from munder-difflin's steer -> constrain -> stop
+model (evaluated 2026-08-15/16, github.com/chaitanyagiri/munder-difflin);
+"escalate" below is the closest analog to their "steer" (a course-correction
+that does not restrict scope), and "constrain"/"stop" map directly.
+
+1. **Escalate** (existing) - an item hits `attempt_cap` (fix attempts at
+   L2+, or times-proposed for an L1 adjustment/finding) -> surfaced to a
+   human for a decision. No loop behavior changes automatically; the loop
+   keeps running exactly as documented.
+2. **Constrain** (new) - a human narrows a specific noisy or drifting
+   SOURCE or finding type via a `constrained_scopes` entry in STATE.md
+   (`{scope, reason, since, reconsider}`) - e.g. "cap this source's findings
+   at Watch List, never High Priority" or "skip this specific check
+   entirely". The rest of the loop keeps running unaffected. This is a
+   human-added/removed entry, not something the loop sets on itself;
+   reconsidered at the loop's next retrospective (Step R2), not automatic.
+3. **Stop** (existing) - `paused: true`, the whole loop halts before any
+   work, every runner checks this first. Reserved for loop-wide problems
+   (budget breach, runaway behavior) - not for a single noisy source, which
+   `constrain` handles without taking the whole loop offline.
 
 ## Continuous refinement
 

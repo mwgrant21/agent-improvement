@@ -19,6 +19,9 @@ L2 also requires worktree isolation. Not active at L1.
 
 0. Read `STATE.md`. If `paused: true` -> stop immediately, output nothing.
    If `runs_since_retro >= 10` -> run the Retrospective (below) instead.
+   Load `constrained_scopes` (Intervention ladder, `loops/README.md`) into
+   working context for step 2 - each entry names a source or finding type
+   that a human has narrowed without pausing the loop.
 1. Gather, tolerating per-source failure (a dead source becomes one
    "unavailable" line, never a failed run):
    - **GitHub**: open issues, open PRs and their age, and NON-DEFAULT
@@ -173,6 +176,14 @@ L2 also requires worktree isolation. Not active at L1.
        `notes.dirty_repos` (step 3).
 2. Update `STATE.md`:
    - Honor the **Human Decisions** section (never re-raise what it suppresses).
+   - Honor **Constrained Scopes** (step 0's `constrained_scopes` list): a
+     finding whose source/type matches an active entry is capped per that
+     entry's stated limit (e.g. "never promote past Watch List", or "skip
+     this specific check") instead of the normal severity rule. Note the
+     constraint's `reason` inline on the item so a human reading the digest
+     sees why it did not escalate the way it normally would have. This is
+     independent of `false_positives`/noise handling below - a constrained
+     item is still a real finding, just capped, not suppressed.
    - `false_positives` = human `[FP]` marks added to Recent Noise since last
      run, **plus loop-derived noise** (refinement 1). An item whose text is
      byte-identical across 3 consecutive runs and has drawn no human action
@@ -289,6 +300,12 @@ R1 as a numbered candidate in its own right, so a twice-ignored adjustment
 competes for approval alongside the new ideas instead of dropping off the
 list. Before proposing promotion, confirm the gate's inputs are actually
 being MEASURED, not merely reading zero.
+
+Also reconsider every entry currently in `constrained_scopes` (Intervention
+ladder, `loops/README.md`): report whether the constrained source has stayed
+noisy (keep constraining), gone quiet (propose lifting it), or the
+constraint's `reason` no longer applies. This is a proposal like any other -
+the loop never adds or removes a `constrained_scopes` entry itself.
 
 ### Step R3 - close out
 
