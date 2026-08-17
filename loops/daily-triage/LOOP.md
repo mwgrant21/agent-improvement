@@ -126,6 +126,16 @@ L2 also requires worktree isolation. Not active at L1.
        no `ahead_by`. Treat a missing field as a cache miss and refetch that
        branch once; do not assume the old `date` was an author date, because
        the protocol never said which one it was.
+     - **`sha` is the FULL 40-character SHA, never truncated** (adjustment
+       `specify-branch-tips-cache-key-format`, proposed 2026-08-11, applied
+       2026-08-17). The API call above (`--jq '.[] | {name,sha:.commit.sha}'`)
+       already returns the full SHA - store and compare it as-is. Same failure
+       class as the `date`/`author_date` ambiguity just above: an unspecified
+       format let different runs write 7-char short SHAs, forcing every read
+       to truncate for comparison to work at all, which is a silent precision
+       loss (a 7-char prefix is not guaranteed globally unique) for no
+       benefit. Treat a cached `sha` shorter than 40 characters as a cache
+       miss and refetch that branch once, same as a missing `author_date`.
    - **Token spend**: `node ~/agent-improvement/scripts/spend-summary.mjs`
      (yesterday + today), plus a second invocation with today's date only
      (`... spend-summary.mjs $(today as YYYY-MM-DD)`) for today's total.
@@ -184,14 +194,23 @@ L2 also requires worktree isolation. Not active at L1.
        L1 boundary reminder: this REPORTS the exposure with a suggested
        action. The loop never pushes the work itself, at any volume.
      - Report **uncommitted changes only when STALE** (refinement 5): compare
-       each repo's `git status --porcelain` line count against
-       `notes.dirty_repos` from the previous run-log line. Flag only when the
-       count is unchanged across 3 consecutive runs; a changing count is
-       active WIP and is suppressed. Rationale: bare "uncommitted changes
-       exist" made this the noisiest source in 7 of 10 runs and was almost
-       always normal in-progress work. Carry the current
-       `{repo: {dirty_lines, unchanged_runs}}` map into this run's own
-       `notes.dirty_repos` (step 3).
+       each repo's `git status --porcelain` **file path SET**, not just the
+       line count, against `notes.dirty_repos` from the previous run-log line
+       (adjustment `dirty-count-blind-to-content-churn`, proposed 2026-08-13,
+       applied 2026-08-17 - a count-only comparison misses a repo that sheds
+       one file and gains a different one in the same run, which held
+       `Aether-OS-livetest` at "4 dirty lines, unchanged" for a 4th run while
+       the WIP was actually still moving). Flag only when the path SET is
+       identical across 3 consecutive runs; any change to which files are
+       dirty - not just how many - counts as active WIP and is suppressed.
+       Rationale: bare "uncommitted changes exist" made this the noisiest
+       source in 7 of 10 runs and was almost always normal in-progress work.
+       Carry the current `{repo: {dirty_paths: [...], unchanged_runs}}` map
+       into this run's own `notes.dirty_repos` (step 3) - `dirty_paths`
+       replaces `dirty_lines`; treat a cache entry that still has
+       `dirty_lines` instead of `dirty_paths` as a miss and re-baseline that
+       repo's `unchanged_runs` to 0 rather than guessing membership from a
+       bare count.
 2. Update `STATE.md`:
    - Honor the **Human Decisions** section (never re-raise what it suppresses).
    - Honor **Constrained Scopes** (step 0's `constrained_scopes` list): a
@@ -203,11 +222,22 @@ L2 also requires worktree isolation. Not active at L1.
      independent of `false_positives`/noise handling below - a constrained
      item is still a real finding, just capped, not suppressed.
    - `false_positives` = human `[FP]` marks added to Recent Noise since last
-     run, **plus loop-derived noise** (refinement 1). An item whose text is
-     byte-identical across 3 consecutive runs and has drawn no human action
-     counts as noise on its own evidence - do not wait for a mark that may
-     never come. Record which of the two sources each count came from in
-     `notes.fp_source`.
+     run, **plus loop-derived noise** (refinement 1). An item whose **finding
+     identity** - not its literal rendered text - is unchanged across 3
+     consecutive runs and has drawn no human action counts as noise on its
+     own evidence - do not wait for a mark that may never come. Record which
+     of the two sources each count came from in `notes.fp_source`.
+     **Match on finding identity (repo + branch/path + recommendation), never
+     on byte-identical text** (adjustment `noise-match-on-finding-identity-
+     not-text`, proposed 2026-08-10, applied 2026-08-17). A GitHub staleness
+     finding embeds its current age in days (e.g. "40 days stale"), which
+     increments every run by construction - a literal byte-identical check
+     can therefore never fire for the loop's most common finding type, and
+     refinement 1 was silently inert for it since the day it landed. Strip
+     the volatile field(s) - age/day-count, timestamp, any other value that
+     changes purely with the passage of time rather than with the underlying
+     state - before comparing; the identity tuple is what makes something
+     "the same finding," not the exact sentence used to describe it this run.
      Rationale: across runs 1-10 this field read 0 every time solely because
      no `[FP]` mark was ever made, so the graduation gate in
      `loops/README.md` was reading an unfed counter as evidence of
@@ -238,6 +268,16 @@ L2 also requires worktree isolation. Not active at L1.
    step 0 and subtract; runs 9 and 10 both recorded `0`, which destroyed the
    duration trend the retrospective was supposed to read. Set `last_run`
    to today, increment `runs_since_retro`.
+   **Before appending, round-trip the line through `JSON.parse(JSON.stringify(...))`
+   (or equivalent) and verify it succeeds** (adjustment
+   `validate-jsonl-line-before-append`, proposed 2026-08-17, applied
+   2026-08-17). If it fails, do NOT append the malformed line - fix the
+   offending value (most likely an un-escaped character, e.g. a Windows path
+   backslash, interpolated into `critique` or an adjustment's `text` without
+   JSON-escaping) and retry the round-trip before writing. Evidence: run 19's
+   line 27 sat as corpus damage undetected until a full-file read (this
+   retrospective) happened to hit it - a write-time check catches it for free
+   instead of leaving it for whichever future reader parses the whole file.
 4. Return the digest: High Priority first, then Watch List, then one-line
    source summaries. Include an explicit **Untriaged noise** line naming any
    Recent Noise item still unmarked after 2+ runs and asking for a decision
