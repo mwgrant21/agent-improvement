@@ -23,7 +23,25 @@ L2 also requires worktree isolation. Not active at L1.
    working context for step 2 - each entry names a source or finding type
    that a human has narrowed without pausing the loop.
 1. Gather, tolerating per-source failure (a dead source becomes one
-   "unavailable" line, never a failed run):
+   "unavailable" line, never a failed run). **Distinguish a dead source from a
+   BROKEN PROBE** (adjustment `distinguish-broken-probe-from-dead-source`,
+   proposed runs 14-16 / 2026-08-11, applied 2026-08-17): the "unavailable"
+   line above is for a source/root that does not exist at all (see "source
+   unavailable: <root> not present" below). It is a DIFFERENT failure when a
+   source that iterates multiple targets (per-repo, per-branch, per-API-call)
+   reaches those targets but gets an error back from ALL of them the same way
+   - that is the probe mechanism itself broken (auth expired, rate-limited,
+   network down), not N individually-dead targets. Detect this by comparing
+   failure count to target count for that source this run:
+   - If 100% of a multi-target source's targets fail the SAME way, ABORT that
+     source and emit exactly ONE line: `probe failure: <source> - <error>,
+     <N>/<N> targets failed`. Do NOT also emit per-target "unavailable" lines
+     for it, and do NOT let the rest of the digest imply a clean/quiet result
+     for that source this run - a fully broken probe must never look like
+     "nothing found."
+   - If some but not all targets fail, per-target "unavailable" lines are
+     still correct (that is genuine partial dead-target noise, not a broken
+     probe).
    - **GitHub**: open issues, open PRs and their age, and NON-DEFAULT
      branches with no activity > 14 days. Read-only.
      **Default branches are excluded from the staleness rule** (adjustment
