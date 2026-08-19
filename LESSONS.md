@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-15
+last-updated: 2026-08-19
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -105,3 +105,4 @@ at work).
 | tooling | gh auth refresh is a device-code browser flow, does not resolve on its own | 2026-08-15 |
 | tooling | A CI-watching monitor can silently exceed its timeout before the run finishes | 2026-08-15 |
 | verification | An implementer can defeat a literal-substring guard by reconstructing the string | 2026-08-15 |
+| app-dev | Before deep local diagnosis of an Electron GPU-process crash, check the version against recent releases/issues first | 2026-08-19 |

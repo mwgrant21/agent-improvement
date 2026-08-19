@@ -362,3 +362,39 @@ Format per `README.md` in this directory.
   launching clean; `GPU-CRASH-NOTES.md` updated to prevent the stale WDDM
   theory from misleading a future session.
 - Added: 2026-08-12 (home-matt)
+
+### Before deep local diagnosis of an Electron GPU-process crash, check the Electron version against recent releases/issues
+
+- When an Electron app crashes with the `STATUS_BREAKPOINT`/`exit_code=-2147483645`
+  "GPU process isn't usable" signature (or any crash-shaped symptom in a
+  fast-moving dependency), do a cheap external check FIRST, before multi-session
+  local diagnosis: (1) compare the app's pinned Electron version against a
+  working sibling app on the same machine if one exists, (2) search the
+  Electron GitHub issue tracker for the exact error string, and (3) check
+  whether a newer patch release exists and what its changelog says. Only after
+  that comes up empty should local hypotheses (GPU driver, WDDM state, shell
+  Job Object, sandbox flags) get multi-session investigation time.
+- Why: this exact symptom has now had two DIFFERENT confirmed root causes on
+  this machine in the same month - a restrictive shell Job Object breaking
+  sandboxed subprocess creation (2026-08-12, see above), and an orphaned
+  AppContainer SID in the user profile's ACL breaking sandbox token
+  construction (2026-08-19, below). Neither is a GPU/driver problem despite
+  the error text; both are the kind of thing a GitHub issue search surfaces in
+  minutes because other users hit the identical string. A reboot (tried and
+  ruled out 2026-08-19) or a driver reinstall would not have fixed either one -
+  cheap external triage would have pointed at the real mechanism immediately
+  instead of after a full local diagnostic pass.
+- Evidence: 2026-08-19 session (TokenMonitorV2 reskin-phases-3-4, home-matt) -
+  root-caused by diffing a working app's Electron version (35.7.5) against the
+  failing one (43.3.0) on identical hardware, confirmed with a single-variable
+  swap test, then bisected the actual break point (35.7.5 good, 36.0.0+ bad)
+  across 5 version installs before a web search surfaced
+  github.com/electron/electron/issues/51761 - the real cause (orphaned
+  `S-1-15-2-*` AppContainer SID from a stale sandbox registration, inherited
+  into `C:\Users\<user>`'s ACL, breaking `CHECK(InitializeICU())` in the
+  sandboxed child process before any GPU code runs). Fixing the ACL (`icacls
+  ... /remove:g`) let the app run clean on the latest Electron (43.4.1,
+  released the same day) with zero version downgrade needed - the bisection
+  work was real but unnecessary, and would have been skippable entirely with
+  an issue-tracker search up front.
+- Added: 2026-08-19 (home-matt)
