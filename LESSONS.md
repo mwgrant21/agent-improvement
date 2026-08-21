@@ -114,3 +114,4 @@ at work).
 | tooling | A `||` fallback must never be a weaker version of the command it falls back from | 2026-08-21 |
 | tooling | An MCP server that loses its transport needs a session restart, not a retry | 2026-08-21 |
 | tooling | `gh` GraphQL-backed subcommands can be down while the REST API still works | 2026-08-21 |
+| testing | A test that applies a Deny ACE must survive its own cleanup being skipped | 2026-08-21 |

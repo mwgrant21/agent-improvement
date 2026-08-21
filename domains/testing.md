@@ -235,3 +235,25 @@ itself). Format per `README.md` in this directory.
 - See also [[prove-a-new-regression-detecting-check-is-not-vacuous]] and
   [[two-implementations-of-one-contract-need-a-parity-harness]].
 - Added: 2026-08-11 (work-it)
+
+### A test that applies a Deny ACE must survive its own cleanup being skipped
+
+- Any test that deliberately breaks permissions - a Deny ACE, a read-only mount, a
+  revoked grant - to exercise a failure path must clear that obstruction in SETUP,
+  not only in teardown. A `finally` block does not run when the process is killed or
+  the suite is interrupted, and the `Set-Acl` that restores access can itself be
+  blocked by the very deny rule it is trying to remove. The obstruction then persists
+  and poisons every later run.
+- Why: the resulting failure does not look like test residue. It surfaces as "Access
+  to the registry key is denied" on the test's own scratch key, which reads as a
+  broken environment, an unprivileged shell, or a sandbox restriction - so the next
+  person disables the test or chases the wrong cause. Assert the clean precondition
+  on the way IN, where it is cheap and unconditional.
+- Evidence: 2026-08-21 session (EFIPartitionRemediation, work-it) - the ACL failure
+  test in `tests/EFIMigrationState.Tests.ps1` left `Deny | SetValue` on
+  `HKCU:\Software\EFIMigrationTest\AclTest`; the suite read 120/122 until the ACE was
+  cleared by hand. A plain `New-Item` probe on a different HKCU path succeeded, which
+  is what ruled out the sandbox explanation. The task report for that very commit
+  asserted cleanup had been verified - see
+  [[inspect-the-artifact-itself]].
+- Added: 2026-08-21 (work-it)
