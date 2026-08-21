@@ -170,6 +170,24 @@ L2 also requires worktree isolation. Not active at L1.
    - **Token spend**: `node ~/agent-improvement/scripts/spend-summary.mjs`
      (yesterday + today), plus a second invocation with today's date only
      (`... spend-summary.mjs $(today as YYYY-MM-DD)`) for today's total.
+     **Before using the figures, check them against the previous run-log
+     line's `notes.output_tokens_today` / `notes.cache_hit_rate`. If they are
+     identical, this run is RE-READING the previous run's measurement, not
+     taking a new one** (adjustment `dedupe-same-day-spend-baseline`, proposed
+     and applied 2026-08-21) - normal on a second same-day run, since the
+     usage log may not have advanced between them. In that case:
+     - Record the figures in `notes` as usual, but add
+       `"spend_duplicate_of":"<previous run's session_id>"`.
+     - A duplicate reading MUST NOT enter the trailing-5 median as an
+       independent sample. Skip it when computing the spend and cache
+       baselines; duplicates drag the median toward whatever the last measured
+       day happened to be, quietly corrupting the very baseline these
+       thresholds compare against.
+     - If a threshold still fires on a duplicate, label it in the digest as
+       `same reading as run <N>`, never as an independent second flag.
+     Evidence: runs 23 and 24 (both 2026-08-21) returned byte-identical
+     figures (in 8 / out 2722 / cacheRead 337137 / cacheCreate 80809) and the
+     cache threshold fired twice on that one measurement.
      Thresholds (revised by the 2026-08-06 retrospective, refinement 2 - the
      originals never fired in 10 runs and structurally could not):
      - Spend: flag only when today's output tokens exceed **both** 750,000
@@ -196,10 +214,33 @@ L2 also requires worktree isolation. Not active at L1.
      all, so this source silently returned empty rather than reporting
      itself dead - see `domains/loop-design.md`,
      "A loop must assert its scan root exists".
-     - Enumerate git repos by finding `.git` at depth 1-2 under `~` and
-       `~/Desktop`. Home directory layouts differ per machine
+     - Enumerate git repos under the scan roots `~`, `~/Desktop`, and
+       `~/Downloads`. Home directory layouts differ per machine
        (`mwgrant21` / `matthewgr` / `work-it`); discovery is machine-agnostic,
        a hardcoded list is not.
+     - **Depth is measured to the REPO DIRECTORY (the parent of `.git`), not
+       to the `.git` entry itself: a repo counts when its own directory sits
+       at depth 1-2 below a scan root, i.e. `find <root> -maxdepth 3 -name
+       .git`** (adjustment `clarify-repo-discovery-depth-definition`, first
+       proposed 2026-08-18, applied 2026-08-21).
+       Rationale: "depth 1-2" was never pinned to a referent, and the two
+       readings return different fleets from the same disk - on work-it,
+       depth-to-`.git` yields 16 repos and depth-to-repo-dir yields 20. Run 23
+       used the first and run 24 the second, so two runs hours apart triaged
+       different repo sets with nothing in the digest saying so. The repo-dir
+       reading is the correct one because it reaches ordinary nested project
+       layouts (`~/Downloads/UWRouter/uw-mail-router`) that the other silently
+       drops, and a missed repo is a silent under-report - the exact failure
+       class this source exists to prevent.
+     - **A `.git` that is a FILE, not a directory, is a linked git worktree,
+       not a repo.** Resolve it to the parent repo named in its `gitdir:`
+       pointer and attribute any finding there; never count or report it as an
+       independent repo. Its commits live in the parent's object store, so
+       reporting both double-counts the same work. On work-it this correctly
+       excludes `~/Desktop/EFI-wt-migration` and
+       `~/Desktop/cli-shared-memory-agents/{claude,codex}`. Test it directly
+       (`[ -d <path>/.git ]` = standalone repo, `[ -f <path>/.git ]` =
+       worktree); do not infer it from a directory's name.
      - If a configured or expected root is absent, emit exactly one
        `source unavailable: <root> not present on <machineId>` line. An empty
        result and an unreachable root must never look alike in the digest.
@@ -242,6 +283,25 @@ L2 also requires worktree isolation. Not active at L1.
        `dirty_lines` instead of `dirty_paths` as a miss and re-baseline that
        repo's `unchanged_runs` to 0 rather than guessing membership from a
        bare count.
+     - **A run that did not OBSERVE a repo must carry its `unchanged_runs`
+       forward FROZEN, never incremented** (adjustment
+       `freeze-unchanged-runs-when-not-verified`, proposed by run 23 /
+       2026-08-21, applied 2026-08-21). When the check is skipped because the
+       repo lives on another machine (refinement 4 below), write the entry
+       through unchanged with `"frozen_not_verified": true` alongside it. The
+       3-consecutive-run staleness flag may only count runs that actually
+       looked at the path set.
+       Rationale: refinement 4 makes the DIGEST say "not verifiable on
+       <machineId>", but nothing stopped the cache from stepping the counter
+       on a run that never looked. Runs 21 and 22 both wrote
+       `note: "not verified this run"` while stepping `Aether-OS-livetest`
+       from 6 to 7, and run 23's first live check proved the cached path set
+       had been wrong the entire time - 4 paths cached against 5 actually
+       dirty. The loop reported a 7-run-stale finding built entirely on
+       observations nobody made. A counter that advances without an
+       observation is not evidence, and this is the same class as
+       `domains/verification.md`, "A probe that cannot distinguish 'not yet'
+       from 'never' is not a verification".
 2. Update `STATE.md`:
    - Honor the **Human Decisions** section (never re-raise what it suppresses).
    - Honor **Constrained Scopes** (step 0's `constrained_scopes` list): a
@@ -278,7 +338,9 @@ L2 also requires worktree isolation. Not active at L1.
      (refinement 4): `[machine: work-it]`. On a run from a different machine,
      skip the check and say `not verifiable on <machineId>` rather than
      re-asserting last run's text - about a third of the Watch List was being
-     carried forward blind this way.
+     carried forward blind this way. A skipped check must ALSO freeze that
+     repo's `unchanged_runs` rather than incrementing it - see
+     `freeze-unchanged-runs-when-not-verified` in step 1's stale-WIP rules.
    - One-line items only, each with a suggested action. Prune resolved items.
 3. Append one line to `runs.jsonl` (schema in `loops/README.md`), including a
    `notes` object with today's spend metrics from step 1, e.g.
