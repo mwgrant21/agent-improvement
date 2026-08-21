@@ -55,3 +55,63 @@ and does not prove. Format per `README.md` in this directory.
   nested path>` — not just a general `git status --ignored` scan — before
   trusting it protects a secret or company-data file.
 - Added: 2026-08-14 (work-it)
+
+### Classify a stale branch by ahead AND behind, never by ahead alone
+
+- "N commits ahead" does not tell you whether a branch can be merged. Always read
+  `behind` from the same comparison and treat the PAIR as the classification:
+  `0 ahead` is dead weight, safe to delete; `N ahead / 0 behind` is clean unmerged
+  work with a fast-forward available; `N ahead / M behind` is DIVERGENT and must
+  not be recommended for a plain merge, because the base has moved through code the
+  branch also touches and merging can silently revert newer work. Both numbers come
+  from one `gh api repos/<o>/<r>/compare/<base>...<branch>` call, so there is no
+  cost argument for dropping one.
+- Why: age and ahead-count both point the wrong way here. A branch can be old,
+  barely ahead, and still dangerous - while a much older branch with far more
+  commits merges cleanly. Reporting only `ahead` makes those two look identical and
+  actively invites the destructive action on the wrong one.
+- Evidence: 2026-08-21 session (work-it fleet triage) - two branches reported
+  identically as "stale, N ahead, merge or abandon" resolved oppositely.
+  `EFIPartitionRemediation/feature/fleet-migration-runbook` at 17a/0b
+  fast-forwarded clean; `TokenMonitor/worktree-packages-core-wiring` at 1a/45b had
+  one commit deleting four source files plus their tests that the base had since
+  extended with an entire new rule - merging it would have reverted that silently.
+  See [[a-commit-missing-from-master]].
+- Added: 2026-08-21 (work-it)
+
+### A `.git` that is a FILE is a linked worktree, not a repository
+
+- When enumerating repositories by scanning for `.git`, test whether each hit is a
+  directory or a file. A directory is a standalone repo; a FILE containing
+  `gitdir: <path>` is a linked worktree whose commits live in the parent's object
+  store. Resolve it to that parent and attribute findings there - counting it as its
+  own repo double-reports the same work and inflates every fleet total. Test it
+  directly (`[ -d p/.git ]` vs `[ -f p/.git ]`); never infer it from the directory's
+  name.
+- Why: worktrees look exactly like repos to any name-based or path-based scan, and
+  the duplicate they create is invisible - both entries report real, identical
+  commits, so nothing looks wrong.
+- Evidence: 2026-08-21 session (work-it repo discovery) - `~/Desktop/EFI-wt-migration`
+  and `~/Desktop/cli-shared-memory-agents/{claude,codex}` all carry a `.git` file and
+  were being counted as three separate repositories.
+- Added: 2026-08-21 (work-it)
+
+### Never pre-write a commit message for edits made in the same command chain
+
+- When a single shell invocation both produces edits and commits them, an early
+  failure can skip the edit while a later, separately-terminated command still runs
+  the commit - landing a message that describes changes the commit does not contain.
+  `&&` only guards what follows it on that line; a newline-separated `git commit`
+  after it runs regardless. Either bind the whole chain, or verify with
+  `git show --stat HEAD` what actually landed rather than trusting the message you
+  wrote in advance.
+- Why: the commit succeeds, the exit status is 0, and the message reads exactly as
+  intended - so nothing prompts a second look. The lie is discovered later by
+  someone trusting git history as a record of what happened.
+- Evidence: 2026-08-21 session (agent-improvement, work-it) - `git pull --rebase`
+  failed on unstaged edits, so the Python heredoc that was supposed to edit
+  `STATE.md` never ran, but the following `git add -A && git commit` did; commit
+  `4248982` landed with `LOOP.md` only under a message describing STATE.md changes
+  that were not in it. Caught by `git show --stat`, not by the exit code. Same
+  family as [[a-fallback-must-never-be-a-weaker-version]].
+- Added: 2026-08-21 (work-it)

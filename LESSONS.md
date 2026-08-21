@@ -115,3 +115,7 @@ at work).
 | tooling | An MCP server that loses its transport needs a session restart, not a retry | 2026-08-21 |
 | tooling | `gh` GraphQL-backed subcommands can be down while the REST API still works | 2026-08-21 |
 | testing | A test that applies a Deny ACE must survive its own cleanup being skipped | 2026-08-21 |
+| git | Classify a stale branch by ahead AND behind, never by ahead alone | 2026-08-21 |
+| git | A `.git` that is a FILE is a linked worktree, not a repository | 2026-08-21 |
+| git | Never pre-write a commit message for edits made in the same command chain | 2026-08-21 |
+| loop-design | A proposal deferred to dodge the attempt cap is hiding a measurable question | 2026-08-21 |

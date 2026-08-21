@@ -209,3 +209,24 @@ modifying any loop.
 - See also [[a-probe-that-cannot-distinguish]] and
   [[a-loop-must-assert-its-scan-root-exists]].
 - Added: 2026-08-12 (work-it)
+
+### A proposal deferred to dodge the attempt cap is hiding a question someone could just measure
+
+- When a loop keeps declining to re-propose an adjustment specifically to avoid
+  tripping `attempt_cap` and forcing an escalation, stop and ask what KIND of
+  question it actually is. If it can be settled by running a command - two counts,
+  two file listings, a version check - it is not a judgment call awaiting a human,
+  and deferral is not caution. Measure it and decide. Reserve the cap-and-escalate
+  path for questions that genuinely need a human's preference or authority.
+- Why: the attempt cap exists to force a decision, so working around it converts a
+  decision-forcing mechanism into an indefinite hold - and the item silently
+  degrades the loop the whole time it waits. Worse, an ambiguous rule keeps
+  producing DIFFERENT behaviour run to run while it sits undecided, so the loop's
+  own output becomes inconsistent without anything saying so.
+- Evidence: 2026-08-21 session (daily-triage, work-it) -
+  `clarify-repo-discovery-depth-definition` sat 3 days at 2 proposals because runs
+  23 and 24 each declined to re-propose it to avoid the cap. The underlying question
+  ("is depth measured to `.git` or to the repo directory?") took two `find`
+  invocations to settle: 16 repos vs 20, and the two runs had silently used
+  different readings. See [[hard-attempt-cap]].
+- Added: 2026-08-21 (work-it)
