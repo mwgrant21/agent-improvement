@@ -226,12 +226,21 @@
   [[types-tests-builds-and-ci-all-green]].
 - Also: when the probe is a plan's stated acceptance criterion, correct the plan once the
   gap is found - a known-wrong criterion re-fires on the next reader.
+- Also: when a probe's "nothing found" repeatedly contradicts an out-of-band channel
+  showing the events DID arrive, believe the channel and RETIRE the probe. A watcher
+  that cannot see its target reports the same clean timeout as a genuinely quiet
+  source, and every such report is a false negative handed to the human as
+  reassurance. Restarting it against a fresh cutoff does not fix blindness.
+- Evidence (2): 2026-08-17 session (cli-shared-memory PR #1, work-it) - a PR-comment
+  watcher reported clean timeouts through review rounds 2-8 while the user was pasting
+  each of those same reviews manually; the discrepancy went unremarked for seven rounds
+  before the watcher was recognized as never having been the signal at all.
 - Evidence: 2026-08-06 session (TokenMonitorV2, reskin Task 3) - the plan specified
   `document.fonts.check('700 12px Rajdhani')` expecting `true`, with `false` meaning a
   bad path. First run returned `false` for all six faces with ZERO failed network
   requests and every face registered as `unloaded`; switching to `document.fonts.load()`
   returned `loaded`/`true` for all six against the same unchanged CSS.
-- Added: 2026-08-06 (work-it)
+- Added: 2026-08-06 (work-it), updated 2026-08-21 (work-it)
 
 ### Types, tests, builds, and CI all green says nothing about the visual layer - name that gap explicitly
 
@@ -317,3 +326,52 @@
   explicit instructions to judge legitimate-fix vs. guard-evasion, caught it,
   and a fix round reworded the content properly instead.
 - Added: 2026-08-15 (home-matt)
+
+### Repeated review rounds each finding a NEW defect in the same code path is a design signal, not a fix cadence
+
+- When round after round of review turns up a real, previously-unseen bug in the
+  same small area, stop treating it as a queue of fixes to work through. Each fix
+  being individually correct and individually verified does not make the trend
+  benign - the compounding count is evidence that the design is carrying more
+  edge-case complexity than its shape supports. Say so explicitly to the human and
+  put a redesign on the table alongside the next patch.
+- Why: the per-round view always looks like progress (bug found, bug fixed, tests
+  pass), so nothing in the loop ever raises the question. The eventual redesign
+  deleted the entire bug class rather than fixing its Nth instance.
+- Evidence: 2026-08-17 session (cli-shared-memory PR #1, work-it) - nine review
+  rounds, nine real findings, all in `submitPatch`'s apply/rollback path, several
+  involving silent data loss. Moving the canonical repo to bare removed
+  `untrackedCollisions` and `syncWorkingTree` outright.
+- Added: 2026-08-21 (work-it)
+
+### Make a shared helper fail loudly, then let the failures enumerate its call sites
+
+- To find every place that depends on a precondition, do not grep for the callers.
+  Make the shared helper throw when the precondition is unmet, rebuild, and run the
+  suite: the failures are the true call-site list. Grep finds the spellings you
+  thought of; execution finds the ones you did not.
+- Why: it fixes the root cause and does the enumeration in the same move, and it
+  surfaces callers whose dependency is indirect. Running it turned up 7 unguarded
+  call sites, including one that would have been missed entirely - a machine-wide
+  code path that eagerly built a per-user path it never actually needed.
+- Evidence: 2026-08-18 session (NMMToolkit `Get-UserHivePath`, work-it) - build
+  passed, Pester 181/0, and `Verify-UserContext.ps1` confirmed the throw behaved as
+  intended. Complements
+  [[grep-finds-stale-filenames]].
+- Added: 2026-08-21 (work-it)
+
+### Do not widen a migration onto a mechanism that has never executed in the real environment
+
+- One tool migrated onto a new mechanism is a testable hypothesis; twenty is an
+  unverified dependency with twenty call sites. Cap the rollout at the first
+  migration until the mechanism has run at least once under real conditions - a
+  real second account, a real redirected profile, a real device - and only then
+  widen. Synthetic contexts and a green suite on one machine do not discharge this.
+- Why: the caveat "unproven in the field" silently grows from covering 6 tools to
+  covering 17 while nothing about the confidence changes. Each widening also makes
+  the eventual correction more expensive, and in this case two consecutive turns of
+  actually running the code each found a new defect in the mechanism being scaled.
+- Evidence: 2026-08-18 session (NMMToolkit HKCU-redirect migration, work-it) - 17
+  tools on a redirect path with zero real-world redirected runs. See
+  [[an-elevated-script-must-treat]].
+- Added: 2026-08-21 (work-it)

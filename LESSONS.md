@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-19
+last-updated: 2026-08-21
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -75,7 +75,7 @@ at work).
 | loop-design | A loop must assert its scan root exists - a missing root reports as "nothing found" | 2026-08-06 |
 | loop-design | Two loops sharing a git-backed store must never end a pass with a dirty tree | 2026-08-06 |
 | loop-design | Measure the uncached path before adding a cache to a loop | 2026-08-06 |
-| verification | A probe that cannot distinguish "not yet" from "never" is not a verification | 2026-08-06 |
+| verification | A probe that cannot distinguish "not yet" from "never" is not a verification | 2026-08-21 |
 | testing | Assert partition buckets plus a catch-all sum to the grand total | 2026-08-07 |
 | verification | Structural gates all green says nothing about the visual layer - name the gap | 2026-08-07 |
 | loop-design | Formal policy gates, not config convention (permit/block/escalate, default-deny on eval failure) | 2026-08-07 |
@@ -102,7 +102,15 @@ at work).
 | browser-automation | claude-in-chrome does not see an already-open window automatically | 2026-08-14 |
 | git | A .gitignore pattern with a mid-string slash is root-anchored, not any-depth | 2026-08-14 |
 | app-dev | A restrictive shell Job Object can mask as a GPU/driver crash in Electron | 2026-08-12 |
-| tooling | gh auth refresh is a device-code browser flow, does not resolve on its own | 2026-08-15 |
+| tooling | A device-code CLI login (gh auth refresh, az login) never resolves on its own | 2026-08-21 |
 | tooling | A CI-watching monitor can silently exceed its timeout before the run finishes | 2026-08-15 |
 | verification | An implementer can defeat a literal-substring guard by reconstructing the string | 2026-08-15 |
 | app-dev | Before deep local diagnosis of an Electron GPU-process crash, check the version against recent releases/issues first | 2026-08-19 |
+| security | An elevated script must treat the target user's own hive as attacker-controlled input | 2026-08-21 |
+| security | Never interpolate a discovered string into a PowerShell command line - pass it as an argument | 2026-08-21 |
+| verification | Review rounds each finding a NEW defect in the same code path are a design signal | 2026-08-21 |
+| verification | Make a shared helper fail loudly, then let the failures enumerate its call sites | 2026-08-21 |
+| verification | Do not widen a migration onto a mechanism that has never run in the real environment | 2026-08-21 |
+| tooling | A `||` fallback must never be a weaker version of the command it falls back from | 2026-08-21 |
+| tooling | An MCP server that loses its transport needs a session restart, not a retry | 2026-08-21 |
+| tooling | `gh` GraphQL-backed subcommands can be down while the REST API still works | 2026-08-21 |

@@ -138,3 +138,41 @@ credential handling, sandboxing) confirmed across projects. Format per
   tenant scenarios, and recommended dropping it entirely for a confirmed
   single-account machine in favor of two real functional gaps.
 - Added: 2026-08-11 (home-matt)
+
+### An elevated script must treat the target user's own hive as attacker-controlled input
+
+- When a SYSTEM/elevated script resolves paths for the logged-on user, only
+  `HKLM\...\ProfileList\<SID>\ProfileImagePath` is trustworthy (HKLM, admin-only).
+  The `AppData` / `Local AppData` values under the user's
+  `...\Explorer\Shell Folders` and `User Shell Folders` live in THAT USER'S OWN
+  hive, so a standard user can point them at `C:\Windows` and steer an elevated
+  delete/write clean out of their profile. Reparse points do the same thing by a
+  different route. Accept such a value only after BOTH checks: reject reparse
+  points, AND assert the resolved path still lands inside the profile root - and
+  say loudly when rejecting rather than silently substituting.
+- Why: this is a privilege-escalation surface that the script CREATES for itself.
+  A tool that writes to its own SYSTEM hive has no such exposure; the moment it is
+  migrated to "act on the real user," every user-hive value it reads becomes
+  attacker-supplied. Four of the five findings in that review existed only because
+  of the migration.
+- Evidence: 2026-08-18 session (NMMToolkit HKCU-redirect migration, work-it) -
+  security review found S1-S4 were all introduced by the redirect work; fixed with
+  a `$safeUnder` scriptblock validating Shell Folders values against the profile
+  path. See [[do-not-widen-a-migration]].
+- Added: 2026-08-21 (work-it)
+
+### Never interpolate a discovered string into a PowerShell command line - pass it as an argument
+
+- Registry key names, file names, user input, and anything else read at runtime are
+  attacker-controllable in a multi-user environment. Interpolating one into a
+  command string - especially a scheduled task's `-EncodedCommand` payload, where
+  base64 hides the result from casual review - is straightforward code injection.
+  Build the command with parameters/argument arrays, or validate against a strict
+  allowlist pattern before it ever reaches a string.
+- Why: base64 encoding reads as opaque-therefore-safe and defeats both eyeballing
+  and grep-based review. The injection is invisible in the artifact that gets
+  deployed.
+- Evidence: 2026-08-18 session (NMMToolkit, work-it) - reproduced live with a
+  registry key named `@('OnBase'; Write-Output 'INJECTED'; '')`, which executed
+  inside the generated scheduled task.
+- Added: 2026-08-21 (work-it)

@@ -286,7 +286,7 @@ Format per `README.md` in this directory.
   the gap survived (commit `278e76b`, issue #25). Three defects that day had
   this identical shape, including `collector-go` having no `subagents/` handling
   at all and a missing `tool_calls.source_file_rel` write (#29, #32).
-- See also [[cross-implementation-parity-harness]] - the harness that turns this
+- See also [[two-implementations-of-one-contract-need-a-parity-harness]] - the harness that turns this
   class from "found by running the app" into a red test.
 - Added: 2026-08-11 (work-it)
 

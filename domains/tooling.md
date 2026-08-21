@@ -164,7 +164,7 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   reinstating `delete_repo`.
 - Added: 2026-08-12 (work-it)
 
-### `gh auth refresh` is a device-code browser flow, not something that resolves on its own
+### A device-code CLI login (`gh auth refresh`, `az login`) is a browser flow that never resolves on its own
 
 - When `gh auth refresh -h github.com` (or `gh auth login`) is needed mid-session,
   it prints a one-time code and a URL (`https://github.com/login/device`) and then
@@ -175,12 +175,23 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
 - Why: treating it like any other CLI command that "just runs" wastes turns
   either silently waiting or re-invoking it, when the actual blocker is a human
   action in a browser the agent cannot see or trigger.
+- The same holds for `az login`, with two extra traps. (1) NEVER launch a second
+  `az login --use-device-code` while one is pending: each run mints its own code and
+  the user cannot tell which is live - one session generated two competing codes and
+  had to be told which to type. Ask the user to run it themselves via the `!` prefix
+  and wait. (2) On a tenant with no Azure subscription, plain `az login` fails after
+  the whole browser round-trip; use
+  `az login --use-device-code --allow-no-subscriptions` on the FIRST attempt so the
+  human does the sign-in once, not twice.
 - Evidence: 2026-08-12 session (TokenMonitor/agent-improvement, home-matt) - push
   blocked twice (lesson sync and a PR branch) by an expired GitHub auth session;
   `gh auth refresh` returned code `E620-AA73` and the device URL, the agent
   surfaced both and waited, and the push succeeded once the user confirmed the
   browser step was done.
-- Added: 2026-08-15 (home-matt)
+- Evidence (2): 2026-08-16 session (uw-router-teams-tab, work-it) - eight sessions
+  of turnaround on a single `az login`: subscription-less tenant, then duplicate
+  device codes, then a re-run for `--allow-no-subscriptions`.
+- Added: 2026-08-15 (home-matt), updated 2026-08-21 (work-it)
 
 ### A CI-watching monitor can silently exceed its own timeout before the run finishes
 
@@ -213,3 +224,49 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   the throw, which means a background launch of this app can look successful
   while having crashed."
 - Added: 2026-08-13 (work-it)
+
+### A `||` fallback must never be a weaker version of the command it falls back from
+
+- When a guarded command fails, `cmd-with-guard || cmd-without-guard` converts the
+  guard's REJECTION into an unconditional execution - the safety check is not just
+  bypassed, it is inverted into a trigger. If a compare-and-swap, a `--dry-run`
+  gate, or a precondition check fails, stop and report; never let the fallback do
+  the same operation with the check removed.
+- Why: the fallback is written for the transport-error case ("the command didn't
+  run") but fires identically for the safety case ("the command ran and said no").
+  The outcome can still be correct by luck, which is what makes it survive review.
+- Evidence: 2026-08-17 session (cli-shared-memory, work-it) - a `git update-ref`
+  compare-and-swap with a guessed old-value SHA failed correctly, and the `||`
+  fallback then ran the unguarded ref update. Fast-forward safety happened to have
+  been verified separately with `merge-base`, so nothing broke.
+- Added: 2026-08-21 (work-it)
+
+### An MCP server that loses its transport stays broken for the session - restart, do not retry
+
+- When an MCP tool starts failing mid-session because its underlying path or network
+  route went away, retrying the call does not recover it and neither does waiting.
+  The connection is established at session start; ask the user to restart Claude
+  Code (or otherwise restart the MCP connections) rather than burning turns on
+  retries or hunting for a bug in the request.
+- Why: the failure surfaces as an ordinary tool error, which reads as "this call was
+  wrong" rather than "this transport is dead," so the natural response is to retry
+  with different arguments - which can never work.
+- Evidence: 2026-08-16 session (UW Router flow, `power-automate` flowagent MCP,
+  work-it) - the server needed a full terminal restart to reconnect; retries did
+  nothing.
+- Added: 2026-08-21 (work-it)
+
+### `gh` subcommands backed by GraphQL can be down while the REST API still works
+
+- `gh pr list`, `gh issue list`, `gh search`, and `gh pr comment` go through
+  GitHub's GraphQL API and can 503 as a group while `gh api repos/...` REST
+  endpoints answer normally. A wall of 503s from those commands is NOT evidence
+  that GitHub is unreachable or that the repo is quiet - fall back to REST and
+  finish the job.
+- Why: for any sweep or triage that enumerates PRs/issues, a GraphQL outage
+  otherwise renders as "nothing open," which is the silent-under-report failure
+  class. Say which API answered when reporting results.
+- Evidence: 2026-08-17 session (fleet triage across Aether-OS,
+  claude-token-tracker, TokenMonitorV2, work-it) - 503s across every GraphQL-backed
+  `gh` command; the REST fallback worked throughout.
+- Added: 2026-08-21 (work-it)
