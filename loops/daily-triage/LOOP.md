@@ -90,13 +90,36 @@ L2 also requires worktree isolation. Not active at L1.
      appeared to be 3 days old with no apparent new work. The old protocol
      never specified WHICH date it read, which is half of why the bug was
      possible at all.
-     Also record `ahead_by` against the repo's default branch
+     Also record `ahead_by` AND `behind_by` against the repo's default branch
      (`gh api repos/mwgrant21/<repo>/compare/<default>...<branch> --jq
-     '.ahead_by'`) and report it alongside the age. Age and divergence are
-     different signals: age says "nobody has touched this", ahead_by says
-     "there is unmerged work in it". A branch that is 0 ahead and 40 days
-     stale is dead weight worth deleting; one that is 12 ahead and 40 days
-     stale is unmerged work at risk. Do not collapse them into one number.
+     '{ahead:.ahead_by,behind:.behind_by}'`) and report BOTH alongside the age.
+     `behind_by` comes back in the SAME response `ahead_by` already reads, so
+     recording it costs zero extra API calls (adjustment
+     `record-behind-by-alongside-ahead-by`, proposed and applied 2026-08-21).
+     Age and divergence are different signals: age says "nobody has touched
+     this", ahead says "there is unmerged work in it", behind says "the base
+     has moved underneath it". Report the pair as `Na/Mb`, never collapsed
+     into one number. The four cases are NOT interchangeable, and the
+     recommendation differs for each:
+     - `0 ahead` (any behind): dead weight. Fully absorbed, safe to delete.
+     - `N ahead / 0 behind`: clean unmerged work, fast-forward available.
+       "Merge or abandon" is a fair framing here.
+     - `N ahead / M behind`: **DIVERGENT - do not label this "N ahead" and do
+       not recommend a plain merge.** The base moved through code the branch
+       also touches, so a merge can silently delete newer work. Report it as
+       `divergent, verify against the default branch before proposing a merge`
+       and leave the merge/rework/abandon call to the human.
+     - The higher `M` relative to the branch's age, the more likely the branch
+       is stale-by-supersession rather than stale-by-neglect.
+     Rationale: on 2026-08-21 two branches this loop had reported identically
+     as "stale, N ahead, merge or abandon" resolved OPPOSITELY.
+     `EFIPartitionRemediation/feature/fleet-migration-runbook` was 17a/0b and
+     fast-forwarded cleanly. `TokenMonitor/worktree-packages-core-wiring` was
+     1a/45b, and its one commit deleted four source files plus their tests that
+     the default branch had since extended with a whole new rule - merging it
+     would have silently reverted that work. `ahead_by` alone cannot tell those
+     apart, and the digest's wording actively invited the wrong action on the
+     second one.
      Branch-staleness cache (added 2026-08-03, after 5 multi-branch repos hit
      their first full audit and the per-branch lookup got costly): list each
      repo's branches with name + tip SHA in one call
@@ -108,24 +131,32 @@ L2 also requires worktree isolation. Not active at L1.
      per-branch commit-date call for it and reuse that date. Only spend a
      `gh api repos/mwgrant21/<repo>/commits/<sha>` call on branches that are new
      or whose SHA changed. Carry the full current
-     `{repo: {branch: {sha, author_date, ahead_by}}}` map into this run's own
-     `notes.branch_tips` (step 3) so the next run has something to diff against.
-     Cache rules for the two fields, so adding `ahead_by` does NOT undo this
+     `{repo: {branch: {sha, author_date, ahead_by, behind_by}}}` map into this
+     run's own `notes.branch_tips` (step 3) so the next run has something to
+     diff against.
+     Cache rules for the three fields, so adding `ahead_by`/`behind_by` does NOT undo this
      optimization (it took five proposals across three weeks to land - do not
      casually regress it):
      - `author_date`: refetch only when the branch's own SHA changed. A
        rebase changes the SHA and busts the cache, but the refetched author
        date comes back unchanged, so the staleness clock correctly does not
        reset.
-     - `ahead_by`: refetch when the branch's SHA changed **or** when the
-       repo's DEFAULT-branch SHA changed. `ahead_by` is relative, so it goes
-       stale when the base moves even if the branch does not - and the
-       default branch's SHA is already in the same one-call branch listing,
-       so this costs nothing extra to detect.
+     - `ahead_by` and `behind_by`: refetch when the branch's SHA changed **or**
+       when the repo's DEFAULT-branch SHA changed. Both are relative, so they
+       go stale when the base moves even if the branch does not - and the
+       default branch's SHA is already in the same one-call branch listing, so
+       this costs nothing extra to detect. They come from ONE compare call and
+       must always be refetched and stored TOGETHER; a `behind_by` cached from
+       an older base while `ahead_by` is fresh is exactly the silently-wrong
+       derived value `domains/loop-design.md` "Measure the uncached path before
+       adding a cache" warns about. Never read one from cache and the other
+       live.
      - Pre-2026-08-06 cache entries carry `date` instead of `author_date` and
-       no `ahead_by`. Treat a missing field as a cache miss and refetch that
-       branch once; do not assume the old `date` was an author date, because
-       the protocol never said which one it was.
+       no `ahead_by`; entries written before 2026-08-21 have no `behind_by`.
+       Treat ANY missing field as a cache miss and refetch that branch once;
+       do not assume the old `date` was an author date, because the protocol
+       never said which one it was, and never infer `behind_by` from a stored
+       `ahead_by`.
      - **`sha` is the FULL 40-character SHA, never truncated** (adjustment
        `specify-branch-tips-cache-key-format`, proposed 2026-08-11, applied
        2026-08-17). The API call above (`--jq '.[] | {name,sha:.commit.sha}'`)
@@ -254,7 +285,7 @@ L2 also requires worktree isolation. Not active at L1.
    `"notes":{"output_tokens_today":99700,"cache_hit_rate":0.944}` (today-only
    figures, not the two-day window) - this is the baseline the spend and
    cache flags read on later runs. Also include this run's full
-   `branch_tips` map (`{repo: {branch: {sha, date}}}`) from step 1's
+   `branch_tips` map (`{repo: {branch: {sha, author_date, ahead_by, behind_by}}}`) from step 1's
    staleness cache, so the next run can diff against it. Also include
    `dirty_repos` (step 1's stale-WIP cache) and `fp_source` (step 2).
    Record step 4's one adjustment as a STRUCTURED entry (refinement 9), not
