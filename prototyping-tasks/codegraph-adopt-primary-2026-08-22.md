@@ -1,0 +1,42 @@
+# Prototyping task: adopt colbymchenry/codegraph as primary code intelligence, keep code-graph-mcp for PowerShell
+
+**Source evaluation:** evaluate-repo run against github.com/colbymchenry/codegraph, 2026-08-22 (same session that built Kotlin support into `code-graph-mcp` via the earlier gortex evaluation).
+**Verdict on codegraph itself:** adopt in part, confidence 8/10 — materially more capable than the in-house `code-graph-mcp` for every language both cover (verified byte-for-byte cross-file resolution, 20+ languages, real-time file-watcher sync, FTS5 search), but it has zero PowerShell support anywhere, which is this user's actual day-job language.
+
+## Gap: code-graph-mcp's coverage is thin and unverified next to a materially stronger alternative
+
+**What's missing today:** `code-graph-mcp` covers 4 languages (TS/JS, Python, PowerShell, Kotlin — Kotlin added earlier this same session) with deliberately simple-identifier-only call matching (no member/navigation-expression calls), no cross-file resolution accuracy verification of any kind, and no file-watcher — reindexing is a manual `refreshIndex()` call. codegraph covers 20+ languages including a Kotlin resolver measured at 96.2% cross-file accuracy on a real large codebase (square/okhttp), plus real-time auto-sync and full-text search.
+
+**Fit evidence (why now, not speculative):** This is not hypothetical — `code-graph-mcp` is registered live in `.claude.json` and was actively extended THIS SESSION (Kotlin support, verified against TarotApp's real Android module). The tool is in active use across this user's real projects (TarotApp, TokenMonitor/TokenMonitorV2, aether-os). A materially stronger alternative for the same job, discovered the same night the in-house tool was being worked on, is about as concrete a fit as this skill's evidence bar asks for.
+
+**What codegraph does that's worth taking, dependency vs. idea:**
+- **Adopt the dependency** (this doc's main scope): the core graph engine itself, for non-PowerShell languages.
+- **Steal the idea only** (do NOT require adopting codegraph for these): (1) a single consolidated `codegraph_explore`-style MCP tool instead of exposing several granular tools — a measured design choice worth porting into `code-graph-mcp` regardless of this decision; (2) real-time file-watcher auto-sync, same — a code-graph-mcp enhancement independent of whether codegraph itself gets installed.
+
+## Minimal prototype scope
+
+- **Resolve the open risk first** (see Open questions) before installing anything: confirm whether codegraph's Windows/Git-Bash installer-hook issue (#1278, open) affects MCP-server-only invocation, or only the full CLI+hook install path. `code-graph-mcp` is invoked directly via `node .../dist/bin/code-graph-mcp.js` in `.claude.json`, not through a shell-resolved launcher — if codegraph's MCP server can be registered the same direct way, #1278 likely doesn't apply, but this needs confirming against codegraph's actual install docs, not assumed.
+- If clear: install codegraph, register it as an MCP server (likely alongside, not replacing, `code-graph-mcp` initially — a probationary period where both are available lets you compare real answers before fully retiring anything).
+- Keep `code-graph-mcp`'s PowerShell coverage as the sole PowerShell code-graph tool — do not attempt to replace it; codegraph has no PowerShell support to replace it with.
+- Decide the shutdown/retirement question for `code-graph-mcp`'s other 3 languages (TS/JS, Python, Kotlin) only after codegraph has been used for real work and its accuracy/usefulness is confirmed firsthand, not on the strength of this evaluation alone — this doc's evaluation is report-only, not a verified hands-on trial.
+
+## Open questions
+
+- Does codegraph's #1278 (Windows/Git-Bash launcher resolution failure) affect direct MCP-server registration, or only its own CLI+hook installer flow? This needs answering before any install step, not glossed over — it's the one concrete environment-specific risk found.
+- Does codegraph support a repo-scoped/local-only mode without its anonymous telemetry (opt-out exists per the README, but confirm the opt-out mechanism actually works before relying on it for any repo containing anything sensitive)?
+- Once both tools are available, what specifically decides retirement of code-graph-mcp's TS/Python/Kotlin coverage — a direct side-by-side comparison on a real query, a time-boxed trial period, or just "codegraph works, stop maintaining the redundant path"? Not decided here; this doc only establishes the case for trying it.
+- Is the single-consolidated-tool MCP design (steal-the-idea item) worth porting into `code-graph-mcp` regardless of the adoption decision above, given it's a measured improvement independent of engine quality? Separate, smaller follow-up — not blocked on this doc's main decision.
+
+## Status
+
+**PARTIALLY ACTIONED 2026-08-22**, same session, via `port-gap`.
+
+**#1278 resolved (blocking open question, confirmed not a blocker):** read the full issue and its one comment directly (`gh api`). Both described failure modes (the installer's UserPromptSubmit hook, and the `codegraph explore` CLI shell fallback) are explicitly Git-Bash-shell-resolution failures (`bash: codegraph: command not found`, exit 127) — neither report nor comment describes MCP-server registration failing. `code-graph-mcp`'s own working `.claude.json` entry uses a direct executable path (`node.exe` + absolute script path), proving Claude Code's MCP host spawns stdio servers directly, not through Git Bash — the same mechanism #1278 doesn't touch. Confidence: high but not absolute (untestable without installing, which was the next step). Mitigation if adopted: register with an absolute path to `codegraph.cmd` or its underlying node entry point, mirroring `code-graph-mcp`'s own proven-working pattern, rather than the bare `"command": "codegraph"` from codegraph's documented manual setup.
+
+**Full adoption BLOCKED**, not completed: `npm install -g @colbymchenry/codegraph` was denied by the Claude Code auto-mode permission classifier (global software install). Per the tool's own guidance, this was not worked around — it needs the user's explicit go-ahead (grant the permission, or run the install themselves) before this doc's main scope (register codegraph as an MCP server, run `codegraph init` against real projects) can proceed.
+
+**Steal-the-idea item BUILT instead**, same session: the single-consolidated-tool MCP design was ported into `code-graph-mcp` independent of the adoption decision — see `src/tools/explore.ts` (symbol_lookup + call_trace both directions + blast_radius composed into one call), registered in `src/server.ts`, tested (`tests/tools-explore.test.ts`, 24/24 total passing), committed and pushed. Deliberately did NOT unlist the four granular tools by default the way codegraph does (`CODEGRAPH_MCP_TOOLS` env-var toggle) — at only 5 tools total, clearly named, that complexity wasn't justified; noted as a scope decision, not an oversight.
+
+**Steal-the-idea item DEFERRED, not built:** the real-time file-watcher pattern. Investigation during this pass found the gap is smaller than originally assessed — `server.ts` already calls `refreshIndex(repoRoot, db)` on every tool request (line 64), so staleness is handled synchronously per-call, not left stale between manual reindexes as the original evaluation assumed. The real remaining gap vs. codegraph is efficiency (a synchronous full reindex-check per call vs. an async debounced background watcher), not correctness. This is a properly-scoped feature in its own right (debouncing, background coordination) — not rushed into this already-long session; worth a dedicated future pass if per-call latency ever becomes a real problem.
+
+**Next step:** ask the user whether to grant the global npm install permission (or have them run it) to unblock the main adoption scope.
