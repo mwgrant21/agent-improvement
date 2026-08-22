@@ -302,6 +302,47 @@ L2 also requires worktree isolation. Not active at L1.
        observation is not evidence, and this is the same class as
        `domains/verification.md`, "A probe that cannot distinguish 'not yet'
        from 'never' is not a verification".
+     - **Worktree hygiene** (added 2026-08-21): for each discovered repo, run
+       `git worktree list --porcelain`. For each worktree beyond the main
+       one, check whether its branch has already been merged into the repo's
+       default branch (`git branch --merged <default>`) or no longer exists
+       (`[gone]`/deleted upstream with no local ref). Flag each as a one-line
+       finding: `stale worktree: <repo> - <path> (branch <name>, merged/gone)
+       [action: prune merged worktree at <path>]`. **Report only - this loop
+       never runs `git worktree remove`**, the same boundary it already
+       holds for unpushed commits (reported, never pushed). No cache: a
+       repo's worktree count is small (typically 0-2) and `git worktree
+       list` plus a merge-check is cheap enough to run in full every run -
+       per `domains/loop-design.md`, "measure the uncached path before
+       adding a cache," don't add one speculatively here.
+     - **Cross-repo config/gitignore drift** (added 2026-08-21): two related
+       checks, both grounded in `domains/testing.md` lessons that have hit
+       this fleet more than once.
+       - Per discovered repo, if `.gitignore` contains a `.worktrees/` or
+         `worktrees/` pattern, confirm it also covers `.claude/worktrees/`
+         (either an explicit `.claude/worktrees/` line or an unanchored
+         `**/worktrees/**`-style pattern that matches both). If it only has
+         the anchored `.worktrees/` form, flag: `gitignore gap: <repo> -
+         .gitignore excludes .worktrees/ but not .claude/worktrees/, the
+         path Claude Code actually uses [action: add .claude/worktrees/ to
+         .gitignore]`. This is the exact drift that silently produced false
+         test failures in both TokenMonitor and aether-os (see
+         `domains/testing.md`, "Test runner config must exclude
+         `.worktrees/**`").
+       - **GitHub push-credential health, checked ONCE per run, never
+         per-repo**: run `gh auth status`. This is a single shared machine
+         credential, not a per-repo property - checking it once mirrors how
+         the existing broken-probe handling above treats one failing cause
+         as one finding, not N. If it reports invalid/expired, emit exactly
+         one finding: `GitHub auth: gh auth status reports <error> - likely
+         also blocks git push to any GitHub-hosted repo (seen before: tarot,
+         TarotApp, agent-improvement, code-graph-mcp all failed push with
+         "Invalid username or token" from this same underlying cause)
+         [action: gh auth refresh -h github.com]`. Be honest this is a
+         correlate, not a direct push test - this loop never runs `git push`
+         itself, so it cannot confirm push would succeed even when `gh auth
+         status` looks clean; word the finding as "likely also blocks", not
+         "blocks".
 2. Update `STATE.md`:
    - Honor the **Human Decisions** section (never re-raise what it suppresses).
    - Honor **Constrained Scopes** (step 0's `constrained_scopes` list): a
