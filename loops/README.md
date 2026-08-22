@@ -48,6 +48,30 @@ even if the branch itself has not.
 
 Append-only. Never rewrite or delete lines.
 
+## State ownership ledger (body layer)
+
+Every category of state a loop retains anywhere - not just STATE.md
+frontmatter - gets one row in a `## State Ownership` section in STATE.md's
+body: the category, where it lives, and its cap (a number, or an explicit
+rotation/archival policy). No retained-state category ships without one -
+"unbounded, no policy" is not a valid row.
+
+Adapted from lidge-jun/opencodex's "bounded memory ownership" convention
+(36 categories of process-retained state, each with a declared hard cap;
+evaluated 2026-08-21/22, github.com/lidge-jun/opencodex). Sharper than this
+store's prior default of noticing bloat reactively - e.g. `log-archivist`
+compressing `aether-os/PROGRESS.md` only after it reached 206KB. Declaring
+the cap up front doesn't prevent growth, but it means a loop's own
+retrospective (or a human skimming STATE.md) can see which sections are
+expected to keep growing and by what policy, instead of discovering it once
+the file is already unwieldy.
+
+Categories to ledger typically include: `runs.jsonl` growth, `notes.*`
+per-run metrics objects, `constrained_scopes`, the Adjustment ledger (if
+present), Human Decisions, Watch List, and any cache/map a loop maintains
+across runs. Sections a loop already prunes each run (e.g. "Resolved since
+last run") are self-bounding and get a row saying so rather than a number.
+
 ## Graduation
 
 - Every loop STARTS at L1. No exceptions.

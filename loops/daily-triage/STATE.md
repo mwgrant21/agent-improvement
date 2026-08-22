@@ -8,6 +8,22 @@ last_run: 2026-08-21
 runs_since_retro: 4
 constrained_scopes: []
 ---
+## State Ownership
+<!-- Retrofitted 2026-08-22 adopting the loop-design "state ownership ledger"
+     convention (loops/README.md, stolen from lidge-jun/opencodex during
+     evaluate-repo). This file was 134 lines at retrofit time; the rows below
+     are the honest current growth pattern, not aspirational caps. -->
+| Category | Location | Cap / rotation policy |
+|---|---|---|
+| runs.jsonl | loops/daily-triage/runs.jsonl | Unbounded, append-only by design - source of truth for retrospectives. No cap; rotate via log-archivist if reads become slow. |
+| Adjustment ledger | STATE.md body | Unbounded rows, one per proposed refinement; landed rows never deleted (re-checked each retrospective per R1). Rotate older LANDED rows to a dated archive via log-archivist if STATE.md exceeds ~50KB. |
+| Human Decisions | STATE.md body | Unbounded append-only; retired decisions kept (not deleted) so a future run doesn't misread absence as loss. Same log-archivist rotation trigger as the Adjustment ledger. |
+| Watch List | STATE.md body | Bounded by active repo/branch count (~20 currently); an item is pruned to "Resolved since last run" once it closes, so this section self-bounds in practice. |
+| High Priority | STATE.md body | Small by construction - an item here is actively awaiting a human decision; moves to Human Decisions or Resolved once decided. |
+| Recent Noise / Untriaged noise | STATE.md body | Small, cleared as items get `[FP]`-marked or decided; self-bounding. |
+| Resolved since last run | STATE.md body | Pruned every run per existing step-2 convention; prior entries live in git history, not here. |
+| constrained_scopes | STATE.md frontmatter | Empty by default; human-added/removed only (Intervention ladder step 2) - naturally small. |
+
 ## Constrained Scopes
 <!-- Human-added/removed only (loops/README.md, Intervention ladder step 2).
      Each entry: {scope, reason, since, reconsider}. Empty currently -->
