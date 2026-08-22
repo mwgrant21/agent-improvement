@@ -363,6 +363,75 @@ Format per `README.md` in this directory.
   theory from misleading a future session.
 - Added: 2026-08-12 (home-matt)
 
+### Wrap async handlers in a long-lived shared process even when the SDK "rarely throws"
+
+- In a single-process, long-lived server architecture (an MCP/HTTP wiring
+  layer serving multiple requests from one process), do not accept "this
+  rarely throws" as sufficient reasoning to leave an async handler unguarded.
+  An uncaught rejection in a persistent shared process crashes every
+  concurrent request, not just the one that triggered it - unlike a
+  request-scoped process where the same crash would be isolated. When a
+  reviewer flags this class of gap, trace the actual conditions in the SDK's
+  own source rather than reasoning from how often the failure "should" occur.
+- Why: the blast radius is architecture-dependent, so a defensive habit
+  learned in request-scoped code (guard the risky bits, skip the "safe"
+  paths) silently under-protects a shared-process design where every path is
+  equally load-bearing.
+- Evidence: 2026-08-15/16 session (cli-shared-memory git-arbiter build,
+  home-matt) - Task 5's review flagged "an unguarded async handler that could
+  crash the whole shared process on a bad request"; the fix's second round
+  closed "a second instance of the same crash-risk pattern the reviewer
+  traced down to the SDK source rather than accepting the 'rarely throws'
+  reasoning."
+- Added: 2026-08-22 (home-matt)
+
+### npm 11's install-scripts allowlist can silently block a package's own postinstall
+
+- npm 11.19+'s new install-scripts allowlist can silently block a dependency's
+  own postinstall script - including the step that downloads a native binary
+  (Electron's `electron.exe`) or rebuilds a native module (`node-pty`). The
+  failure does not look like an install error: `npm install` exits clean,
+  `package.json`/the lockfile show the right version, but `node_modules/<pkg>/dist`
+  (or the native build output) is simply empty, so the app "closes with no
+  crash reported" because there is nothing to launch. Allowlist
+  `install-scripts` for any package whose function depends on its postinstall
+  (Electron, node-pty, esbuild, and similar native-module packages) in
+  `package.json`, not just on the machine where it happened to already have
+  old prebuilds on disk.
+- Why: this masquerades as an unrelated bug (GPU crash, sandbox issue) because
+  the symptom is "the app doesn't start," and the actual cause - a missing
+  binary - is invisible unless someone checks that the expected build output
+  directory actually exists and is populated.
+- Evidence: 2026-08-19 session (aether-os Electron 43.4.1 upgrade, home-matt)
+  - traced a "no crash reported, app just closes" failure to
+  `node_modules/electron/dist` being entirely absent; npm 11.19 had silently
+  blocked Electron's own postinstall. Fixed by manually forcing the binary
+  download and allowlisting `node-pty`/`esbuild` install scripts in
+  `package.json` so a fresh clone/CI wouldn't hit the same silent skip.
+- Added: 2026-08-22 (home-matt)
+
+### `electron-vite`'s main process does not hot-reload - a running dev instance keeps executing pre-change code until restarted
+
+- After editing main-process code in an `electron-vite` project, a dev
+  instance that was already running (`npm run electron:dev` / `electron:dev`)
+  keeps executing the OLD main-process code - hot-reload covers the renderer,
+  not the main process. A click or action that should exercise the new code
+  instead runs the stale pre-change logic (e.g. a stale IPC handler), which
+  presents as "my fix didn't work" rather than as a stale-process problem.
+  Restart the dev process after any main-process edit before trusting a live
+  test of that change.
+- Why: this is a repeatable, easy-to-miss trap because the dev server keeps
+  running normally and gives no signal that main-process changes stopped
+  applying - the bug reproduces exactly like a real regression.
+- Evidence: 2026-08-18 session (aether-os statusline settings, home-matt) -
+  root-caused a dropped statusline segment to the Electron main process
+  (started 10:07 PM) predating a 10:34 PM code change, so it "doesn't
+  hot-reload main-process files" and ran the old pre-chain install logic;
+  fixed by re-running the real patch function and flagged "aether-os's dev
+  process is still stale... restart `npm run electron:dev` before clicking
+  anything else."
+- Added: 2026-08-22 (home-matt)
+
 ### Before deep local diagnosis of an Electron GPU-process crash, check the Electron version against recent releases/issues
 
 - When an Electron app crashes with the `STATUS_BREAKPOINT`/`exit_code=-2147483645`

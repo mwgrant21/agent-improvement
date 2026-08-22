@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-21
+last-updated: 2026-08-22
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -119,3 +119,10 @@ at work).
 | git | A `.git` that is a FILE is a linked worktree, not a repository | 2026-08-21 |
 | git | Never pre-write a commit message for edits made in the same command chain | 2026-08-21 |
 | loop-design | A proposal deferred to dodge the attempt cap is hiding a measurable question | 2026-08-21 |
+| verification | A blanket prescriptive rule must be checked against the artifact's own content before shipping | 2026-08-22 |
+| tooling | Serialize fix-implementer dispatches that may touch shared files | 2026-08-22 |
+| tooling | The Bash tool's cwd does not reliably persist a bare cd across separate tool calls | 2026-08-22 |
+| testing | Isolate temp git repos created by a test from the host's global git config | 2026-08-22 |
+| app-dev | Wrap async handlers in a long-lived shared process even when the SDK "rarely throws" | 2026-08-22 |
+| app-dev | npm 11's install-scripts allowlist can silently block a package's own postinstall | 2026-08-22 |
+| app-dev | electron-vite's main process does not hot-reload | 2026-08-22 |

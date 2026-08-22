@@ -236,6 +236,26 @@ itself). Format per `README.md` in this directory.
   [[two-implementations-of-one-contract-need-a-parity-harness]].
 - Added: 2026-08-11 (work-it)
 
+### Isolate temp git repos created by a test from the host's global git config
+
+- When a test creates real temporary git repositories to exercise git
+  operations (apply, commit, diff), do not let them inherit the host's global
+  git config. A setting like `core.autocrlf=true` makes `git apply` write CRLF
+  while a test asserting a literal `\n` fails - a correctness bug in the
+  test's environment coupling, not in the code under test. Fix it in the test
+  fixture (scope the temp repos' config independently), not by changing
+  production git-handling code to work around one machine's setting.
+- Why: the failure is real and reproducible, but fixing it in production code
+  would be treating a machine-specific test-isolation gap as a product defect
+  - the correct fix is making the fixture immune to the host's config, which a
+  reviewer should flag rather than silently work around.
+- Evidence: 2026-08-15/16 session (cli-shared-memory git-arbiter build,
+  home-matt) - Task 3's implementer "correctly flagged rather than silently
+  working around a Windows `core.autocrlf` issue in the test fixtures";
+  resolved by isolating the temp test repos' git config from the host's
+  rather than touching `gitOps.ts`.
+- Added: 2026-08-22 (home-matt)
+
 ### A test that applies a Deny ACE must survive its own cleanup being skipped
 
 - Any test that deliberately breaks permissions - a Deny ACE, a read-only mount, a

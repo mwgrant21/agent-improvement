@@ -360,6 +360,31 @@
   [[grep-finds-stale-filenames]].
 - Added: 2026-08-21 (work-it)
 
+### A blanket prescriptive rule must be checked against the artifact's own content before shipping
+
+- When authoring an absolute-ban style rule (a lint rule, a "never do X" policy,
+  a punctuation/formatting prohibition), check it against the artifact's own
+  existing content for legitimate structural exceptions before treating the
+  rule as finished. A rule stated as universal ("do not use em dashes... full
+  stop") can be falsified by the same document's own examples, and that
+  falsification is invisible to a conformance check - the rule matches itself
+  by construction.
+- Why: this is a different failure than a defect in an implementation - it is
+  a defect in the RULE, discovered only by a review that reads the governed
+  content against the rule rather than trusting the rule's own framing. It
+  recurs anywhere a session authors a prescriptive style/lint rule alongside
+  worked examples.
+- Evidence: 2026-08-15 session (home-matt, humanizer voice-profile build) - a
+  final whole-branch review found the persisted profile's own walkthrough
+  doc used em/en dashes structurally as a header-numbering separator ("## 5-8
+  - Normalising the subject"), which the profile's blanket "Matt does not
+  naturally write with them, full stop" Punctuation rule did not carve out;
+  every file that banned em dashes turned out to contain one. Left as an open
+  judgment call (narrow exception vs. leave as-is) rather than silently
+  patched.
+- See also [[a-final-whole-branch-review-is-required-after-task-level-reviews]].
+- Added: 2026-08-22 (home-matt)
+
 ### Do not widen a migration onto a mechanism that has never executed in the real environment
 
 - One tool migrated onto a new mechanism is a testable hypothesis; twenty is an

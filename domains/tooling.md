@@ -256,6 +256,43 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   nothing.
 - Added: 2026-08-21 (work-it)
 
+### Serialize fix-implementer dispatches that may touch shared files; only read-only dispatches (reviews) are safe in parallel
+
+- When a multi-task plan needs post-review fixes applied to more than one
+  already-committed task at once, dispatch those fix-implementers one at a
+  time if their files could overlap, not in parallel. Reviews (read-only) can
+  safely run in parallel against the same tree; writers cannot.
+- Why: two implementers editing overlapping files at the same time risk a lost
+  update or a merge conflict that neither implementer's own report would
+  surface - the failure mode is silent until something actually collides.
+- Evidence: 2026-08-15/16 session (cli-shared-memory git-arbiter build,
+  home-matt) - self-caught mid-dispatch: "I also caught myself dispatching
+  both fixes in parallel against shared files - no actual damage happened,
+  but I'm watching closely." The same session later ran Task 1's fix
+  re-review and Task 2's full review in parallel deliberately, noting "both
+  read-only, so no repeat of the earlier dispatch issue."
+- Added: 2026-08-22 (home-matt)
+
+### The Bash tool's working directory does not reliably persist a bare `cd` across separate tool calls - verify inside the same chained command
+
+- Do not rely on a `cd <dir>` issued in one Bash call to still be in effect for
+  an unchained command in a later call, especially against a scratch/throwaway
+  clone. Chain the `cd` and the git-mutating command together
+  (`cd <dir> && <command>`), and verify the target with `git rev-parse
+  --show-toplevel` inside that SAME chained command rather than trusting a
+  prior `cd`.
+- Why: this can silently fall back to the previous/default working directory,
+  so a command intended for a disposable scratch clone instead runs against
+  the primary working copy - indistinguishable from success until the wrong
+  repository's state changes.
+- Evidence: 2026-08-21 session (home-matt, tarot secrets purge) - several git
+  branch/fetch operations meant for a disposable scratch clone actually ran
+  against the primary `~/projects/tarot` working copy, briefly orphaning a
+  real local commit (`swap-thoth-to-plate-keeps`) from its branch ref before
+  it was caught via reflog and restored. Recorded as a near-miss in
+  `tarot-repos-pending-items.md`.
+- Added: 2026-08-22 (home-matt)
+
 ### `gh` subcommands backed by GraphQL can be down while the REST API still works
 
 - `gh pr list`, `gh issue list`, `gh search`, and `gh pr comment` go through
