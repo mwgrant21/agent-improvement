@@ -109,6 +109,55 @@ that does not restrict scope), and "constrain"/"stop" map directly.
    (budget breach, runaway behavior) - not for a single noisy source, which
    `constrain` handles without taking the whole loop offline.
 
+## Operational failure ladder
+
+A DIFFERENT axis from the Intervention ladder above: that one escalates on
+finding QUALITY (a source works but its results are noisy/drifting). This
+one is for the source or tool ITSELF failing (an API errors, `gh auth`
+breaks, a git remote goes stale) - a menu a loop's LOOP.md can draw from
+when it defines per-source failure handling, not a required declaration.
+Implement only the tiers relevant to the sources a given loop actually has;
+a loop with no git-backed sources has no resync tier.
+
+Adapted from bradygaster/squad's "Ralph" watch-mode daemon (evaluated
+2026-08-22, github.com/bradygaster/squad) - squad itself was skipped
+entirely (it runs exclusively through GitHub Copilot, platform-incompatible
+here), but this one convention from it was worth taking on its own.
+
+1. **Reset** - retry the failed call once, in-run, before concluding
+   anything is actually broken. Cheapest tier; catches transient blips
+   (a single dropped connection, a momentary rate-limit) without any
+   escalation at all.
+2. **Reprobe** - if the retry also fails, check whether the failure
+   implicates a shared dependency rather than the specific call (auth,
+   network reachability) and report that ROOT CAUSE once, not per-target.
+   `daily-triage` already does a narrow version of this: a single
+   fleet-wide `gh auth status` check per run (adjustment
+   `gitignore-and-auth-drift-check`, applied 2026-08-21) that names auth as
+   the likely shared cause instead of letting every dependent check fail
+   silently and separately.
+3. **Resync** (git-backed sources only) - a read-only `git fetch` to refresh
+   remote-tracking refs before declaring a source stale/unreachable, since a
+   locally out-of-date clone can look dead when it is not. Weigh this
+   against the loop's own L1 boundary before adopting it: fetching refs is
+   data-gathering, not a corrective action, but it is still worth a loop
+   stating explicitly in its LOOP.md that this tier stays read-only (fetch,
+   never pull/merge) if the loop's L1 boundary requires that distinction.
+4. **Report-unavailable** - once the above are exhausted (or don't apply),
+   surface the failure plainly and stop trying for that source this run.
+   `daily-triage`'s existing `distinguish-broken-probe-from-dead-source`
+   rule (proposed runs 14-16 / 2026-08-11, applied 2026-08-17) is the
+   working precedent for this tier: it distinguishes a source that is
+   simply absent (one quiet "unavailable" line) from a multi-target source
+   where 100% of targets fail the SAME way (one loud `probe failure:` line,
+   never silently absorbed into a clean-looking digest).
+
+A source that keeps landing on tier 4 across multiple runs is a candidate
+for a human to `constrain` (Intervention ladder, step 2) - reaching
+report-unavailable does not automatically constrain anything; it is a
+related but distinct signal that gets surfaced in the run digest for a
+human to act on.
+
 ## Continuous refinement
 
 1. Per run: one-line critique in the run log; the loop honors the Human
