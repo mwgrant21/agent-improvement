@@ -5,7 +5,7 @@ paused: false
 attempt_cap: 3
 budget: soft
 last_run: 2026-08-22
-runs_since_retro: 5
+runs_since_retro: 6
 constrained_scopes: []
 ---
 ## State Ownership
@@ -29,7 +29,7 @@ constrained_scopes: []
      Each entry: {scope, reason, since, reconsider}. Empty currently -->
 (none currently)
 
-**Retrospective completed 2026-08-17** (runs 11-20). `runs_since_retro` now 5 (runs 21-25). Run 24 was a deliberate, human-requested SECOND run on 2026-08-21, taken specifically to exercise the `record-behind-by-alongside-ahead-by` change applied earlier the same day. **Run 25 (2026-08-22) is the first run in this window FROM home-matt** (hostname TITAN) rather than work-it - the machine-tag freeze/verify directionality flipped correctly with no LOOP.md change needed.
+**Retrospective completed 2026-08-17** (runs 11-20). `runs_since_retro` now 6 (runs 21-26). Run 24 was a deliberate, human-requested SECOND run on 2026-08-21, taken specifically to exercise the `record-behind-by-alongside-ahead-by` change applied earlier the same day. **Run 25 (2026-08-22) is the first run in this window FROM home-matt** (hostname TITAN) rather than work-it - the machine-tag freeze/verify directionality flipped correctly with no LOOP.md change needed. **Run 26 (2026-08-22, 22:38 MDT) is a deliberate human-requested SECOND same-day run, also from home-matt/TITAN** - the spend threshold fired for the first time in this window (see Watch List), a genuine new reading reflecting a long, heavy session, not a duplicate of run 25's measurement.
 
 ## High Priority (waiting on human)
 - ~~NEW (run 25, 2026-08-22): 2 of `TokenMonitorV2`'s 3 tracked non-default branches disappeared from GitHub since run 24 with NO recorded Human Decision authorizing it...~~ **HELD 2026-08-22 (human decision) - see Human Decisions. Do not re-raise before Monday 2026-08-24.**
@@ -84,25 +84,24 @@ Pending since that reconciliation (in `runs.jsonl` `notes.adjustment` / `notes.o
 Note for the next retrospective's step R1: two rows deviate from their original proposal text ON PURPOSE, and each row says how - `branch-staleness-by-commits-ahead` became author-date staleness plus a separate `ahead_by` signal, and `cache-quiet-repo-pr-issue-results` became a fleet-wide search that removes the calls rather than a cache of their answers. Both would read as never-landed under a naive text match. Also: when reading `runs.jsonl` in full for R1, line 27 is invalid JSON - use a tolerant per-line parse that logs-and-skips rather than aborting.
 
 ## Watch List
-- **Fleet PR/issue counts: 0 open PRs, 1 open issue.** Both live-verified (`gh search`, `--limit 100` - PR search now empty, issue search 1 result - nowhere near the limit, not truncated). The empty PR result is the CORRECT reading, per run 24's Resolved note: the fleet has had zero open PRs since `TokenMonitorV2#1` was closed 2026-08-21. [machine: any]
-  - `Aether-OS#22` white screen after desktop lock. Still instrumented but NOT fixed, `updatedAt` still 2026-08-12 (now 10 days idle). Deliberately left open. [action: none until it recurs - then grab the dev output and grep `[diag]` BEFORE closing the window] [machine: any]
-- **`TokenMonitor` `req-4-stryker-ci-gate` is now `1a/53b`: DIVERGENT, jumped from `1a/2b` at run 24** (author-date 2026-08-17 unchanged - branch itself didn't move, but `master` advanced 51 commits past it in the interim, consistent with tonight's heavy commit session on this repo). Still a young/small divergence, not stale. [action: none yet, tracking - the base is moving fast under this branch, worth a rebase before it grows further] [machine: any]
-- **`TokenMonitorV2` `reskin-phase-5` and `chore/postinstall-install-electron` are GONE from GitHub - HELD pending Monday, see Human Decisions.** [machine: any]
-- **`agent-improvement` candidate buffer on home-matt is 357 pending lines (was 277 at last home-matt observation - grew 80 in the interim).** [action: run an `agent-learn` promote pass on home-matt] [machine: home-matt]
-- **NEW: `cli-shared-memory` (home-matt) now has an extra worktree at `.claude/worktrees/git-arbiter-plan` (branch `worktree-git-arbiter-plan`).** Not merged into `master`, not `[gone]` - active work, no worktree-hygiene flag warranted. [action: none, informational] [machine: home-matt]
-- **NEW: gitignore gap - `aether-os` and `TokenMonitorV2` both have `.gitignore` `.worktrees/` but not `.claude/worktrees/`.** `TokenMonitorV2` actually has a live `.claude/worktrees/` directory on home-matt right now. Same drift class documented in `domains/testing.md` that previously caused false test failures in `TokenMonitor` (already fixed there) and `aether-os`. [action: add `.claude/worktrees/` to both `.gitignore`s] [machine: any - GitHub-side config, not local state]
-- **NEW: `TokenMonitorV2` (home-matt clone) now has 1 unpushed commit on `main`** (`a0ea66b` "Add Stryker mutation testing", ahead 1 of `origin/main`) where 0 was recorded at last observation; the previously-dirty `.claude/` path is now clean. [action: none, tracking - push when ready] [machine: home-matt]
-- `aether-os` (home-matt, `~/projects/aether-os`) - local branches now down to 2 (`master` + `real-projects-view-stage16`, both tracked, neither `[gone]`), an improvement on the previously-noted 3 stale/`[gone]` branches. Working tree has new dirty paths (`PROGRESS.md`, `PROGRESS.archive-2026-08-21.md`, `PROGRESS.standing-decisions.md`) consistent with a log-archivist compression pass run tonight - treated as a fresh baseline. [action: none, tracking] [machine: home-matt]
-- `TarotApp` (home-matt) - 3 unpushed, 8 ahead of `origin/master`, 3 dirty (same 3 paths as before, `unchanged_runs` now 2 of 3). [action: none, tracking - one more identical observation flags it as noise] [machine: home-matt]
-- `tarot` (home-matt) - **1 unpushed** on `master` (was recorded as 3 previously - live count this run is 1; treat the new figure as current, no upstream tracking on `master`), 4 dirty (same set, `unchanged_runs` 2 of 3). [action: none, tracking] [machine: home-matt]
-- `Miriels-publish` (home-matt) - 1 unpushed, ahead 1, 3 dirty (same set as before, `unchanged_runs` 2 of 3); same 3 paths as `tarot`'s dirty set (shared boilerplate). [action: worth checking whether this is one fix that should land in both repos] [machine: home-matt]
-- `About-me` (home-matt) - 1 dirty (`README.md`, `unchanged_runs` 2 of 3). [action: none] [machine: home-matt]
-- `nmmtools` (home-matt) - 1 dirty (`testResults.xml`, `unchanged_runs` 2 of 3). Known recurring test-artifact pattern. [action: none, known benign] [machine: home-matt]
-- **`cli-shared-memory` (home-matt) - untracked `.claude/`, STILL not committed - 4th consecutive identical observation (`unchanged_runs` now 4).** Human Decision remains "commit it", execution still pending. [action: pending human action on home-matt; do not re-ask for a decision] [machine: home-matt]
-- **`code-graph-mcp` (home-matt) - RESOLVED: previously-dirty `package-lock.json` is now clean.** [action: none] [machine: home-matt]
-- `TokenMonitor` (home-matt clone) - 1 dirty (`.archex/`, `unchanged_runs` 0->1), checked-out branch is `req-4-stryker-ci-gate` not `master`. [action: none] [machine: home-matt]
-- `~/.claude` (dotclaude, home-matt - the loop's own harness config repo, distinct from `~/agent-improvement`) - 5 dirty paths unchanged from cached baseline (`unchanged_runs` 0->1). [action: none, tracking] [machine: home-matt]
-- **CONFIRMATION toward closing `expand-home-matt-discovery-root` (HELD 2026-08-17): running from home-matt this run, `~/projects` (12 repos) is reached by the existing `~` scan root at depth-3 - no gap found.** See Adjustment ledger `close-expand-home-matt-discovery-root`. [machine: home-matt]
+- **NEW: spend threshold FIRED for the first time this window.** Today's output tokens **1,488,880** exceed both the 750,000 absolute floor and 2x the 5-run median (232,692 -> floor 465,384). Cache held fine at 98.5% (no flag). Reflects a long, heavy same-day session (multi-agent NMMTools security/correctness review across 115 tools, archex v0.28.0 upgrade + MCP verification, GUI text-input feature work) - a genuine new reading, not a re-read of run 25's 386,911 figure. [action: none, informational - this is exactly the shape the threshold exists to surface] [machine: any]
+- **Fleet PR/issue counts: 0 open PRs, 1 open issue.** Both live-verified (`gh search`, `--limit 100`, unchanged from run 25). [machine: any]
+  - `Aether-OS#22` white screen after desktop lock. Still instrumented but NOT fixed, `updatedAt` still 2026-08-12 (now 11 days idle). Deliberately left open. [action: none until it recurs - then grab the dev output and grep `[diag]` BEFORE closing the window] [machine: any]
+- `TokenMonitor` `req-4-stryker-ci-gate` still `1a/53b` DIVERGENT, unchanged since run 25 (branch SHA `89dcf07...` unchanged; `master` SHA re-verified, ahead/behind unchanged). [action: none yet, tracking] [machine: any]
+- `TokenMonitorV2` still shows only `main` on GitHub - no new branch activity since run 25, HELD item unaffected (see Human Decisions, do not re-raise before Monday 2026-08-24). [machine: any]
+- **RESOLVED this run: `TokenMonitorV2` (home-matt) `.claude/` dirty path is now clean.** The 1 unpushed commit on `main` (`a0ea66b` "Add Stryker mutation testing") is unchanged - same SHA, still just sitting unpushed. [action: none, tracking - push when ready] [machine: home-matt]
+- **RESOLVED this run: `nmmtools` (home-matt) `testResults.xml` dirty path is now clean** - consistent with tonight's NMMTools review work being committed and pushed. [action: none] [machine: home-matt]
+- **`~/.claude` (dotclaude, home-matt) dirty set GREW from 5 to 7 paths** (added `skills/archex-query/SKILL.md` and `telemetry/`) - a path-set CHANGE, so per refinement 5 this is active WIP and correctly suppressed from the staleness flag, not stale. Consistent with tonight's archex-query skill update. [action: none, tracking] [machine: home-matt]
+- **`aether-os` (home-matt) dirty set now 10 paths** (the 7 tool-config dirs already tracked, plus `PROGRESS.md`, `PROGRESS.archive-2026-08-21.md`, `PROGRESS.standing-decisions.md` from the log-archivist pass) - path set still moving, active WIP, suppressed from staleness. [action: none, tracking] [machine: home-matt]
+- `tarot` (home-matt) - 1 unpushed on `master`, 4 dirty (same set, `unchanged_runs` 2->3 this run - one more identical observation would flag it as noise). [action: none, tracking] [machine: home-matt]
+- `Miriels-publish` (home-matt) - 1 unpushed, 3 dirty (same set as `tarot`'s shared boilerplate, `unchanged_runs` 2->3 - flags as noise on the next identical observation). [action: worth checking whether this is one fix that should land in both repos] [machine: home-matt]
+- `About-me` (home-matt) - 1 dirty (`README.md`, `unchanged_runs` 2->3 - flags as noise next run if unchanged). [action: none] [machine: home-matt]
+- `TokenMonitor` (home-matt clone) - 1 dirty (`.archex/`, `unchanged_runs` 1->2), checked-out branch is `req-4-stryker-ci-gate` not `master`. [action: none] [machine: home-matt]
+- **`cli-shared-memory` (home-matt) - untracked `.claude/`, STILL not committed - 5th consecutive identical observation (`unchanged_runs` now 5).** Human Decision remains "commit it", execution still pending. [action: pending human action on home-matt; do not re-ask for a decision] [machine: home-matt]
+- `cli-shared-memory` (home-matt) extra worktree `.claude/worktrees/git-arbiter-plan` (branch `worktree-git-arbiter-plan`) - still active, not merged/gone, re-verified this run. [action: none, informational] [machine: home-matt]
+- **gitignore gap unchanged: `aether-os` and `TokenMonitorV2` still have `.gitignore` `.worktrees/` but not `.claude/worktrees/`**, re-verified live this run. [action: add `.claude/worktrees/` to both `.gitignore`s] [machine: any - GitHub-side config, not local state]
+- **`agent-improvement` candidate buffer (home-matt) dropped from 357 to 16 pending lines** - the 15:26 today `agent-learn` promote pass processed the backlog (7 lessons promoted, 7 dropped as redundant per the session record); 16 new candidates have accumulated in the hours since from tonight's work. [action: none urgent - buffer is healthy, not stale] [machine: home-matt]
+- **CONFIRMATION toward closing `expand-home-matt-discovery-root` (HELD 2026-08-17): re-confirmed from home-matt this run, `~/projects` (12 repos) is reached by the existing `~` scan root at depth-3 - no gap found.** See Adjustment ledger `close-expand-home-matt-discovery-root`. [machine: home-matt]
 - `agent-improvement` store (home-matt) - `prototyping-tasks/` and `docs/specs/` etc. are now tracked/committed as of tonight's session (per the task context); store is clean and level with `origin/master`, re-verified this run. [action: none] [machine: home-matt]
 - `.agency-agents` and `claude-power-automate` (home-matt) - clean, non-`mwgrant21` remotes, outside fleet PR/issue scope, re-verified this run. [action: none] [machine: home-matt]
 - Literal tilde-named directory at `C:\Users\Matt\~\vexjoy-agent` holding a clean clone of `notque/vexjoy-agent`, re-verified this run. [action: none required, worth a rename if unintentional] [machine: home-matt]
@@ -110,12 +109,12 @@ Note for the next retrospective's step R1: two rows deviate from their original 
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive. Refinement 1: the loop ALSO counts an item whose FINDING IDENTITY (volatile fields like age stripped) is unchanged across 3 consecutive runs with no human action as noise on its own evidence, without waiting for a mark. -->
-- Spend threshold: today's **386,911** output tokens - under the 750,000 absolute floor, so the two-part AND gate cannot fire. No flag.
-- Cache threshold: today's **98.8%** - clears both the 0.90 absolute floor and the median-minus-5pp floor (0.911, from a 0.961 five-run median). **No flag** - the 2-run flag streak (runs 23, 24) breaks here on real data, not a suppression.
+- **NEW loop-derived noise: `TarotApp` (home-matt) - 3 dirty paths (`app/build.gradle`, `app/src/main/java/com/matt/tarot/MainActivity.kt`, `app/src/main/res/raw/images_oracle.zip`) and 3 unpushed commits, IDENTICAL across 3 consecutive runs (runs 24 frozen, 25, 26) with no human action.** Per refinement 1, counted as noise on its own evidence - dropped from active Watch List callouts unless the set changes. [fp_source: loop_derived] [machine: home-matt]
+- Cache threshold: today's **98.5%** - clears both the 0.90 absolute floor and the median-minus-5pp floor (0.92, from a 0.97 five-run median). No flag.
 - `gate-cache-flag-on-min-volume` was DECLINED 2026-08-17 and is deliberately NOT re-proposed; the flag is reported as the protocol currently specifies.
 
 ## Untriaged noise
-(none currently) - the run-24 cache-threshold streak resolved itself this run (98.8% clears both floors), so the item that was pending a `[FP]`/accept decision is now moot; no decision needed.
+(none currently) - the spend flag this run is a fresh, genuine reading (not an unmarked repeat), so nothing here needs a human `[FP]`/accept decision.
 
 ## Human Decisions (overrides the loop must respect)
 - **2026-08-22: `TokenMonitorV2` `reskin-phase-5` and `chore/postinstall-install-electron` branch disappearance - HELD, pending Monday 2026-08-24.** Plausible explanation offered: these were likely trimmed from work-it (office machine) as routine cleanup that hasn't been confirmed from this machine yet - this run was from home-matt, which cannot verify work-it-side actions. Do NOT re-raise to High Priority before Monday. If a work-it run in the meantime confirms the cleanup (or finds it wasn't authorized), record that as a follow-up decision rather than silently closing this one.
@@ -132,13 +131,12 @@ Note for the next retrospective's step R1: two rows deviate from their original 
 
 ## Resolved since last run
 <!-- Pruned each run per step 2. Prior entries remain in git history. -->
-- **Cache-threshold flag streak - CLEARED.** Today's 98.8% hit rate clears both floors; the run-24 Untriaged-noise item asking for a `[FP]` decision is now moot.
-- **`code-graph-mcp` (home-matt) - dirty `package-lock.json` RESOLVED**, tree now clean.
-- **`TokenMonitorV2` (home-matt) - dirty `.claude/` RESOLVED** (tree now clean), but a new unpushed commit appeared - see Watch List.
-- **`aether-os` (home-matt) local branch cleanup - the previously-noted 3 stale/`[gone]` branches are down to 1 extra branch (`real-projects-view-stage16`), tracked, not `[gone]`.**
+- **`TokenMonitorV2` (home-matt) - dirty `.claude/` RESOLVED**, tree now clean (unpushed commit `a0ea66b` unchanged, still pending push).
+- **`nmmtools` (home-matt) - dirty `testResults.xml` RESOLVED**, tree now clean.
+- **`TarotApp` (home-matt) - 3-consecutive-identical-run streak converted to loop-derived noise** (see Recent Noise); no longer an active Watch List callout unless its dirty/unpushed state changes.
 - Test-residue defect in `tests/EFIMigrationState.Tests.ps1` (REPORTED, NOT FIXED, carried forward - not independently verifiable from home-matt, no new evidence this run). [action for a human: strip any pre-existing deny ACE in the test's SETUP]
-- `agent-improvement` domain freshness: newest `Added:` across `domains/*.md` is **2026-08-21**, 1 day old - well inside the >7-day threshold.
+- `agent-improvement` domain freshness: newest date across `domains/*.md` is **2026-08-22**, same-day - well inside the >7-day threshold.
 - `agent-improvement` store: clean and level with `origin/master` at the start of this run (re-verified from home-matt), no out-of-scope untracked files.
 - `gh auth status`: OK, logged in as `mwgrant21`, active - no auth-drift finding this run.
-- BRANCH PROBE: 0 total failures across 23 repos' branch listings; 7 default-branch author-date lookups plus 1 compare-call refresh spent (all others served from cache), consistent with normal per-run cost now that the `behind_by` schema migration cost from run 24 is behind us.
-- SPEND: no flag. CACHE: no flag (see Recent Noise).
+- BRANCH PROBE: 0 failures on the two branches spot-checked live this run (`TokenMonitorV2`, `TokenMonitor`); no other repo's branch tips moved since run 25 (default-branch SHAs re-verified for the two repos with tracked non-default branches).
+- SPEND: **flag fired** (see Watch List, first fire this window). CACHE: no flag (see Recent Noise).
