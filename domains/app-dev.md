@@ -467,3 +467,45 @@ Format per `README.md` in this directory.
   work was real but unnecessary, and would have been skippable entirely with
   an issue-tracker search up front.
 - Added: 2026-08-19 (home-matt)
+
+### `contextBridge` deeply freezes what it exposes - inject the bridge to test a renderer's error path
+
+- Electron's `contextBridge.exposeInMainWorld` hands the renderer a deeply frozen
+  object. Assigning over one of its methods from page context silently does nothing:
+  no throw, `Object.isFrozen` is true, and the original function still runs. So a
+  renderer function that reaches for the global bridge internally has an error branch
+  that cannot be exercised from outside. Take the bridge as a parameter with the global
+  as its default (`function copy(btn, bridge = window.tokenTracker)`) and pass a
+  rejecting stub to drive the failure path.
+- Why: without this the catch branch is never executed by anything, and worse, an
+  attempt to test it reports the SUCCESS label and reads as a silent-failure bug in the
+  code under test. The wrong conclusion is the expensive part: a correct implementation
+  gets "fixed".
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). Patching
+  `window.tokenTracker.clipboard.write` to reject left the COPY button reporting
+  COPIED. A probe returned `{"changed":false,"frozen":true}` - the patch was a no-op and
+  COPIED was correct. After taking the bridge as a parameter, the same test read
+  COPY FAILED.
+- Added: 2026-08-29 (home-matt)
+
+### An async write in Electron's `before-quit` is fire-and-forget unless you defer the quit
+
+- `app.on('before-quit', () => { writeThing().catch(() => {}) })` does not delay exit.
+  The process can terminate mid-write and the write is simply lost, intermittently, so
+  it passes whenever it happens to win the race. To actually flush: call
+  `event.preventDefault()`, run the write, then `app.quit()` from its completion - with
+  a module-level guard so the second pass through the handler falls through instead of
+  deferring again.
+- Bound the wait. If the target is a network share or anything that can hang, an
+  unbounded await turns a lost write into an app that will not close. Race the write
+  against a deadline, report the outcome, and quit either way: a lost record is a stale
+  row somewhere, an unquittable app is a support call.
+- Why: this failure is invisible in testing because the race usually resolves in your
+  favour on a fast local disk. A single passing observation proves nothing here - run
+  the quit cycle several times before believing it.
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). The seat's final fleet snapshot used
+  the fire-and-forget shape and happened to land when first observed. After deferring
+  the quit behind a 3s bounded flush, three consecutive quit cycles wrote it every time
+  with no leftover processes, and a non-routable SMB target still exited in ~2s with the
+  failure logged.
+- Added: 2026-08-29 (home-matt)

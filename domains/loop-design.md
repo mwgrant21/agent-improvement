@@ -230,3 +230,22 @@ modifying any loop.
   invocations to settle: 16 repos vs 20, and the two runs had silently used
   different readings. See [[hard-attempt-cap]].
 - Added: 2026-08-21 (work-it)
+
+### `unchanged_runs` measures "nothing changed", not "nothing matters" - a blocked target looks identical to an idle one
+
+- A staleness/noise heuristic that counts consecutive runs with an identical observation
+  cannot tell "quiet because nobody is working on it" from "CANNOT change because
+  something is jammed". Both produce the identical reading, and the second is the one
+  that needs a human. Before graduating a repeating observation to noise, check whether
+  the target is even capable of changing - for a repo, sweep for a stale `.git/*.lock`;
+  more generally, probe the mechanism rather than recounting the observation.
+- Corollary: when the blocker is later cleared, the same unchanged reading has changed
+  MEANING even though its value is identical. Re-report it as materially changed rather
+  than letting the run count keep climbing.
+- Why: the heuristic's whole purpose is to suppress noise, so it fails toward silence -
+  exactly the direction that hides a stuck target.
+- Evidence: daily-triage runs 24-28 (home-matt) classified TarotApp's identical dirty
+  path set as idle boilerplate across five runs; a stale `index.lock` (removed
+  2026-08-25) had made the repo physically unable to change. Run 31's fleet-wide lock
+  sweep found 0 locks, so the same reading now genuinely means idle WIP.
+- Added: 2026-08-29 (home-matt)

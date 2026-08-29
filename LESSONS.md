@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-08-22
+last-updated: 2026-08-29
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -126,3 +126,11 @@ at work).
 | app-dev | Wrap async handlers in a long-lived shared process even when the SDK "rarely throws" | 2026-08-22 |
 | app-dev | npm 11's install-scripts allowlist can silently block a package's own postinstall | 2026-08-22 |
 | app-dev | electron-vite's main process does not hot-reload | 2026-08-22 |
+| app-dev | contextBridge freezes what it exposes - inject the bridge to test error paths | 2026-08-29 |
+| app-dev | Electron before-quit async writes are fire-and-forget unless you defer the quit | 2026-08-29 |
+| verification | Verify an Electron renderer over CDP, not with OS screenshots | 2026-08-29 |
+| verification | Check per-user AND per-machine paths before calling a Windows install failed | 2026-08-29 |
+| tooling | A tool named in a plan is not evidence it is still maintained - check last-publish | 2026-08-29 |
+| tooling | A skill/agent on disk but absent from the listing may be disabled, not broken | 2026-08-29 |
+| git | conventional-changelog reads any bare #token as an issue reference | 2026-08-29 |
+| loop-design | unchanged_runs measures "nothing changed", not "nothing matters" | 2026-08-29 |

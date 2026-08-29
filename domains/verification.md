@@ -400,3 +400,42 @@
   tools on a redirect path with zero real-world redirected runs. See
   [[an-elevated-script-must-treat]].
 - Added: 2026-08-21 (work-it)
+
+### Verify an Electron renderer over CDP, not with OS screenshots
+
+- To confirm what a desktop app actually rendered, launch it with
+  `--remote-debugging-port=<n>`, find the page target via
+  `http://127.0.0.1:<n>/json/list`, and drive `Runtime.evaluate` over a WebSocket
+  (Node 22+ has a global `WebSocket`, so no dependency is needed). You get exact DOM
+  text and real geometry. `Page.captureScreenshot` with a `clip` from
+  `getBoundingClientRect()` also beats an OS screen grab: it captures the element even
+  when the window is partly offscreen, behind another window, or mid-animation.
+- OS-level screen capture fights window z-order, maximize animations, DPI scaling and
+  invisible resize borders, and it silently returns the WRONG REGION rather than
+  failing - which reads as "the element is missing" and invites a hunt for a UI bug that
+  does not exist.
+- Why: this is the concrete method for the gap named by "types, tests, builds and CI all
+  green says nothing about the visual layer". It turns "I looked at a picture" into an
+  assertion on a value.
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). Three OS screenshot attempts all
+  missed the footer and suggested it was pushed offscreen; CDP returned
+  `v2.0.0-alpha.1` on the first try, and `getBoundingClientRect` showed
+  `footerBottom 1370 / innerHeight 1370` - fully visible, no bug.
+- Added: 2026-08-29 (home-matt)
+
+### On Windows, check per-user AND per-machine locations before calling an install failed
+
+- A silent installer returning exit code 0 with nothing at the path you checked has not
+  necessarily failed. Windows installs land in one of two worlds: per-user
+  (`%LOCALAPPDATA%\Programs\...`, `HKCU\...\Uninstall`) or per-machine
+  (`%ProgramFiles%\...`, `HKLM\...\Uninstall`). Check both before concluding
+  anything, and prefer searching for the executable by name over guessing a directory.
+- Why: the installer's own config (electron-builder's `perMachine`, an NSIS default, an
+  elevation prompt) decides which world it uses, and it is easy to check the one the
+  config implies rather than the one it actually used. Reporting a false failure sends
+  the next step chasing the installer instead of finishing the task.
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). `Setup.exe /S` returned 0; nothing
+  was in `%LOCALAPPDATA%\Programs` or HKCU, and it was briefly reported as a silent
+  failure. It had installed correctly to `C:\Program Files\Claude Token Tracker`,
+  registered under HKLM.
+- Added: 2026-08-29 (home-matt)

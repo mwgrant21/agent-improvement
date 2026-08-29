@@ -307,3 +307,39 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   claude-token-tracker, TokenMonitorV2, work-it) - 503s across every GraphQL-backed
   `gh` command; the REST fallback worked throughout.
 - Added: 2026-08-21 (work-it)
+
+### A tool named in a plan or doc is not evidence it is still maintained - check last-publish first
+
+- Before adopting a named dependency that a plan, README or older doc prescribes, spend
+  one command on whether it is still alive: `npm view <pkg> version time.modified
+  deprecated` (or the registry equivalent). A package can be years unmaintained, or
+  formally sunset with a maintained fork under a different name, while every document
+  recommending it still reads as current.
+- If you substitute, say so explicitly and record it in the plan - a silent swap leaves
+  the next reader unable to tell whether the deviation was considered or accidental.
+- Why: docs freeze at their writing date, and the plan being specific makes it feel
+  authoritative. This is the "live re-probe, never trust a cached capability claim" rule
+  applied to dependencies rather than to services.
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). The release plan specified
+  `standard-version`; `npm view` showed its last publish as 2023-04-01 (sunset
+  upstream). Its maintained fork `commit-and-tag-version` was at 13.1.2, published
+  2026-07-28 - drop-in, same CLI and config.
+- Added: 2026-08-29 (home-matt)
+
+### A skill or agent present on disk but absent from the session listing may be disabled, not broken
+
+- When something is in `~/.claude/skills` or `~/.claude/agents` but does not appear in
+  the session's listing, check `skillOverrides` (and equivalent disable blocks) in
+  `~/.claude/settings.json` BEFORE debugging the file's frontmatter, description or
+  format. A disabled entry looks exactly like a malformed one from the session's side.
+- The inverse is also worth knowing: moving an agent directory out of `~/.claude/agents`
+  removes it from the roster, and the roster is the ground truth for whether definitions
+  are actually being loaded and paid for in context on this machine.
+- Why: the default assumption is a broken file, which sends you into frontmatter
+  archaeology on something that is working exactly as configured.
+- Evidence: 2026-08-24 (home-matt) skill-fleet triage. Four skills (`find-skills`,
+  `frontend-design`, `mutation-test`, `penpot-uiux-design`) read as missing/broken; all
+  four were disabled via `skillOverrides` in `settings.json`. The 2026-08-25 agent-fleet
+  pass confirmed the roster reading directly - relocating the it-fleet agents dropped
+  them from that session's roster.
+- Added: 2026-08-29 (home-matt)

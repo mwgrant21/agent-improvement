@@ -115,3 +115,21 @@ and does not prove. Format per `README.md` in this directory.
   that were not in it. Caught by `git show --stat`, not by the exit code. Same
   family as [[a-fallback-must-never-be-a-weaker-version]].
 - Added: 2026-08-21 (work-it)
+
+### conventional-changelog reads any bare `#token` in a commit body as an issue reference
+
+- Generating a changelog from conventional commits turns `#anything` into a GitHub issue
+  link. In a repo whose commit bodies carry hex colours (`#0f7f55`), CSS selectors
+  (`.hdr/.seg/#footer-status`) or anchors, the result is a changelog whose references are
+  mostly dead links to issues that do not exist - and a reader cannot tell those from the
+  real ones. Set `parserOpts.issuePrefixes` to an explicit prefix (e.g. `['GH-']`) so a
+  reference that survives is one someone meant to write.
+- Watch your own commit messages too: writing the example prefix literally in the message
+  that introduces the fix will itself be linkified.
+- Why: nothing errors, and the changelog is generated at release time - so it is usually
+  discovered by whoever receives the release, not by whoever cut it.
+- Evidence: 2026-08-29 TokenMonitorV2 (home-matt). The first generated CHANGELOG.md
+  linked `#0f7f55`, `#ff6b6b` and `.hdr/.seg/#footer-status` to nonexistent issues.
+  Caught only because the release runbook step said to read the changelog as if handing
+  it to someone.
+- Added: 2026-08-29 (home-matt)
