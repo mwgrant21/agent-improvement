@@ -215,6 +215,26 @@ L2 also requires worktree isolation. Not active at L1.
      does the right thing instead of silently borrowing the other machine's
      numbers. Record `notes.machine` on every run-log line so this is
      computable.
+     **Canonical machine id, and normalize before matching** (adjustment
+     `normalize-machine-label-in-run-notes`, proposed by run 31 / 2026-08-29,
+     APPROVED and applied 2026-08-29). `notes.machine` is the BARE machine id
+     and nothing else - `home-matt` or `work-it`, the same value as
+     `machineId` in `~/agent-improvement/local-state.json`. The hostname goes
+     in `notes.hostname` (`TITAN`, ...), never appended to the machine id.
+     When matching a historic line, NORMALIZE both sides first: trim, lowercase,
+     and take only the portion before the first `/`. A run whose
+     `notes.machine` reads `home-matt/TITAN` is a home-matt reading and MUST
+     count toward home-matt's baseline.
+     Rationale: the exact-match rule landed one day earlier assumed one
+     spelling, but runs 27 and 28 wrote `home-matt/TITAN` while runs 21, 22,
+     25, 26, 29 and the retrospective lines wrote `home-matt`. Strict matching
+     silently drops 2 of the 7 home-matt readings and swings the trailing-5
+     figures from 54,794 out / 0.872 cache to 232,692 / 0.970. It changed no
+     outcome on run 31, but a 10-point cache-median swing decides a borderline
+     day - and the failure is silent, because a dropped line looks exactly like
+     a line that was never written. Same family as the `date`/`author_date` and
+     short-SHA ambiguities: a field that two writers spell differently is not a
+     key until something normalizes it.
      Rationale: since the loop went two-machine at run 23 (2026-08-21), every
      threshold comparison spanning a machine flip compared two different
      corpora. Across runs 21-30, work-it read 2,722 / 2,722 / 3,835 output
