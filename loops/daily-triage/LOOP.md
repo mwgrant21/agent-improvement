@@ -17,7 +17,23 @@ L2 also requires worktree isolation. Not active at L1.
 
 ## Run steps
 
-0. Read `STATE.md`. If `paused: true` -> stop immediately, output nothing.
+0. **FIRST, sync the store**: run `git -C ~/agent-improvement pull --rebase`
+   BEFORE reading any state (adjustment `pull-store-before-step-0`, proposed by
+   run 30 / 2026-08-28, APPROVED and applied 2026-08-28). If the pull fails,
+   continue against the local store but state the staleness caveat explicitly
+   in the digest - never proceed silently on a store you could not verify is
+   current.
+   Rationale: two independent failures on 2026-08-28, the second worse than the
+   first. Run 30 (work-it) read run 24's `runs.jsonl` tail as "previous run",
+   built its whole analysis on a 7-day-old baseline, and only discovered runs
+   25-29 when its step-5 push was rejected. Retrospective 4's session then
+   started 1 commit behind, read `runs_since_retro: 9`, and was dispatched as a
+   NORMAL run - it would have silently skipped the retrospective, and nothing
+   downstream would have caught it: the push would have merged cleanly and only
+   the counter would have been permanently wrong.
+   L1 boundary: this is a read/rebase of the loop's OWN store, not an action on
+   any triaged repo. The boundary is unchanged.
+   Then read `STATE.md`. If `paused: true` -> stop immediately, output nothing.
    If `runs_since_retro >= 10` -> run the Retrospective (below) instead.
    Load `constrained_scopes` (Intervention ladder, `loops/README.md`) into
    working context for step 2 - each entry names a source or finding type
@@ -188,6 +204,25 @@ L2 also requires worktree isolation. Not active at L1.
      Evidence: runs 23 and 24 (both 2026-08-21) returned byte-identical
      figures (in 8 / out 2722 / cacheRead 337137 / cacheCreate 80809) and the
      cache threshold fired twice on that one measurement.
+     **Compute BOTH baselines PER MACHINE** (adjustment
+     `per-machine-spend-baseline`, proposed by retrospective 4 / 2026-08-28,
+     APPROVED and applied 2026-08-28). `scripts/spend-summary.mjs` reads
+     `~/.claude/projects/**/*.jsonl` via `homedir()`, so a reading measures
+     THIS machine's usage log and nothing else. Draw the trailing-5 spend and
+     cache medians only from run-log lines whose `notes.machine` matches the
+     current machine, and say so in the digest when fewer than 3 same-machine
+     baselines exist - the existing "skip if fewer than 3 baselines" rule then
+     does the right thing instead of silently borrowing the other machine's
+     numbers. Record `notes.machine` on every run-log line so this is
+     computable.
+     Rationale: since the loop went two-machine at run 23 (2026-08-21), every
+     threshold comparison spanning a machine flip compared two different
+     corpora. Across runs 21-30, work-it read 2,722 / 2,722 / 3,835 output
+     tokens (runs 23, 24, 30) while home-matt read 11,371 to 1,488,880 (runs
+     21, 22, 25-29) - a ~500x spread that is machine identity, not a change in
+     behaviour. The window ran 7 home-matt and 3 work-it, so roughly a third of
+     every median was drawn from the wrong corpus, and every spend/cache flag
+     recorded since run 23 rests on a partly-foreign baseline.
      Thresholds (revised by the 2026-08-06 retrospective, refinement 2 - the
      originals never fired in 10 runs and structurally could not):
      - Spend: flag only when today's output tokens exceed **both** 750,000
@@ -202,6 +237,27 @@ L2 also requires worktree isolation. Not active at L1.
        than 5 percentage points below the median of the last 5 recorded
        values. Rationale: 8 recorded runs sit in a 0.96-0.99 band, so the old
        `< 50%` bar was 46 points from ever firing.
+     - **Gate the cache flag on a minimum volume floor** (adjustment
+       `gate-cache-flag-on-min-volume`, DECLINED 2026-08-17, RE-OPENED and
+       APPROVED 2026-08-28 by retrospective 4 on materially new evidence).
+       When today's output tokens are below **50,000**, the cache check
+       reports `not evaluated - insufficient volume (<N> output tokens)` in
+       the digest INSTEAD of flagging. It must never be suppressed silently: a
+       silent check is a suspect check, so the not-evaluated line is mandatory
+       whenever the floor is hit.
+       Rationale: the 2026-08-17 decline rested on 3-of-5 low-volume data
+       points running against the hypothesis. Runs 21-30 separate perfectly by
+       volume with zero crossovers - flagged: runs 23/24 (2,722 out), 27
+       (54,794), 29 (11,371), 30 (3,835); clean: 21 (455,934), 22 (232,692),
+       25 (386,911), 26 (1,488,880), 28 (307,463). Correcting for the machine
+       confound above, the three work-it readings are consistent-with rather
+       than independent evidence, but within home-matt alone the separation is
+       still 7-for-7 with zero crossovers. On a low-volume day the ratio is
+       dominated by a handful of requests and measures nothing about cache
+       health.
+       Note the floor was derived from a window whose medians mixed corpora
+       (see `per-machine-spend-baseline`); re-check it at retrospective 5
+       against home-matt-only readings.
      - If a revised threshold still has not fired by the next retrospective,
        say so in the critique - a silent check is a suspect check.
    - **Store health**: pending lines in
@@ -247,6 +303,18 @@ L2 also requires worktree isolation. Not active at L1.
      - Known and ignored: `~/Desktop/.git` is a stray repo tracking the whole
        Desktop tree, no remote, by design per STATE.md. Skip it, do not
        re-raise it.
+     - **Run `git fetch --prune` BEFORE the unpushed check** (adjustment
+       `fetch-prune-before-unpushed-check`, proposed run 28, APPROVED and
+       applied 2026-08-28). Without it the comparison runs against stale
+       remote-tracking refs, so work already pushed can read as unpushed and -
+       worse - orphaned commits stay hidden behind refs that no longer exist.
+       Evidence: runs 28, 29 and 30 all ran this ad hoc; run 28's version is
+       what exposed `tarot`'s 1,771 orphaned commits that stale refs had
+       hidden. Three consecutive runs did by convention what the protocol did
+       not require.
+       L1 boundary: fetch ONLY - never pull, merge, or prune remote refs. This
+       is the Operational failure ladder's "Resync" tier (`loops/README.md`),
+       which is data-gathering, not a corrective action.
      - Report **unpushed commits immediately** (`git log --branches --not
        --remotes --oneline`) - machine-local-only work is the real risk this
        source exists to catch.
@@ -265,6 +333,26 @@ L2 also requires worktree isolation. Not active at L1.
        hygiene noise, which is exactly the accident this rule removes.
        L1 boundary reminder: this REPORTS the exposure with a suggested
        action. The loop never pushes the work itself, at any volume.
+     - **Detect local branches with NO UPSTREAM, split DEAD from LIVE**
+       (adjustment `detect-no-upstream-local-branches`, proposed run 29,
+       amended by run 30, APPROVED and applied 2026-08-28). Enumerate branches
+       with no tracking remote (`git for-each-ref --format
+       '%(refname:short) %(upstream)' refs/heads`), then classify EACH by how
+       many of its commits are absent from every remote:
+       - **untracked-DEAD** (0 commits not on a remote): the branch's work is
+         fully present elsewhere. Report as a **cleanup candidate**, Watch List
+         at most. Run 29's 5 home-matt branches were all this shape.
+       - **untracked-LIVE** (unpushed > 0): real sole-copy exposure - this work
+         exists on one disk only. Report as a genuine risk, and apply the
+         20-commit volume rule above to decide Watch List vs High Priority.
+         `NMMToolkit`'s `fix/dispatch-command-not-found-message` is this shape.
+       The split is the point of the adjustment, not an optional refinement.
+       Reporting the two identically would repeat exactly the severity
+       flattening that `flag-branches-20-commits-ahead` was written to fix - a
+       branch safe to delete and a branch one disk failure from total loss must
+       never render as the same line.
+       L1 boundary: both classes are REPORTED with a suggested action. The loop
+       never deletes a dead branch nor pushes a live one.
      - Report **uncommitted changes only when STALE** (refinement 5): compare
        each repo's `git status --porcelain` **file path SET**, not just the
        line count, against `notes.dirty_repos` from the previous run-log line
@@ -375,6 +463,38 @@ L2 also requires worktree isolation. Not active at L1.
      `loops/README.md` was reading an unfed counter as evidence of
      precision. A metric only a human can increment measures the human, not
      the loop.
+     **BEFORE graduating anything to noise, verify the repo is ABLE to change**
+     (adjustment `verify-repo-can-change-before-noise-graduation`, proposed by
+     retrospective 4 / 2026-08-28, APPROVED and applied 2026-08-28). Sweep for
+     a stale lock - a `.git/*.lock` file with no git process holding it and an
+     mtime older than ~1h. If one is found, the repo is BLOCKED, not settled:
+     report it as blocked with the lock path and its age, and do NOT count the
+     item as noise or step its `unchanged_runs`.
+     Rationale: `TarotApp` was graduated to noise on 5 identical observations
+     while an empty `index.lock` dated 2026-08-12 had blocked every
+     index-modifying operation for 13 days. The rule read "settled" where the
+     truth was "broken" - an unchanging finding meant the repo COULDN'T change,
+     which is the opposite of the precision the graduation was crediting.
+     Runs 29 and 30 both swept ad hoc and found 0 fleet-wide: the condition is
+     RARE, not unnecessary. It silently corrupted a finding for 5 consecutive
+     runs the one time it occurred. Same class as `domains/verification.md`,
+     "A probe that cannot distinguish 'not yet' from 'never' is not a
+     verification."
+     **The 3-consecutive-run threshold is PINNED to one reading** (adjustment
+     `clarify-unchanged-runs-flag-threshold`, proposed run 27, APPROVED and
+     applied 2026-08-28, sequenced to land AFTER the can-it-change check
+     above). The rule fires when `unchanged_runs >= 3` - that is, on the THIRD
+     consecutive run observing the same finding identity, counting only runs
+     that actually OBSERVED the item (frozen runs do not count, per
+     `freeze-unchanged-runs-when-not-verified`). It fires identically for every
+     item at the same counter value; a run may not flag one item and spare
+     another at the same number.
+     Rationale: run 26 flagged `TarotApp` at `unchanged_runs == 3` while
+     leaving `tarot`, `Miriels-publish` and `About-me` unflagged at the
+     identical value - same input, different outcome, no stated reason. Note
+     the ordering dependency: pinning the threshold WITHOUT the can-it-change
+     check above would only make the wrong graduation happen more
+     consistently, which is why the two land together and in this order.
    - Tag every local-hygiene item with the machine whose clone it depends on
      (refinement 4): `[machine: work-it]`. On a run from a different machine,
      skip the check and say `not verifiable on <machineId>` rather than
@@ -398,6 +518,24 @@ L2 also requires worktree isolation. Not active at L1.
    and carry that run's `first_proposed` date forward unchanged - that is what
    makes "proposed N times, still not landed" countable instead of a thing
    someone has to notice by re-reading ten prose critiques.
+   **A run that RE-CONFIRMS an outstanding adjustment MUST re-emit it as its
+   structured `notes.adjustment`** (adjustment `count-reconfirmation-as-
+   reproposal`, proposed by retrospective 4 / 2026-08-28, APPROVED and applied
+   2026-08-28). Re-confirming in prose only does not count. If a run executes
+   an outstanding adjustment ad hoc, restates its case, or otherwise relies on
+   it, that run re-emits the id with `first_proposed` carried forward unchanged
+   - which increments `times_proposed` and lets the attempt cap actually fire.
+   Rationale: at retrospective 4 all 5 outstanding items read
+   `times_proposed: 1` while `fetch-prune-before-unpushed-check` had been
+   executed ad hoc by three consecutive runs and
+   `close-expand-home-matt-discovery-root` re-confirmed by five. Only a
+   structured entry increments the counter, so the escalation mechanism
+   refinement 9 exists to provide could not fire on exactly the items most in
+   need of it - the same failure class as refinement 1's "a metric only a human
+   can increment measures the human".
+   Corollary for the retrospective: a retrospective CARRYING an item forward is
+   not itself a re-proposal and does not increment the counter. The increment
+   belongs at the point of observation, in the run that relied on the item.
    `duration_s` must be a REAL measured value - capture a start timestamp at
    step 0 and subtract; runs 9 and 10 both recorded `0`, which destroyed the
    duration trend the retrospective was supposed to read. Set `last_run`
