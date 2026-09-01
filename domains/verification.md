@@ -439,3 +439,23 @@
   failure. It had installed correctly to `C:\Program Files\Claude Token Tracker`,
   registered under HKLM.
 - Added: 2026-08-29 (home-matt)
+
+### Prove a volume is writable with an actual write, not attributes
+
+- Before any partition or boot-file operation on a managed Windows machine, probe with
+  a real write (write a small file, verify it exists, delete it) rather than trusting
+  volume attributes: fsutil/diskpart can report a volume as not-read-only while every
+  write bounces.
+- Why: an Intune/BitLocker "require encryption of fixed data drives" policy
+  (FDVDenyWriteAccess, or its PolicyManager\...\BitLocker equivalent) write-protects
+  any new UNENCRYPTED fixed volume, so a freshly created staging partition looks
+  healthy in every attribute query and fails only at the write - which masquerades as
+  a firmware/controller quirk and burns a maintenance window. Fixes are policy-side
+  (a scoped Intune exclusion for the window, same governance lane as an EDR
+  suspension) or shape-side (create the partition as ESP-type from the start, which
+  the fixed-data-drive policy ignores) - never a local registry fight with MDM.
+- Evidence: 2026-08-28 SARAHC_L3 (work-it), EFIPartitionRemediation batch. bcdboot
+  failed exit 3; attributes said writable, `echo test> S:\t.txt` bounced; Intune FDV
+  policy confirmed as the mechanism. Offline WinPE path validated (Tests A+B) on
+  DESKTOP-J655I5D. Pre-scan now carries a `-WriteProbe` for exactly this.
+- Added: 2026-09-01 (work-it)
