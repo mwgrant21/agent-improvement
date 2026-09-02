@@ -277,3 +277,22 @@ itself). Format per `README.md` in this directory.
   asserted cleanup had been verified - see
   [[inspect-the-artifact-itself]].
 - Added: 2026-08-21 (work-it)
+
+### A high mutation score proves the tests constrain that function - not that anything calls it
+
+- Mutation testing measures how well a suite pins the behaviour of the code under test.
+  It is silent about whether the real caller ever reaches that code with real values: a
+  pure function tested directly, with every mutant killed, scores perfectly while the
+  production path that should populate its parameters does not exist. Treat a strong
+  mutation score as evidence about the tested unit only, and cover the collector ->
+  function seam separately with a test that drives the entry point end to end.
+- Why: the score is the most reassuring number a suite produces, so it is the one most
+  likely to be quoted as "this code is well tested" when the defect is that the code is
+  unreached. No coverage or mutation metric flags dead plumbing UPSTREAM of the unit it
+  measures. Related: [[types-tests-builds-and-ci-all-green]].
+- Evidence: 2026-09-01 session (EFIPartitionRemediation, work-it) - 31/32 mutants died
+  on `EFIDiagnosticCore.ps1`, and `Get-WriteProtectVerdict` handled
+  `$FixedDrivesRequireEncryption` correctly, but a grep for that parameter name across
+  the bundle found it only inside the core plus one doc comment. No collector ever
+  passed it; the tests called the pure function directly.
+- Added: 2026-09-02 (work-it)

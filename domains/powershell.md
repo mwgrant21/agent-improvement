@@ -180,3 +180,33 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   Node parsed it without complaint. The snapshot scripts were rewritten in Node
   for that reason, and a dedupe script later collapsed the variants.
 - Added: 2026-08-12 (work-it)
+
+### An Intune-delivered policy is absent from the GPO registry path - read PolicyManager, not Policies
+
+- A setting delivered by Intune/MDM does NOT appear under
+  `HKLM:\SOFTWARE\Policies\Microsoft\<Area>` (the GPO location). It lands under
+  `HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\<Area>`, and it lands there
+  as a CSP triplet - `<Name>_ProviderSet`, `<Name>_WinningProvider`,
+  `<Name>_ADMXInstanceData` - with NO plain `<Name>` value to read. A script that
+  probes the GPO path, or that probes PolicyManager for the bare ADMX value name,
+  gets "absent" on a machine where the policy is demonstrably active and enforcing.
+  Concrete instance: BitLocker's `FixedDrivesRequireEncryption` exists only as
+  `FixedDrivesRequireEncryption_ProviderSet=1` (alongside `RequireDeviceEncryption=1`)
+  under `PolicyManager\current\device\BitLocker`; the GPO path
+  `Policies\Microsoft\FVE` was present with 19 other values and no
+  `FDVDenyWriteAccess` at all.
+- Why: the negative result is indistinguishable from a genuinely unmanaged machine, so
+  a detector built on the GPO path reports every affected unit as clear. Worse, the
+  wrong path is the intuitive one - the ADMX setting and the CSP share a name, which
+  makes "same value, different hive" a very easy assumption to write down as fact.
+- Also: the defect shipped behind a doc comment asserting the CSP "lands on that same
+  value", "confirmed against Microsoft Learn, not assumed." A comment claiming
+  verification is not evidence of verification; only a capture from a machine in the
+  affected state settles it. Related: [[inspect-the-artifact-itself-not-proxies]].
+- Evidence: 2026-09-01 session (EFIPartitionRemediation, work-it) - `Invoke-EFIPreScan.ps1`
+  read PolicyManager and correctly identified the confirmed SARAHC_L3 cause on
+  2026-08-28, while `Invoke-EFIDiagnostic.ps1` checked the two FVE paths, found both
+  empty on a healthy laptop, and concluded the policy "isn't here". The archived
+  SARAHC_L3 prescan capture, taken while the machine was blocked, contradicted the
+  comment directly.
+- Added: 2026-09-02 (work-it)

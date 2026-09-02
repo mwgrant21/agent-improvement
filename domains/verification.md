@@ -459,3 +459,29 @@
   policy confirmed as the mechanism. Offline WinPE path validated (Tests A+B) on
   DESKTOP-J655I5D. Pre-scan now carries a `-WriteProbe` for exactly this.
 - Added: 2026-09-01 (work-it)
+
+### An exit code that fires on a healthy machine too identifies nothing - separate "detected" from "learned nothing"
+
+- When a diagnostic collapses every non-clear verdict into one fail-safe exit code, an
+  UNREADABLE input and a CONFIRMED-BAD input produce the identical code. Failing in the
+  safe direction is right; carrying no information while doing so is not. Before a field
+  run, trace the code a HEALTHY machine returns on the same path - if it matches the code
+  you plan to treat as a positive finding, the check discriminates nothing and the test
+  will close its acceptance criterion on a false positive. Give "could not determine" its
+  own code, or make the criterion name the evidence rather than the code.
+- Why: the failure is invisible from inside the tool and from the test suite. The
+  criterion reads as satisfied, the operator reads a 20 as "found it", and the false
+  claim propagates to whoever was told the tool identifies affected units. The gap only
+  surfaces if someone asks what the same code means on an unaffected box.
+- Also: a half-built pipeline shows this shape - the verdict function took the right
+  parameter and evaluated it correctly, but no collector ever passed it, so the value was
+  permanently `$null` and every machine fell through to `Unknown`. Grep the parameter
+  name across the whole bundle: if it appears only inside the function that consumes it
+  plus a doc comment, nothing fills it. Related:
+  [[a-probe-that-cannot-distinguish-not-yet-from-never-is-not-a-verification]].
+- Evidence: 2026-09-01 session (EFIPartitionRemediation, work-it) - `Get-TriageExitCode`
+  returned 20 for any verdict other than `Clear`; tracing the blocked SARAHC_L3 capture
+  through the real code gave `Unknown` -> 20, and the author's own healthy laptop gave
+  20 on the same path. Checklist item B1, "confirm exit 20 on a policy-blocked unit",
+  would have passed the next day on a detection that does not work.
+- Added: 2026-09-02 (work-it)

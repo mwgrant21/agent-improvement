@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-01
+last-updated: 2026-09-02
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -135,3 +135,6 @@ at work).
 | git | conventional-changelog reads any bare #token as an issue reference | 2026-08-29 |
 | loop-design | unchanged_runs measures "nothing changed", not "nothing matters" | 2026-08-29 |
 | verification | Prove a volume is writable with an actual write, not attributes | 2026-09-01 |
+| powershell | An Intune-delivered policy is absent from the GPO path - read PolicyManager | 2026-09-02 |
+| verification | An exit code that fires on a healthy machine too identifies nothing | 2026-09-02 |
+| testing | A high mutation score proves the tests constrain that function, not that anything calls it | 2026-09-02 |
