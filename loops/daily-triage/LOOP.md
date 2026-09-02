@@ -373,6 +373,48 @@ L2 also requires worktree isolation. Not active at L1.
        never render as the same line.
        L1 boundary: both classes are REPORTED with a suggested action. The loop
        never deletes a dead branch nor pushes a live one.
+     - **Sweep EVERY enumerated repo for a stale git lock, EVERY run**
+       (adjustment `stale-lock-sweep-independent-of-noise-graduation`, first
+       proposed 2026-08-30 (run 32), re-proposed runs 33 and 34, ESCALATED on
+       reaching attempt_cap 3/3, APPROVED and applied 2026-09-02). The sweep is
+       a FIRST-CLASS SOURCE of this step, run over every repo local hygiene
+       enumerates. Its coverage does NOT depend on whether any item happens to
+       be a noise-graduation candidate this run. A stale lock is a
+       `.git/*.lock` file - `index.lock`, `HEAD.lock`, `config.lock`,
+       `refs/**/*.lock` - with no git process holding it and an mtime older
+       than ~1h.
+       - Report each hit as **BLOCKED**, naming the repo, the lock path and the
+         lock's age, and say what the block prevents. An `index.lock` blocks
+         every index-modifying operation while `git status` still reads clean,
+         so the finding must state that rather than leave a reader to infer it.
+       - A repo with a stale lock is BLOCKED, not settled: never step its
+         `unchanged_runs`, never graduate any of its findings to noise, and
+         never present its clean `git status` as evidence of anything.
+       - Record the result in `notes.stale_locks` as
+         `{repo: {lock_path, mtime, age_hours}}`, AND record the swept repo
+         count, so a later run can tell "swept, found none" from "did not
+         sweep". A clean run says `0 stale locks fleet-wide (<N>/<N> repos
+         swept)` in its source summary - the count is the evidence, not the
+         zero.
+       - The probe-failure rule in the step 1 preamble applies: if the lock
+         check errors the SAME way on ALL swept repos, emit one
+         `probe failure: stale-lock sweep - <error>, <N>/<N> repos` line and do
+         not let the rest of the digest imply a clean sweep.
+       L1 boundary: the sweep REPORTS. It never deletes a lock file, on any
+       machine, at any age - clearing a lock is a human action, because a lock
+       the loop misjudges as stale is a lock held by a live process.
+       Rationale: scoping the sweep to noise-graduation candidates made its
+       coverage depend on an unrelated counter. On run 34 a strict reading
+       would have swept 2 of 18 work-it repos; against the 2026-08-29
+       home-matt incident it would have missed 6 of the 8 affected repos,
+       including `Miriels-publish` with 96 dirty paths sitting behind the
+       block. The condition is rare and cheap to check - runs 29, 30 and 34
+       each swept ad hoc and found 0 fleet-wide - and the one time it did
+       occur it silently corrupted a finding for 5 consecutive runs. A check
+       whose coverage is decided by whether some OTHER finding happens to be
+       ripe is not a sweep. Same family as `domains/loop-design.md`,
+       "`unchanged_runs` measures 'nothing changed', not 'nothing matters' - a
+       blocked target looks identical to an idle one".
      - Report **uncommitted changes only when STALE** (refinement 5): compare
        each repo's `git status --porcelain` **file path SET**, not just the
        line count, against `notes.dirty_repos` from the previous run-log line
@@ -485,11 +527,17 @@ L2 also requires worktree isolation. Not active at L1.
      the loop.
      **BEFORE graduating anything to noise, verify the repo is ABLE to change**
      (adjustment `verify-repo-can-change-before-noise-graduation`, proposed by
-     retrospective 4 / 2026-08-28, APPROVED and applied 2026-08-28). Sweep for
-     a stale lock - a `.git/*.lock` file with no git process holding it and an
-     mtime older than ~1h. If one is found, the repo is BLOCKED, not settled:
-     report it as blocked with the lock path and its age, and do NOT count the
-     item as noise or step its `unchanged_runs`.
+     retrospective 4 / 2026-08-28, APPROVED and applied 2026-08-28; the sweep
+     this gate once performed inline MOVED to step 1 as a standing fleet-wide
+     source on 2026-09-02, adjustment
+     `stale-lock-sweep-independent-of-noise-graduation`). READ this run's
+     step-1 sweep result (`notes.stale_locks`) - do NOT re-sweep here, and do
+     NOT fall back to a candidates-only sweep if that result is missing. An
+     absent or failed sweep is a BLOCKED gate, not a clear one: graduate
+     nothing to noise this run and say in the digest that the gate could not be
+     evaluated. If the repo appears in the sweep result, it is BLOCKED, not
+     settled: report it as blocked with the lock path and its age, and do NOT
+     count the item as noise or step its `unchanged_runs`.
      Rationale: `TarotApp` was graduated to noise on 5 identical observations
      while an empty `index.lock` dated 2026-08-12 had blocked every
      index-modifying operation for 13 days. The rule read "settled" where the
