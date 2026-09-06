@@ -1,6 +1,45 @@
 # Aether OS cross-engine deliberation broker
 
 **Status: PARTIAL - 2026-09-06.** Build-order items 1-3 built and tested; items 4-9 not started.
+
+> **Refreshed 2026-09-06, after PR #47 merged (aether-os `35e7c0d`).** The build
+> notes below describe the adapters as first written. Seven Codex review rounds
+> landed on them afterwards and changed several load-bearing details, recorded
+> here so this doc is not read as current:
+>
+> - **`codexAppServer` could not run at all on Windows.** `spawn('codex')` fails
+>   ENOENT: the npm-installed `codex` is a `.cmd` shim, which Node's non-shell
+>   spawn will not resolve and refuses to execute since CVE-2024-27980. It now
+>   resolves `@openai/codex/bin/codex.js` and launches it with `process.execPath`,
+>   the same indirection `acpProcess.ts` already used. Every unit test injected a
+>   fake child, so nothing exercised the real path until it was reviewed.
+> - **The turn lifecycle was inverted.** `turn/start` resolves on ACCEPTANCE,
+>   typically `status: "inProgress"`, with the outcome arriving later as
+>   `turn/completed`. Treating the response as the outcome classified every normal
+>   turn as `error` with empty text.
+> - **`health()` read a field that does not exist.** `GetAccountResponse` is
+>   `{ account: Account | null, requiresOpenaiAuth }` with the billing mode in
+>   `account.type`, not a top-level `authMode`. Separately, `account/read` must be
+>   sent with an explicit `{}` — omitting the params key entirely makes the server
+>   reject it, and that rejection was being swallowed into `authMode: 'unknown'`.
+> - **`claudeHeadlessCli` inherited the whole environment.** An operator with
+>   `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` / `ANTHROPIC_BASE_URL` set would
+>   have had every turn billed through a metered key or third-party gateway.
+>   `acpProcess.ts`'s build-from-nothing allowlist is now shared by both sides.
+> - **`--restricted` is NOT read-only**, contrary to how it was first summarised.
+>   Measured, it left 110 tools available including `Write`, `Edit`, `NotebookEdit`
+>   and `Skill`. The guarantee needs the full set: `--restricted`,
+>   `--strict-mcp-config`, `--disable-slash-commands`, a fail-closed
+>   `--allowedTools Read Grep Glob`, and `--permission-prompts none`.
+> - **`EvidenceBundleV1` rejects absolute paths and `..` traversal**, rather than
+>   silently relativising them into an immutable record.
+>
+> Rounds 4-7 were each a hazard introduced by the previous round's fix. The root
+> cause — the provider turn outliving `sendTurn`, so its state has no owner once
+> `sendTurn` returns — is scoped separately in
+> [aether-turn-lifecycle-restructure-2026-09-06.md](aether-turn-lifecycle-restructure-2026-09-06.md).
+>
+> Build-order status is unchanged: items 1-3 built, items 4-9 not started.
 No provider registration, authentication state, or live-tree write path was changed, and no real
 Claude or Codex session was driven.
 
