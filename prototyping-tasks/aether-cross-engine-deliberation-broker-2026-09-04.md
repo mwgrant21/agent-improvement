@@ -34,23 +34,56 @@ Small, behaviour-preserving change to `acpClient.ts`: an optional `onStreamEvent
 session lifetime and stream events. Thought/tool chunks are observable but deliberately NOT folded
 into the accumulated answer, which would have corrupted existing verification results.
 
-**Open question resolved by probe, against the plan's first option.** `claude mcp serve` was
-checked live (Claude Code 2.1.263): its entire option surface is `--debug`/`--verbose`. It exposes
-Claude Code's *tools* to an MCP client and has no session, turn, cancellation, approval, or usage
-semantics, so it cannot drive the Claude side of a deliberation. A real Claude adapter needs
-`@anthropic-ai/claude-agent-sdk`, which is not a dependency of this project. Adding it is a new
-runtime dependency and a second auth path, so it was left to its own scoped task; the stub throws
-`NOT_IMPLEMENTED` from `connect()` rather than letting a caller silently degrade to Codex-only.
+**Open question resolved by probe — and the plan posed it as a false binary.** It asked whether
+`claude mcp serve` was sufficient *or* the Agent SDK was needed. Both were probed against Claude
+Code 2.1.263, but so was a third path the plan never considered, and that third path won:
 
-Tests: 77 new (`providers.test.ts` 52, `evidenceBundle.test.ts` 24, plus one added guard), full
+- `claude mcp serve` — entire option surface is `--debug`/`--verbose`. Exposes Claude Code's
+  *tools* to an MCP client; no session, turn, cancellation, approval or usage semantics.
+  Cannot drive a deliberation. **Rejected.**
+- `@anthropic-ai/claude-agent-sdk` — would work, but adds a runtime dependency and a second
+  authentication path. **Deferred.**
+- `claude -p --output-format stream-json` — satisfies the whole contract using the CLI already
+  installed, under the operator's existing login. **Chosen.** Verified by running it: `session_id`
+  in `system`/`init` and `result`, `--resume` continues a session headlessly (a resumed turn
+  recalled the prior answer), `stream_event`/`content_block_delta` carries text, and `result`
+  carries `stop_reason` plus a usage block. A `rate_limit_event` line also carries reset windows,
+  which feeds the provider-telemetry backlog item for free.
+
+So `providers/claudeHeadlessCli.ts` is a **real adapter, not a stub**, and passes the full
+conformance suite rather than only its pre-connect half. `claudeAgentSdk.ts` is deleted.
+
+**`--restricted` alone is NOT read-only** — an early summary of this work said it was, and that
+was wrong. Measured: `--restricted` left 110 tools available, *including* `Write`, `Edit`,
+`NotebookEdit`, `Skill` and MCP write tools. The guarantee needs the whole set: `--restricted`,
+`--strict-mcp-config` (tool surface 110 → 21, `mcp_servers: []`), `--disable-slash-commands`,
+a fail-closed `--allowedTools Read Grep Glob` allowlist rather than a denylist, and
+`--permission-prompts none` so denial is automatic rather than incidental. Verified
+adversarially: asked to write a file *and* to spawn a subagent that writes one, the session
+refused both — "Permission for this tool use was denied. It requires approval, and this session
+has no approval surface" — and no file appeared on disk.
+
+**Privacy.** Nothing about shipped outbound behaviour changed: no IPC handler, store action or
+UI control constructs the adapter, so it is reachable only from tests. `docs/privacy-and-data.md`
+gains §12 documenting it as a distinct future exception anyway — it would be Aether composing
+and sending a turn on its own initiative, unlike §11's operator-driven terminals — along with
+the conditions for ever wiring it up (its own opt-in, separate from `crossEngineCfg.enabled`).
+`PROGRESS.standing-decisions.md` and `CLAUDE.md`'s "no model call site" bullet were amended to
+match rather than left quietly false.
+
+Tests: 88 new across the provider and evidence suites; full suite 1289 -> 1377 passing,
 suite 1289 -> 1366 passing, 133/133 files. The provenance requirement is covered directly -
 modifying a cited file, hash, line range, base SHA, or test command makes the citation unsupported,
 and a tampered bundle invalidates every citation in it.
 
-`src/shared/noApiCalls.test.ts`'s Codex-boundary guard tripped on the new `'codex-acp'`
-`ProviderId` literal. It was **not** loosened: the two identifier-only files are allowlisted by
-name, and a new assertion now fails if either ever names the adapter package or resolves a module
-path. Any other file mentioning `codex-acp` still fails as before.
+`src/shared/noApiCalls.test.ts`'s Codex-boundary guard tripped on the `'codex-acp'` `ProviderId`
+literal. The first fix allowlisted two files; the better fix, applied 2026-09-06, renames the ids
+to camelCase so the collision never happens. The original guard is restored **verbatim** with no
+allowlist to maintain, and a strictly narrower assertion replaces it: no module outside
+`acpProcess.ts` may `require.resolve` an `@agentclientprotocol` package — the operation that
+actually reaches the executable, which a token grep cannot express. Two further guards were
+added: only `claudeHeadlessCli.ts` may spawn the `claude` binary, and that adapter's read-only
+flag set cannot be weakened (no `--disallowedTools`, no `bypassPermissions`, no `acceptEdits`).
 
 Not built (items 4-9): read-only reciprocal review mode, the termination/policy engine, the
 cross-engine trace UI, the debugging test loop, decision-tree interrogation, single-writer worktree
