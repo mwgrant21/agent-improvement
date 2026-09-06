@@ -509,3 +509,19 @@ Format per `README.md` in this directory.
   with no leftover processes, and a non-routable SMB target still exited in ~2s with the
   failure logged.
 - Added: 2026-08-29 (home-matt)
+
+### Version cached model responses against the full effective prompt, not only user input
+
+- A cache or cassette for model output must include a stable version or hash of
+  every input that can affect the response: system prompt, prompt builder,
+  rubric/schema, model, and user input. Keying only on model plus user input
+  silently reuses stale output after the surrounding prompt logic changes.
+- Why: the cache remains internally consistent and returns successfully, so a
+  prompt fix can appear to have no effect while tests and baselines continue to
+  evaluate the old behavior. Invalidating or versioning the cache after the fact
+  is more expensive than making the effective request part of the key up front.
+- Evidence: 2026-08-29 `miriel-evals` session (home-matt) - final review found
+  cassettes keyed only by model and user prompt. Changes to Miriel's generated
+  system prompt would therefore reuse stale recordings; the defect was caught
+  before the first corpus recording, avoiding a corrupted baseline.
+- Added: 2026-09-04 (home-matt)

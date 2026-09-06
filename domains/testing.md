@@ -296,3 +296,19 @@ itself). Format per `README.md` in this directory.
   the bundle found it only inside the core plus one doc comment. No collector ever
   passed it; the tests called the pure function directly.
 - Added: 2026-09-02 (work-it)
+
+### A critical parity test must fail when its reference implementation is unavailable
+
+- If a differential/parity test is the only proof that a port or duplicate
+  implementation matches its source of truth, make a missing reference checkout,
+  dependency, or native module a hard failure. Do not `skip` the test when that
+  prerequisite is absent.
+- Why: a silently skipped parity test looks identical to coverage in a green test
+  run, while the one check capable of detecting drift never executed. CI must also
+  install the reference implementation's dependencies explicitly so the failure
+  mode is actionable rather than accidental.
+- Evidence: 2026-08-29 `miriel-evals` session (home-matt) - the Miriel JavaScript
+  parity test could skip when its submodule or `better-sqlite3` dependency was
+  absent. Review identified this as the most misleading possible green result and
+  required the real reference dependency path to run.
+- Added: 2026-09-04 (home-matt)

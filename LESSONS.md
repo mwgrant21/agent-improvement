@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-02
+last-updated: 2026-09-04
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -138,3 +138,5 @@ at work).
 | powershell | An Intune-delivered policy is absent from the GPO path - read PolicyManager | 2026-09-02 |
 | verification | An exit code that fires on a healthy machine too identifies nothing | 2026-09-02 |
 | testing | A high mutation score proves the tests constrain that function, not that anything calls it | 2026-09-02 |
+| app-dev | Version cached model responses against the full effective prompt, not only user input | 2026-09-04 |
+| testing | A critical parity test must fail when its reference implementation is unavailable | 2026-09-04 |
