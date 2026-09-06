@@ -52,7 +52,7 @@ This plan does not claim a hosted runner can reproduce the desktop-lock/GPU-cont
 
 ## Status
 
-**PARTIAL - 2026-09-06.** Implemented and verified locally; not yet proven by a real GitHub run.
+**BUILT - 2026-09-06.** Implemented, and proven green on a real GitHub-hosted Windows runner.
 
 Built:
 
@@ -87,7 +87,31 @@ Open questions resolved by reading/probing rather than assumption:
   failing the install. No CI special-casing needed; verified by reading it.
 - *Which bsdtar failures remain on master?* Exactly one, the `--force-local` call above.
 
-Still outstanding (why this is PARTIAL, not BUILT): nothing has been pushed, so no PR has shown
-the job green on a real runner, and the fresh-`npm ci` Electron/node-pty smoke has only been
-observed against this machine's existing `node_modules`. The packaged-app / renderer-GPU smoke
-test remains a deliberate non-goal.
+**Acceptance evidence — all four criteria met.** PR #46
+(`mwgrant21/Aether-OS`, branch `feat/cross-engine-providers-and-windows-ci`), CI run
+`34018756589`, 2026-09-06:
+
+| Criterion from this plan | Result |
+|---|---|
+| Linux jobs and the new Windows job both green on a PR | `windows-build` 1m35s, `test-and-build (22.x)` and `(24.x)` 1m20s, `go-collector` 46s — all success |
+| Windows log proves Electron and `node-pty` loaded from a fresh `npm ci` | `added 214 packages ... in 15s`, then `[binary] electron present at node_modules\electron\dist\electron.exe` and `[native] node-pty loaded and exposes spawn()` |
+| Electron build output contains populated main, preload, renderer trees | `[artifacts] out/main: 1 file(s)`, `out/preload: 1 file(s)`, `out/renderer: 39 file(s)` |
+| A deliberate Windows-only failing probe shown red before the fix | Satisfied by a real bug rather than a synthetic probe — see above; 6/6 red with `--force-local`, 6/6 green without |
+
+The two open questions the plan could not answer without a real runner are now answered
+by evidence, and both were the ones most likely to bite:
+
+- **The Electron binary does land on a clean runner.** Since Electron 42 the binary is
+  fetched on first run rather than during its own postinstall, so `package.json`'s
+  `install-electron &&` chain is load-bearing; a fresh `npm ci` confirms it works.
+- **`node-pty`'s prebuild loads under Node 24**, not merely under the 25.8.2 used for
+  local development.
+- `grant-appcontainer-acl.js` behaved unelevated exactly as reading it predicted — it
+  did not fail the install.
+
+Test count on the runner matched local exactly: 133/133 files.
+
+Remaining non-goals, unchanged and deliberate: no packaged-app launch, no renderer/GPU
+smoke test (that needs a real desktop session, i.e. a self-hosted runner), no
+reproduction of issue #22, no installer or release pipeline. Widening past one Node
+version should wait until the single lane has paid for itself.
