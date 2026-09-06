@@ -211,3 +211,4 @@ human-approved at every level.
 | Loop | Level | Trigger | Since |
 |---|---|---|---|
 | daily-triage | 1 | SessionStart hook (first session of the day) | 2026-07-13 |
+| pr-review-watch | 1 | SessionStart hook + in-session background watcher | 2026-09-06 |

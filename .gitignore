@@ -1,2 +1,5 @@
 local-state.json
 candidates/
+# pr-review-watch polls every ~10 min; a tracked cursor would keep the
+# shared store permanently dirty and break the other loops pull --rebase.
+loops/*/cursor.local.json
