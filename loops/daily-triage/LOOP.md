@@ -33,6 +33,18 @@ L2 also requires worktree isolation. Not active at L1.
    the counter would have been permanently wrong.
    L1 boundary: this is a read/rebase of the loop's OWN store, not an action on
    any triaged repo. The boundary is unchanged.
+   **Then AUDIT the previous run's step 5** (adjustment
+   `record-step-5-commit-push-result-in-notes`, proposed run 36 / 2026-09-06,
+   APPROVED and applied 2026-09-06). Compare the store's HEAD against the SHA the
+   previous run recorded pulling at its own step 0. If HEAD still equals that SHA,
+   the previous run never committed - report it as a High Priority escalation and
+   record `notes.store_step5_prior_run`. This is the half of the adjustment that
+   catches a run which died before appending its `store-sync` line (step 5); the
+   line itself is the immediate record.
+   Rationale: run 35 skipped step 5 and left the shared store dirty for 3 days,
+   blocking the agent-learn loop's opening `git pull --rebase`. It was structurally
+   undetectable - a skipped step 5 and a successful one read identically in the log
+   - and run 36 found it only by making exactly this HEAD comparison ad hoc.
    Then read `STATE.md`. If `paused: true` -> stop immediately, output nothing.
    If `runs_since_retro >= 10` -> run the Retrospective (below) instead.
    Load `constrained_scopes` (Intervention ladder, `loops/README.md`) into
@@ -427,6 +439,19 @@ L2 also requires worktree isolation. Not active at L1.
        dirty - not just how many - counts as active WIP and is suppressed.
        Rationale: bare "uncommitted changes exist" made this the noisiest
        source in 7 of 10 runs and was almost always normal in-progress work.
+       **Key every `notes.dirty_repos` entry `<repo-dir-name>@<machineId>` and give
+       every entry an explicit `path`** (adjustment
+       `dirty-repo-cache-key-is-ambiguous-across-machines`, proposed run 35 /
+       2026-09-03, re-proposed run 36, APPROVED and applied 2026-09-06 at
+       `times_proposed: 2` rather than being held to the cap - it is a naming rule,
+       not a judgment call, per `domains/loop-design.md` "A proposal deferred to
+       dodge the attempt cap"). Bare names, `-home-matt`-suffixed names and ad-hoc
+       renames all coexisted in the cache, so run 36 had to hand-map 23 observed
+       home-matt paths across three spellings to decide which entries to observe
+       and which to freeze. A cache entry whose key has no `@<machineId>` is a MISS:
+       re-baseline that repo's `unchanged_runs` to 0 rather than guessing which
+       machine it came from - the same fail-closed treatment `dirty_lines` already
+       gets below.
        Carry the current `{repo: {dirty_paths: [...], unchanged_runs}}` map
        into this run's own `notes.dirty_repos` (step 3) - `dirty_paths`
        replaces `dirty_lines`; treat a cache entry that still has
@@ -579,9 +604,21 @@ L2 also requires worktree isolation. Not active at L1.
    `branch_tips` map (`{repo: {branch: {sha, author_date, ahead_by, behind_by}}}`) from step 1's
    staleness cache, so the next run can diff against it. Also include
    `dirty_repos` (step 1's stale-WIP cache) and `fp_source` (step 2).
-   Record step 4's one adjustment as a STRUCTURED entry (refinement 9), not
-   only as prose inside `critique`:
-   `"adjustment":{"id":"kebab-slug","text":"one line","first_proposed":"YYYY-MM-DD"}`.
+   Record step 4's adjustments as STRUCTURED entries (refinement 9), not
+   only as prose inside `critique`. **`notes.adjustment` is an ARRAY** (ruled
+   2026-09-06, adjustment `adjustment-field-must-be-an-array`) - always an array,
+   even for a single entry:
+   `"adjustment":[{"id":"kebab-slug","text":"one line","first_proposed":"YYYY-MM-DD"}]`.
+   This resolves a real collision in this protocol: step 4 asks for ONE adjustment,
+   while `count-reconfirmation-as-reproposal` (below) REQUIRES a run that relied on
+   an outstanding adjustment to re-emit it. A run that does both has two entries and
+   nowhere to put the second. Run 36 invented `notes.adjustment_new` to cope; that key
+   is a frozen one-off and must never be written again. Step 4's "one adjustment"
+   still means one NEW adjustment per run - the array exists for mandatory
+   re-proposals alongside it, not as licence to propose several new ones.
+   Readers must normalize object/array/absent/`adjustment_new` - see the reader
+   snippet in `loops/README.md`; the log is append-only, so historical object-shaped
+   lines stay as they are.
    Reuse the SAME `id` when re-proposing an adjustment from an earlier run,
    and carry that run's `first_proposed` date forward unchanged - that is what
    makes "proposed N times, still not landed" countable instead of a thing
@@ -636,6 +673,16 @@ L2 also requires worktree isolation. Not active at L1.
    `git pull --rebase` - see `domains/loop-design.md`, "When two loops share
    one git-backed store". If the push fails (offline/blocked), keep the local
    commit and say so once in the digest; never block on it.
+   **Then append a `store-sync` line to `runs.jsonl`** recording what step 5
+   actually did (adjustment `record-step-5-commit-push-result-in-notes`, APPROVED
+   and applied 2026-09-06):
+   `{"ts":"...","session_id":"...","level":1,"type":"store-sync","notes":{"for_run":<n>,"committed":true,"pushed":true,"status_sb":"## master...origin/master"}}`.
+   A separate line, not a field on this run's own line: step 3 appended that line
+   BEFORE this step ran, and `runs.jsonl` is append-only, so it physically cannot
+   record its own commit result. Record `committed`/`pushed` as they actually
+   happened - a `false` here is the point of the field, not a failure to hide.
+   The commit itself will not contain this line (it is written after), which is
+   expected and is exactly why step 0's HEAD audit exists as the second half.
 
 If a run fails before step 3, do NOT advance `last_run` or append a run line - report the failure in the digest slot; the hook will retry next session.
 

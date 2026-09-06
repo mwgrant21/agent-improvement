@@ -30,7 +30,7 @@ loops/<loop-name>/
 
 ```json
 {"ts":"ISO-8601","session_id":"...","level":1,
- "type":"run|retrospective|promotion|demotion",
+ "type":"run|retrospective|promotion|demotion|store-sync",
  "findings":0,"actions":0,"escalations":0,"false_positives":0,
  "duration_s":0,"critique":"one-line self-critique",
  "notes":{}}
@@ -47,6 +47,38 @@ always refreshed together, since both go stale when the DEFAULT branch moves
 even if the branch itself has not.
 
 Append-only. Never rewrite or delete lines.
+
+### `notes.adjustment` is an ARRAY (ruled 2026-09-06)
+
+A run may legitimately emit more than one adjustment: `daily-triage`'s
+`count-reconfirmation-as-reproposal` REQUIRES a run that relied on an outstanding
+adjustment to re-emit it, and that run may also propose a new one. The prior
+single-object shape could not hold both, and run 36 worked around it with an
+ad-hoc second key. Writers now always emit an array, even for one entry.
+
+Because this log is append-only, historical lines cannot be migrated. **Every
+reader sweeping for adjustment ids MUST normalize all four shapes** or it will
+under-count exactly the items the attempt cap exists to escalate:
+
+```js
+const adj = [
+  ...(Array.isArray(n.adjustment) ? n.adjustment : n.adjustment ? [n.adjustment] : []),
+  ...(n.adjustment_new ? [n.adjustment_new] : []),  // run 36 only; never write this again
+];
+```
+
+As of the ruling: 31 lines carry an object, 1 line (run 36, 2026-09-06) also
+carries `adjustment_new`, and the rest carry none. `adjustment_new` is a frozen
+historical artifact — readers absorb it, writers never produce it.
+
+### `store-sync` lines
+
+A run's own line is appended BEFORE the run commits and pushes, so it can never
+record whether that commit and push succeeded. A loop whose final step writes to
+a shared git store appends a second, separate line after that step instead:
+`{"ts":...,"type":"store-sync","notes":{"committed":true,"pushed":true,"status_sb":"## master...origin/master"}}`.
+Append-only-safe, and it makes a skipped final step visible in the log rather than
+only discoverable by comparing SHAs across runs.
 
 ## State ownership ledger (body layer)
 
