@@ -133,3 +133,23 @@ and does not prove. Format per `README.md` in this directory.
   Caught only because the release runbook step said to read the changelog as if handing
   it to someone.
 - Added: 2026-08-29 (home-matt)
+
+### Retarget a stacked PR onto master BEFORE merging its parent with `--delete-branch`
+
+- When PR B is based on PR A's branch, merging A with `gh pr merge --delete-branch`
+  deletes the branch B points at, and GitHub **closes** B rather than retargeting
+  it. Retarget first (`gh pr edit B --base master`), then merge A. Recovery is
+  possible but fiddly: restore the deleted branch at its old tip
+  (`git push origin <sha>:refs/heads/<name>`), `gh pr reopen B`, retarget, then
+  delete the temporary branch again -- `gh pr edit --base` is refused on a closed
+  PR, so the reopen must come first.
+- Why: GitHub's automatic retarget-on-delete does not cover this case, and the
+  close is silent from the merging side - `gh pr merge A` reports plain success.
+  B's state only reads as `DIRTY`/`CONFLICTING` afterwards, which looks like a
+  merge conflict rather than a closed PR.
+- Evidence: 2026-09-06 session (Aether-OS, home-matt) - #53 was stacked on #52's
+  branch. Merging #52 with `--delete-branch` closed #53; `gh pr edit 53 --base
+  master` then failed with "Cannot change the base branch of a closed pull
+  request". Recovered by restoring `fix/flaky-fleet-heartbeat-test` at `2bfeae1`,
+  reopening, retargeting, and re-deleting the branch.
+- Added: 2026-09-06 (home-matt)

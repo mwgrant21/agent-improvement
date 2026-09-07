@@ -343,3 +343,23 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   pass confirmed the roster reading directly - relocating the it-fleet agents dropped
   them from that session's roster.
 - Added: 2026-08-29 (home-matt)
+
+### A pipeline's exit status is the LAST command's, so `check | tail && act` acts on a failed check
+
+- Never pipe a command whose exit code is the thing you are testing into a
+  formatter. `gh pr checks --watch | tail -8 && gh pr merge` takes its status
+  from `tail`, which succeeds whether the checks passed or failed, so the `&&`
+  fires on red. Redirect to a file and test the status on its own line
+  (`cmd > out.txt; RC=$?; if [ "$RC" -eq 0 ]; then ...`), or set
+  `set -o pipefail` before the pipeline.
+- Why: the failure is silent and inverted -- the guard you added to make the
+  step safe is exactly what disables it, and the output still LOOKS like the
+  real check because the formatter faithfully prints the failure you are about
+  to ignore. Related: [[run-in-background-can-report-exit-code-0]].
+- Evidence: 2026-09-06 session (Aether-OS PR #51, home-matt) - a watcher built
+  as `gh pr checks 51 --watch --required | tail -8 && echo 'checks green,
+  merging' && gh pr merge 51` printed "checks green, merging" while
+  `go-collector` had actually failed. Only GitHub refusing the merge ("base
+  branch policy prohibits the merge") surfaced it; the terminal had reported
+  success.
+- Added: 2026-09-06 (home-matt)

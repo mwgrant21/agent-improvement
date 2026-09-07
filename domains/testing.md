@@ -81,6 +81,14 @@ itself). Format per `README.md` in this directory.
   an escaping round-trip fix; the implementer "empirically confirmed the new
   harness check is non-vacuous (reverted the escaping fix as a throwaway test,
   confirmed the harness correctly caught 12 failures)" before restoring the fix.
+- Refinement (2026-09-06, home-matt): make the mutation fail on the CONSEQUENCE,
+  not only on an internal counter. A revert that flips a count proves the check
+  is wired up; a revert that breaks the user-visible behaviour proves it guards
+  the thing that matters. Evidence: Aether-OS PR #51 shipped two mutation-checked
+  tests - one asserted `liveTurnCount` stayed 1 ("retired early"), the other
+  asserted a late acknowledgement still sent its promised `turn/interrupt` ("the
+  late ack must still honour the cancellation"). Only the second would have
+  survived someone rewriting the counter.
 - Added: 2026-08-03 (work-it)
 
 ### `[System.IO.File]` statics are not mockable in Pester 3 - declare the untestable path instead of faking it
@@ -312,3 +320,49 @@ itself). Format per `README.md` in this directory.
   absent. Review identified this as the most misleading possible green result and
   required the real reference dependency path to run.
 - Added: 2026-09-04 (home-matt)
+
+### A test for an injectable bound must use the PRODUCTION ratio, not just a convenient one
+
+- Making a timeout/TTL/limit injectable so it can be tested is only half the
+  job: the injected values must sit on the same side of each other as the
+  shipped defaults. Two constants that interact (a TTL and the deadline that
+  outlives it, a buffer size and the payload that fills it) have a ratio, and a
+  test that inverts that ratio exercises a configuration that never ships. Write
+  down the shipped values next to the test values and check the inequality still
+  points the same way.
+- Why: the failure is structural rather than incidental - no amount of extra
+  cases on the wrong side of the ratio can reach the bug, so the suite is
+  confidently green about the one configuration that matters. Injectability
+  makes it worse by supplying the reassurance that the bound *is* under test.
+- Evidence: 2026-09-06 session (Aether-OS PR #51, home-matt) - the app-server
+  adapter ships `ttl 120s` against a `300s` caller deadline. Both retention
+  tests used ttl > timeout (120,000 vs 40, and 40 vs 20), the inverse. Under the
+  real ratio the expiry armed from a creation-time `expiresAt` computed
+  `max(0, 120s - 300s) = 0` and retired the record on the next tick, so the
+  retention window the whole refactor existed to provide was ZERO. Found by
+  review, not by the suite. Related: [[a-high-mutation-score-proves]].
+- Added: 2026-09-06 (home-matt)
+
+### Poll for a POSITIVE assertion; a NEGATIVE assertion is the one case a fixed sleep is correct
+
+- `sleep(N); assert(thing happened)` budgets wall-clock for work on a machine
+  the test cannot see, and fails intermittently on a loaded runner while passing
+  locally forever. Replace it with a poll to a generous deadline, which is also
+  FASTER in the common case because it returns on the first tick instead of
+  always waiting out the sleep. But `sleep(N); assert(thing did NOT happen)`
+  cannot be converted - polling for "still absent" succeeds instantly and proves
+  nothing. There the sleep is the mechanism: give the system time to do the wrong
+  thing, then check it didn't.
+- Why: "replace every sleep with a poll" is the obvious generalisation and it is
+  wrong; applied to a negative assertion it silently converts a real check into a
+  tautology. Two adjacent sleeps in one test can need opposite treatment.
+  Raising a sleep is never the fix either - it trades flake rate for a slower
+  suite and leaves the race intact.
+- Evidence: 2026-09-06 session (Aether-OS PR #52, home-matt) -
+  `TestStartCollector_FleetHeartbeatFailureLogsAndDoesNotCrashOtherLoops` failed
+  CI (run 34071254746) with `events count = 0, want 1`, blocking an unrelated PR.
+  Mutating its `Sleep(150ms)` to 5ms reproduced the failure exactly; polling
+  instead passed 20/20, and still passed with the producer slowed 50x. The same
+  file's other sleep gates "a spool file written after stop must never be
+  ingested" and was deliberately left alone.
+- Added: 2026-09-06 (home-matt)

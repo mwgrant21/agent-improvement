@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-04
+last-updated: 2026-09-06
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -140,3 +140,7 @@ at work).
 | testing | A high mutation score proves the tests constrain that function, not that anything calls it | 2026-09-02 |
 | app-dev | Version cached model responses against the full effective prompt, not only user input | 2026-09-04 |
 | testing | A critical parity test must fail when its reference implementation is unavailable | 2026-09-04 |
+| tooling | A pipeline's exit status is the LAST command's - `check \| tail && act` acts on a failed check | 2026-09-06 |
+| git | Retarget a stacked PR before merging its parent with --delete-branch, or GitHub closes it | 2026-09-06 |
+| testing | A test for an injectable bound must use the production ratio, not a convenient one | 2026-09-06 |
+| testing | Poll for a positive assertion; a negative assertion is the one case a fixed sleep is correct | 2026-09-06 |
