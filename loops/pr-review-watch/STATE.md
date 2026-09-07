@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 1970-01-01
-runs_since_retro: 0
+last_run: 2026-09-06
+runs_since_retro: 1
 constrained_scopes: []
 ---
 ## State Ownership
@@ -49,6 +49,14 @@ than one machine's read marking the other's as seen.
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
+
+- **[FP] 2026-09-06 — Aether-OS#50, `providers.live.test.ts:176`, author `mwgrant21`.**
+  Reported as new review activity; it was *our own reply* on a Codex review
+  thread ("Fixed in 5fba9d8…"). LOOP.md rule 3 excludes owner comments that
+  start with `@codex review`, which does not cover a reply we wrote into a
+  thread. Proposed refinement for the retrospective: exclude owner-authored
+  comments from findings outright — a comment we wrote is never feedback *to*
+  us. Not applied here; this loop never edits its own LOOP.md.
 
 ## Human Decisions (overrides the loop must respect)
 

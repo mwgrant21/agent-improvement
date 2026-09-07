@@ -1,8 +1,18 @@
 # Aether OS: give the app-server turn an explicit lifecycle
 
-**Status: PLAN ONLY — 2026-09-06.** No Aether OS code has been changed for this
-doc. The symptom it describes is bounded in `ef61da8` (merged in PR #47); the
-structural fix below is deliberately NOT in that PR.
+**Status: BUILT — 2026-09-06.** Shipped across three PRs, all merged to
+`master`:
+
+| PR | What it did | Merge |
+|---|---|---|
+| [#49](https://github.com/mwgrant21/Aether-OS/pull/49) | the restructure: `TurnRecord`, one `retireTurn`, five structures collapsed into one | `b6fc003` |
+| [#50](https://github.com/mwgrant21/Aether-OS/pull/50) | the live turn — the part this doc said mattered most | `561e746` |
+| [#51](https://github.com/mwgrant21/Aether-OS/pull/51) | a bug **the restructure itself introduced**; see "What the restructure got wrong" | `a077f55` |
+
+New file: `electron/crossEngine/providers/turnRecord.ts`.
+Rewritten: `electron/crossEngine/providers/codexAppServer.ts`.
+See "What was actually built" for scope item-by-item, and the answered open
+questions at the end.
 
 ## Where this came from
 
@@ -95,14 +105,90 @@ prompt through a real thread, gated behind its own env var so CI never runs it,
 would exercise `turn/start` -> deltas -> `turn/completed` end to end. The cost
 is a handful of Codex tokens per run. Weigh that against seven review rounds.
 
-## Open questions
+## What was actually built
 
-- Should the record live in a map keyed by session, or should a session own at
-  most one record (the current de-facto assumption)? The adapter enforces one
-  in-flight turn per thread today but nothing states it.
-- Is `phase` worth modelling explicitly, or is it derivable from which fields
-  are populated? Explicit is probably right given how much implicit state
-  caused here.
-- Does the same lifetime mismatch exist in `claudeHeadlessCli`? It spawns one
-  process per turn, so the process *is* the lifetime — likely not, but it has
-  not been checked.
+Scope item by item, against the six above:
+
+1. **`TurnRecord` owned by the adapter** — built, `turnRecord.ts`. Fields as
+   proposed plus the ones the closure had been carrying implicitly (`text`,
+   `usage`, `approvalDenials`, `earlyCompletions`, `buffered`, `callerWaiting`,
+   and an `outcome` promise deliberately **not** tied to the caller's deadline).
+2. **`sendTurn` as a consumer** — built. It creates a record, races the record's
+   `outcome` against its own deadline, and returns. On a deadline it hands the
+   record to retention and walks away.
+3. **One retirement function** — built. `retireTurn` is private, and every one
+   of the eight paths that ends a turn funnels through it: transport death,
+   terminal `turn/start` response, terminal `turn/completed`, deadline with the
+   id known, `outcome.kind === 'gone'`, TTL expiry, cap eviction, dispose.
+4. **`cancel()` sets a flag on the record** — built. Pre-ack / post-ack / late-ack
+   collapsed: `cancel()` sets `cancelRequested`, and whoever learns the id next
+   sends the interrupt.
+5. **Five structures collapsed into one** — built. The adapter went from **20
+   fields to 10**; `lateHandlers`, `earlyCompletions`, `turnWaiter`,
+   `activeTurn` and `interrupted` are now fields of a record. (One residual
+   name survives on purpose: the `retainedLateHandlerCount` getter is kept as
+   a test-facing alias so PR #47's cap tests still assert the cap without
+   being rewritten — the point of a refactor is that its safety net does not
+   move.)
+6. **Cap asserted in a test** — built, `MAX_LIVE_TURNS = 16`.
+
+And the part this doc said mattered most: **the live turn shipped** (PR #50),
+gated behind its own `AETHER_LIVE_PROVIDER_TURN=1` so CI never spends a token.
+It exercises `turn/start` -> deltas -> `turn/completed` against a real
+`codex app-server`. Its retirement assertion deliberately rides on the *same*
+turn, after a verified completion, rather than paying for a second one — on its
+own it would have passed just as happily after a timeout or an error, both of
+which also retire the record, and would have asserted nothing.
+
+## What the restructure got wrong
+
+Recorded because it is the point of this doc, not an embarrassment to omit.
+
+**The restructure introduced a bug that reduced the retention window to zero
+under the shipped defaults** — the exact window the whole exercise existed to
+provide. `expiresAt` was computed at record *creation* (`now + 120s`), but the
+caller waits up to 300s before giving up. Arming the expiry at that point
+computed `max(0, 120s - 300s) = 0`, so the record was retired on the very next
+tick. A late `turn/start` acknowledgement then found no record, and a pre-ack
+cancellation could never send its promised interrupt — round 6's hazard,
+silently reintroduced by the fix for round 7.
+
+Two things about how it was found:
+
+- **No unit test could see it.** Both retention tests used `ttl > timeout`, the
+  inverse of production (120,000 vs 40, and 40 vs 20). The TTL was made
+  injectable *specifically* so these bounds would be tested rather than
+  asserted about, and then both values landed on the wrong side of the one
+  ratio that ships.
+- **The live turn did not catch it either**, and could not: it tests a turn that
+  *completes*, and this bug only exists on the path where the caller gives up
+  first.
+
+The fix (PR #51) folds the three steps that must happen together —
+`callerWaiting = false`, restart the TTL from *now*, arm the timer — into one
+`TurnRecord.beginRetention` operation. They had been written apart and the
+middle one was simply missing. That is the same lesson as the original seven
+rounds, one level down: **state that must change together belongs in one
+operation**, or the steps drift.
+
+## Open questions — answered
+
+- **Map keyed by session, or one record per session?** Neither, as posed. The
+  map is keyed by `turn/start`'s **JSON-RPC request id**
+  (`Map<number, TurnRecord>`). That is the turn's only identity during the
+  pre-ack window, which is precisely the window rounds 5 and 6 lived in — a
+  session key would have had nothing to look up there, and the server-assigned
+  `turnId` does not exist yet.
+- **Is `phase` worth modelling explicitly?** Yes, but with **three** states, not
+  the four proposed: `awaiting-ack | running | retired`. `retiring` never
+  earned its place — retirement is synchronous inside `retireTurn`, so nothing
+  can observe an intermediate state.
+- **Does the same lifetime mismatch exist in `claudeHeadlessCli`?** **Checked —
+  no.** `SessionState.child` already lives on the adapter, not in the `sendTurn`
+  closure, so `cancel()` has a real owner to reach for; one process per turn
+  means the OS handle *is* the lifetime, as predicted. One caveat worth writing
+  down: `state.child = null` sits after the await rather than in a `finally`, so
+  the guarantee currently rests on "nothing inside that promise rejects" (today,
+  nothing does — it only ever resolves through `finish`). Adding a `throw` in
+  that block would leak a live child. Latent, not a live bug; a `finally` would
+  make it structural instead of circumstantial.
