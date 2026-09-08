@@ -329,6 +329,54 @@ L2 also requires worktree isolation. Not active at L1.
        `~/Desktop/cli-shared-memory-agents/{claude,codex}`. Test it directly
        (`[ -d <path>/.git ]` = standalone repo, `[ -f <path>/.git ]` =
        worktree); do not infer it from a directory's name.
+     - **A BARE repo has no `.git` entry at all - the repo directory itself
+       IS the git directory - so `find <root> -maxdepth 3 -name .git` cannot
+       see it, structurally, regardless of depth setting** (adjustment
+       `discover-bare-repo-worktree-hubs`, proposed and applied 2026-09-08,
+       human-approved same day via the loop-design skill). Discover bare
+       repos with a SEPARATE pass over the same scan roots at the same depth
+       bound as normal repos (1-2 below a scan root): for each directory at
+       that depth, test `git -C <dir> rev-parse --is-bare-repository
+       2>/dev/null` and treat `true` as a hit. Do not rely on the `*.git`
+       naming convention alone to find candidates - it is common but not
+       guaranteed, and a false negative here is a silently missed repo, the
+       exact failure class `clarify-repo-discovery-depth-definition` (above)
+       exists to prevent. Testing every depth-1-2 directory is bounded and
+       cheap at this fleet's size; no cache, per `domains/loop-design.md`,
+       "measure the uncached path before adding a cache" - same reasoning
+       the Worktree hygiene item below already applies.
+       **`--is-bare-repository` alone false-positives on every SUBDIRECTORY
+       of a bare repo** (`hooks/`, `objects/`, `refs/`, etc.) - git walks
+       upward from CWD to find the enclosing repo, so a directory two levels
+       inside a bare hub reports `true` for a repo it is not the root of.
+       Require the candidate to BE its own git-dir: compare `git -C <dir>
+       rev-parse --absolute-git-dir` against `<dir>`'s own absolute path,
+       and only count a match. On Windows/Git Bash the two come back in
+       different path formats (`C:/Users/...` vs `/c/Users/...`) - normalize
+       both before comparing (`cygpath -u`), never compare the raw strings.
+       Caught by direct execution before this adjustment landed: an
+       unnormalized/unfiltered test against this fleet's own
+       `cli-shared-memory.git` returned 6 spurious hits (the bare repo plus
+       5 of its internal subdirectories) before the fix; a correctly scoped
+       test returns exactly 1.
+       For each bare repo found, enumerate its worktrees
+       (`git -C <bare-repo> worktree list --porcelain`) and fold each one
+       into the SAME discovered-repo set the rest of step 1 operates on, so
+       a bare hub's worktrees get identical coverage to an ordinary repo's -
+       dirty/unpushed checks, the Worktree hygiene item, and the gitignore-
+       drift check below all apply to them the same way. A bare repo itself
+       has no working tree and is never dirty/unpushed in its own right;
+       only its worktrees are.
+       Rationale: run 38 (2026-09-08, work-it) found `cli-shared-memory.git`
+       this way ad hoc - a bare hub owning 2 active worktrees, both clean
+       that run, invisible to every check this loop ran before this
+       adjustment landed. A bare hub with dirty or unpushed worktrees would
+       have gone unreported with nothing in the digest suggesting a gap
+       existed - the same silent-under-report class as
+       `clarify-repo-discovery-depth-definition` and
+       `expand-home-matt-discovery-root` before it.
+       L1 boundary: discovery only reports. It never creates, converts, or
+       removes a bare repo or its worktrees.
      - If a configured or expected root is absent, emit exactly one
        `source unavailable: <root> not present on <machineId>` line. An empty
        result and an unreachable root must never look alike in the digest.
