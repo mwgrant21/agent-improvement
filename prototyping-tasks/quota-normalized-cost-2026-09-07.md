@@ -54,12 +54,13 @@ Originally listed as opportunistic. On 2026-09-07 the user set a standing rule (
 
 **Side finding, not from md2:** TMv2 `packages/core/src/modelPricing.ts` still carries the placeholder table aether corrected on 2026-08-07 (opus 15/75, cache write at 1.0x, fable falls through to sonnet). Port aether's `src/shared/modelPricing.ts` and its tests as-is. Same author, no design work needed.
 
-## Open questions
+## Open questions (resolved 2026-09-07 via port-gap)
 
-- Which window is the basis: 7-day (md2's choice, smoother) or 5-hour (aether's actionable window for `depletion.ts`)? Proposal: compute on 7-day, display 5-hour as a live gauge, never mix.
-- Account-level % includes other machines and projects. Do we attribute all of a bucket's delta to local tokens (md2 does) or flag buckets where local tokens are zero but % moved? Proposal: flag and exclude from the correlation.
-- Plan price per provider is a manual setting. Where does it live in aether (settings store vs env)?
-- Does the correlation need a minimum sample count before showing dollars, to avoid a wild rate on day one? Proposal: show points until N buckets have both signals.
+- **Cost window:** 7-day basis for $/point and tokens-per-point; 5-hour stays a live depletion gauge only; never mixed in one number. (User decision.)
+- **External usage:** buckets where account % moved but this machine logged zero tokens are excluded from the fit and surfaced as an "external usage" indicator. (User decision.)
+- **Isolation:** build in a separate git worktree per repo on a feature branch; another session is active in aether-os on #58-#60. (User decision.)
+- **Plan price location:** aether's existing user-settings store, beside the statusline settings; TMv2 beside `planUsageConfig.js`. (Assumption, low stakes.)
+- **Minimum samples:** show quota points only until 3 buckets carry both signals, then show dollars. (Assumption, low stakes.)
 
 ## Status
 
