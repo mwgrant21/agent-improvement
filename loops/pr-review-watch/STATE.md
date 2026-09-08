@@ -58,6 +58,21 @@ than one machine's read marking the other's as seen.
   comments from findings outright — a comment we wrote is never feedback *to*
   us. Not applied here; this loop never edits its own LOOP.md.
 
+- **[FP] 2026-09-07 (x5) — Aether-OS#62, #64, #68.** The same pattern as the
+  2026-09-06 entry above, five more times in one session, on three PRs. Two
+  distinct shapes, both non-findings:
+  1. **Our own replies.** Every time we answered a Codex thread ("Agreed and
+     fixed in <sha>…"), the next poll reported those replies as new review
+     activity.
+  2. **Findings already fixed.** A Codex P2 was reported on a poll that ran
+     after we had already pushed the fix, replied, and resolved the thread.
+  Evidence for the retrospective, strengthening the proposed refinement above:
+  (a) exclude owner-authored comments from findings outright, and (b) skip a
+  thread whose `isResolved` is true, since a resolved thread has been decided
+  by definition. On an actively-iterated PR the loop currently fires roughly
+  once per review round, which is exactly when its signal is least useful.
+  Not applied here; this loop never edits its own LOOP.md.
+
 ## Human Decisions (overrides the loop must respect)
 
 - **2026-09-06, at creation: this loop must never trigger a review.** Posting
