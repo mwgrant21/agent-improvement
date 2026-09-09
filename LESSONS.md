@@ -24,6 +24,8 @@ at work).
 | tooling | Write a script to inspect many files, rather than reading them all | 2026-09-09 |
 | git | A conflicted PR does not fail CI - it stops CI running at all | 2026-09-09 |
 | tooling | The Bash tool collapses doubled backslashes, even in a quoted heredoc | 2026-09-09 |
+| testing | A fixture of identical values cannot distinguish the behaviours the test's NAME contrasts | 2026-09-09 |
+| app-dev | A value type that cannot represent "absent" turns every missing input into a confident zero | 2026-09-09 |
 | loop-design | Never let the maker verify its own work | 2026-07-13 |
 | loop-design | Hard attempt cap, then escalate | 2026-07-13 |
 | loop-design | Triage output must be structured, not narrative | 2026-07-13 |

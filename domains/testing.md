@@ -366,3 +366,30 @@ itself). Format per `README.md` in this directory.
   file's other sleep gates "a spool file written after stop must never be
   ingested" and was deliberately left alone.
 - Added: 2026-09-06 (home-matt)
+
+### A fixture built from identical values cannot distinguish the two behaviours the test's NAME contrasts
+
+- When a test name contrasts two outcomes ("keeps the most recent, not the oldest",
+  "prefers X over Y"), check that the FIXTURE could actually tell them apart. A
+  fixture of identical or degenerate values makes both branches produce the same
+  result, so the assertion holds whichever one the code implements. The name claims
+  a guarantee the construction cannot see, and the test passes forever.
+- More data does not fix it. The defect is not sample size but that the values carry
+  no signal on the dimension being asserted - 210 identical intervals are no more
+  discriminating than 3.
+- What to do: read the fixture and ask "if the implementation did the OPPOSITE of
+  the name, would this fail?" Make the values differ along exactly the axis the name
+  contrasts. This is the cheap, read-only precursor to
+  "Prove a new regression-detecting check is not vacuous by reverting the fix and
+  watching it fail" in this same file - that entry is the remedy, this is how to spot
+  the candidate before writing an ablation.
+- Why: it is invisible in review. The name reads as a real guarantee, the assertion
+  is genuine, the test is green, and nothing about the diff suggests the fixture is
+  the problem.
+- Evidence: 2026-09-07/08 overnight quota-cost session (1126a512) - a test named
+  "keeps the most recent waits, not the oldest" used 210 identical one-millisecond
+  intervals. Any 200 of them sum to 200, so it passed whether pruning kept the newest
+  or the oldest. The same session's conformance suite asserted only that each number
+  was non-negative, while the task it guarded existed to prevent double-counting.
+- Added: 2026-09-09 (home-matt)
+

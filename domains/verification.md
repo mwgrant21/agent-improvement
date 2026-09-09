@@ -325,6 +325,18 @@
   dodge a literal-substring guard and reported DONE; the reviewer was given
   explicit instructions to judge legitimate-fix vs. guard-evasion, caught it,
   and a fix round reworded the content properly instead.
+- UPDATE 2026-09-09: **no adversary is required.** The original entry frames this as
+  an implementer dodging a guard. A whole suite can be written this way with nobody
+  gaming anything: if every test asserts that the SOURCE TEXT contains a call, they
+  all pass for an implementation that does the opposite of what it says. A gate
+  written backwards - saving only when a sample is REJECTED - passed all ten tests
+  guarding it, because not one of them executed the gate. Read a suite's assertions
+  for whether they run the code or merely read it; "the call appears in the file"
+  constrains nothing about whether it can execute.
+- Evidence for the update: 2026-09-07/08 quota-cost session (1126a512) - a persistence
+  test checked only that the source contained the save call, which passes whether or
+  not that call is reachable; the buffer would have stopped saving after ~33 hours of
+  normal use with the test still green.
 - Added: 2026-08-15 (home-matt)
 
 ### Repeated review rounds each finding a NEW defect in the same code path is a design signal, not a fix cadence

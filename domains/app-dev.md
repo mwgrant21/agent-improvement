@@ -525,3 +525,30 @@ Format per `README.md` in this directory.
   system prompt would therefore reuse stale recordings; the defect was caught
   before the first corpus recording, avoiding a corrupted baseline.
 - Added: 2026-09-04 (home-matt)
+
+### If a value type cannot represent "absent", every missing input becomes a confident zero
+
+- A field typed as a plain number has no way to say "not measured". Give it missing
+  data and it reports 0 - which renders identically to a real, observed zero, in the
+  UI and in every downstream sum. The failure is in the TYPE, upstream of any
+  fallback logic: no amount of care at the call site recovers a distinction the type
+  discarded.
+- What to do: make absence representable and make the compiler enforce it - a
+  nullable field, or distinct types whose FIELD NAMES differ so one cannot be
+  substituted for the other structurally. A shared field plus an `isEstimate` boolean
+  is not equivalent: a flag is only checked if someone remembers, and it compiles
+  cleanly at exactly the call site where being wrong matters. In rendering, "no data"
+  and "0.00" must not look the same.
+- Distinct from "A fallback that fires only when the data source is UNAVAILABLE will
+  serve stale data forever" in this same file: that governs WHEN to fall back, this
+  governs whether the type can carry the answer at all.
+- Why: a confident zero is worse than an error. It propagates into totals and
+  averages that look plausible, so nothing downstream flags it and no one goes
+  looking.
+- Evidence: 2026-09-07/08 overnight quota-cost session (1126a512), independently in
+  TWO repos - a cost function returned $0.00 when it had no rate for the model, and a
+  formatter typed for numbers printed "$0.00"/"$NaN" when handed a null. Of thirteen
+  defects caught by review that session, every one was either a test that could not
+  fail or a number standing in for missing data.
+- Added: 2026-09-09 (home-matt)
+
