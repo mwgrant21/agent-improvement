@@ -249,3 +249,31 @@ modifying any loop.
   2026-08-25) had made the repo physically unable to change. Run 31's fleet-wide lock
   sweep found 0 locks, so the same reading now genuinely means idle WIP.
 - Added: 2026-08-29 (home-matt)
+
+### A "nothing found" result may arrive in a different channel than a "found something" result
+
+- When polling an external reviewer, checker, or bot for an outcome, confirm how it
+  reports the NEGATIVE case before trusting a watcher. Tools commonly report
+  findings through a rich, structured channel (a review object, an annotation, a
+  check-run conclusion) and report "all clear" through a cheap one (a plain
+  comment, a reaction, nothing at all). A watcher wired only to the rich channel
+  cannot distinguish "clean" from "still running", and both look like silence.
+- Silence is the trap. The watcher does not fail loudly - it simply never fires,
+  and the longer it waits the more it looks like a slow job rather than a blind
+  spot. Set an expectation from a known-good run ("last one took 8 minutes") so a
+  large overshoot prompts a direct check instead of more waiting.
+- What to do: poll every channel the tool can answer through, and verify the
+  answer names the artifact you asked about - a clean verdict carrying a stale
+  commit SHA is not a clean verdict on what you pushed. Do not infer the negative
+  case from the tool's own documentation; the docs and the behaviour can differ.
+- Evidence: 2026-09-09 session (aether-os PR #75, home-matt) - a monitor polled
+  `PullRequestReview` objects for the Codex verdict and timed out after 45 minutes
+  against a prior round's 8-minute baseline. Codex had answered at 7 minutes with
+  a plain PR comment ("Codex Review: Didn't find any major issues", `Reviewed
+  commit: ca7cd18a1c`) and submitted no review record. Its own help text claims it
+  reacts 👍 when it has no suggestions; it commented instead, so neither the
+  review channel nor the documented reaction channel would have fired.
+  pr-review-watch's LOOP.md carried the same wrong assumption ("Only a submitted
+  review, or a 👍 on the triggering comment, is an outcome") and was corrected in
+  the same pass.
+- Added: 2026-09-09 (home-matt)

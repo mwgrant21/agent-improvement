@@ -150,3 +150,4 @@ at work).
 | testing | A test for an injectable bound must use the production ratio, not a convenient one | 2026-09-06 |
 | testing | Poll for a positive assertion; a negative assertion is the one case a fixed sleep is correct | 2026-09-06 |
 | testing | A path fixture in a plain quoted string is silently rewritten by the language's own escapes | 2026-09-09 |
+| loop-design | A "nothing found" result may arrive in a different channel than a "found something" result | 2026-09-09 |

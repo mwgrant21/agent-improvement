@@ -75,12 +75,21 @@ review findings, never posting them.
    - `gh api repos/{owner}/{repo}/pulls/{n}/comments` - a comment is new if its
      `created_at` is later than `last_comment_at`.
 
-   Three rules that are not obvious, each of which produced a wrong reading by
-   hand on 2026-09-06:
+   Four rules that are not obvious, each of which produced a wrong reading by
+   hand:
    - **A 👀 reaction is not a verdict.** It means the bot picked the job up.
-     Only a submitted review, or a 👍 on the triggering comment, is an outcome.
      Treating any reaction as a result reports "done" while it is still
      thinking.
+   - **A CLEAN verdict is an issue COMMENT, not a review record.** When Codex
+     finds nothing it posts a plain PR comment - "Codex Review: Didn't find any
+     major issues." with a `Reviewed commit:` SHA - and submits no
+     `PullRequestReview` at all. So a watcher polling only `reviews` sees
+     nothing and cannot tell a clean result from a job still running; silence
+     is not evidence either way. Match the `Reviewed commit:` SHA against the
+     PR head before believing it - a clean verdict on a stale commit is not a
+     clean verdict on what you pushed. (Codex's own blurb claims it reacts 👍
+     when it has no suggestions; on 2026-09-09 it commented instead. Poll for
+     both, and never wait on the 👍 alone.)
    - **`commit_id` on an inline comment is not proof of a re-review.** GitHub
      re-anchors comments onto newer commits when their lines still resolve, so
      an old finding can appear to be attached to the newest commit. Trust the
