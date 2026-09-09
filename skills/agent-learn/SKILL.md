@@ -24,6 +24,9 @@ machines (`mwgrant21` home, `matthewgr` work).
   records the Stop hook appends. Gitignored, local only.
 - `~/agent-improvement/candidates/dropped.log` - below-threshold candidates, logged
   and discarded. Gitignored.
+- `~/agent-improvement/candidates/promoted.log` - the written falsification attempt
+  behind each promotion (Part D of the rubric). Gitignored via `candidates/`, so it
+  is a per-machine audit trail, not shared state.
 - `~/agent-improvement/local-state.json` - gitignored:
   `{"machineId": "...", "lastProcessedSession": "..."}`.
 
@@ -62,16 +65,29 @@ before the user's own work. Keep it fast and silent unless something lands.
    `references/grading-rubric.md`) to produce candidate lessons:
    `[PATTERN]` / `[VIOLATION]` / `[NOVEL]` / `[IMPROVEMENT]`. A session may yield
    zero - most do. Do not invent lessons to fill a quota.
-3. GRADE each candidate on the three axes (generality, evidence, non-redundancy) and
-   dedup against the relevant `domains/<domain>.md` -> NEW / UPDATE / SKIP. Only
-   NEW/UPDATE that clear the threshold pass the gate.
-4. `git pull --rebase`, then PROMOTE survivors: append/UPDATE the domain file entry
-   and add/refresh its `LESSONS.md` row + `last-updated` date. Log every dropped or
-   SKIP'd candidate as one line in `candidates/dropped.log` (so nothing vanishes
-   without a trace) - dropped.log is NOT synced.
-5. Truncate the buffer to empty and set `lastProcessedSession` to the newest
+3. GRADE each candidate (see `references/grading-rubric.md`), in this order:
+   a. **Correctness first.** Does the stated rule actually follow from what
+      happened? A candidate can be genuinely evidenced and still draw the wrong
+      conclusion - that combination is the most dangerous one in the store,
+      because the evidence makes it look verified. Fail here -> drop immediately,
+      without grading quality.
+   b. **Then quality** on the three axes (generality, evidence, non-redundancy),
+      dedup against `domains/<domain>.md` -> NEW / UPDATE / SKIP.
+4. ADVERSARIAL GATE - for each survivor, make one real attempt to falsify it and
+   write the attempt down. Name the strongest counter-case, say why it does not
+   sink the lesson. "Seems fine" does not satisfy this gate; the written attempt
+   is the deliverable. This is the step that stops the promote pass from being a
+   maker verifying its own work, which `LESSONS.md` already forbids everywhere
+   else. A counter-case that DOES sink a lesson is a success - drop it with
+   `dropped: adversarial (<counter-case>)`.
+5. `git pull --rebase`, then PROMOTE survivors: append/UPDATE the domain file entry
+   and add/refresh its `LESSONS.md` row + `last-updated` date. Append the
+   falsification attempt to `candidates/promoted.log` (not synced). Log every
+   dropped or SKIP'd candidate as one line in `candidates/dropped.log` (so nothing
+   vanishes without a trace) - dropped.log is NOT synced.
+6. Truncate the buffer to empty and set `lastProcessedSession` to the newest
    `session_id` processed in `local-state.json` (not committed).
-6. Commit + push per git discipline. Report ONE compact line per promoted lesson,
+7. Commit + push per git discipline. Report ONE compact line per promoted lesson,
    e.g. `[app-dev] Electron ACL fix needs elevation check -> domains/app-dev.md (NEW)`.
    If nothing passed, stay silent (automatic) or say "N sessions reviewed, nothing
    worth promoting" (manual).

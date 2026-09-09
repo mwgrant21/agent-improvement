@@ -21,7 +21,11 @@ loops/<loop-name>/
 | level | 1=report-only, 2=propose (worktree/draft PR, no merge), 3=autonomous within allowlist |
 | paused | KILL SWITCH. true -> every runner exits silently before any work |
 | attempt_cap | max fix attempts per item before escalating (L2+) |
-| budget | `soft` or a token number; enforced at L2+ (breach -> paused: true) |
+| budget | `soft` or a token number; enforced at L2+. On breach: downshift if the loop
+  declares `on_budget_breach: downshift`, else `paused: true` (the default) |
+| on_budget_breach | `pause` (default) or `downshift` - see "Budget that downshifts" below |
+| exit_criterion | for a loop that iterates to convergence: the NAMED condition that ends it |
+| isolation | `session` (default), `subagent`, or `sandbox` - see "Execution isolation" |
 | last_run | YYYY-MM-DD of last completed run (gates once-per-day loops) |
 | runs_since_retro | counter; at >= 10 the next run is a retrospective |
 | constrained_scopes | list of `{scope, reason, since, reconsider}` objects - sources/finding-types currently narrowed without pausing the whole loop. Empty list by default. See Intervention ladder. |
@@ -115,6 +119,71 @@ last run") are self-bounding and get a row saying so rather than a number.
   Budget breach at L2+ -> set `paused: true` immediately.
 - Humans mark false positives by annotating items in the STATE.md body
   (Recent Noise / Human Decisions); the loop counts them next run.
+
+## Budget that downshifts, not only halts
+
+`budget` today can do exactly one thing on breach: stop the loop. A budget that can
+only halt is strictly less useful than one that can also route cheaper -- the work
+still needs doing, and pausing defers the cost rather than reducing it.
+
+A loop may declare `on_budget_breach: downshift`. On breach it then, in order:
+
+1. Drops to the cheapest model that can still do the task (see the four-tier policy
+   in `~/.claude/CLAUDE.md`), and records `downshift` in the run line's `notes`.
+2. Widens its own interval, if it has one, rather than dropping work.
+3. Only pauses if neither is possible.
+
+`pause` stays the default, because downshifting silently is its own failure mode: a
+loop quietly producing cheaper, worse output for a week is harder to notice than one
+that stopped. A loop that downshifts MUST say so in its digest, every run, until the
+budget resets.
+
+**Route on remaining budget, not only on task complexity.** The model-tier policy
+picks a tier from what the task needs. That is the right question only while the
+budget is not the binding constraint. A loop that will exhaust its top tier partway
+through a queue should restructure the work up front -- cheap tier for triage, top
+tier for the few items triage flags -- rather than run at full cost until it is cut
+off mid-queue with the remainder unprocessed.
+
+## Terminating review loops
+
+A loop that iterates until something "looks done" has no defined end and will either
+stop early or run forever. Any loop that reviews-then-fixes-then-reviews MUST declare
+an `exit_criterion` naming the condition that ends it, in terms the loop can evaluate
+without judgment. Examples that qualify:
+
+- "no findings at severity P1 or P2 remain"
+- "two consecutive review passes produce zero new findings"
+- "`attempt_cap` reached" (the existing escape hatch, which is a floor, not a plan)
+
+"Until it looks good" and "until the reviewer is satisfied" do not qualify. Pair the
+criterion with `attempt_cap`: the criterion is how the loop succeeds, the cap is how
+it gives up. A loop with only a cap has no success condition, and one with only a
+criterion cannot fail safely.
+
+Evidence this is needed: a review-and-fix cycle run by hand on 2026-09-08/09 (Codex
+on PR #75) produced a new finding on every one of four passes, several of them in the
+fixes from the previous pass. Nothing in the setup defined when to stop; the human
+called it. That decision should have been declared up front.
+
+## Execution isolation (orthogonal to level)
+
+The L1/L2/L3 ladder governs **what a loop may decide**. It says nothing about **where
+its code runs** -- an L3 loop today executes with the full authority of the session
+that hosts it. Those are independent axes and conflating them means a loop earns
+execution privilege by demonstrating good judgment, which does not follow.
+
+Declare `isolation` alongside `level`:
+
+| Value | Meaning |
+|---|---|
+| `session` | Runs with the host session's authority. The default, and what every loop does today. |
+| `subagent` | Runs in a subagent with a restricted tool set. Cannot touch what it was not given. |
+| `sandbox` | Runs where filesystem and network are confined independently of the harness. |
+
+A high level does NOT imply a permissive isolation, and a restrictive isolation does
+not cap the level: an L3 loop with real decision authority can still be confined to a
+subagent that can only read and report. Record both; neither implies the other.
 
 ## Intervention ladder
 

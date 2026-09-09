@@ -363,3 +363,28 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   branch policy prohibits the merge") surfaced it; the terminal had reported
   success.
 - Added: 2026-09-06 (home-matt)
+
+### Write a script to inspect many files, rather than reading them all
+
+- When a question spans more than a handful of files, write one command or short
+  script that answers it and prints only the answer, instead of reading each file
+  into context. Reserve full reads for files whose content you actually need to
+  reason over line by line.
+- Why: context spent on file bodies is context unavailable for the work. One
+  `grep`/`python` call can replace ten reads and returns a fraction of the
+  tokens. We already do this by instinct and inconsistently, which is the
+  problem - an instinct applies when it happens to fire, a written preference
+  applies every time.
+- Caveat that keeps it honest: a script answers the question you encoded, not the
+  question you had. When the result will drive a decision that is expensive to
+  unwind, spot-check a couple of the underlying files before trusting the
+  aggregate - a matcher bug reads exactly like a clean result.
+- Evidence: 2026-09-09 session - a `python` walk computed the full 17-package
+  transitive closure of an npm dependency and its on-disk size in one call,
+  where reading the manifests would have taken seventeen; and a `du`/`ls` sweep
+  located a 285MB orphaned npm staging directory that no file read would have
+  surfaced. The same session also shows the caveat: a glob matcher written for
+  a coverage check was silently wrong (`**/` compiled so it could not match at
+  the top level) and would have made its assertion vacuous had a second test not
+  pinned the matcher itself.
+- Added: 2026-09-09 (home-matt)
