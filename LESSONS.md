@@ -22,6 +22,8 @@ at work).
 | powershell | Validate extracted config values before using them in a comparison | 2026-07-14 |
 | verification | Inspect the artifact itself, not proxies (git history, hashes) | 2026-07-13 |
 | tooling | Write a script to inspect many files, rather than reading them all | 2026-09-09 |
+| git | A conflicted PR does not fail CI - it stops CI running at all | 2026-09-09 |
+| tooling | The Bash tool collapses doubled backslashes, even in a quoted heredoc | 2026-09-09 |
 | loop-design | Never let the maker verify its own work | 2026-07-13 |
 | loop-design | Hard attempt cap, then escalate | 2026-07-13 |
 | loop-design | Triage output must be structured, not narrative | 2026-07-13 |

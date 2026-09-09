@@ -111,6 +111,17 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
 - What to do: before trusting any such snapshot, DIFF it against the live file
   rather than reading its commit date; a snapshot can be days stale in content
   while looking maintained. Then fix the recipe, not just the drift.
+- UPDATE 2026-09-09: **direction is not uniform, so never sync wholesale.** The
+  original entry assumes the snapshot is the stale side. It is not always: a sweep
+  of ~/agent-improvement's distributed copies against ~/.claude found three drifted
+  files, TWO of them newer in the store and one newer live. A blanket sync either
+  way would have destroyed real work. The pattern behind it: files maintained by
+  the other machine or by tooling go store-ahead, while files a human edits in
+  place go live-ahead - which is why direction has to be settled per file, from
+  CONTENT, not from mtime (an mtime changes when a file is copied, so a stale copy
+  can look freshly updated). Newer content usually announces itself: a comment
+  citing a dated incident, a guard referencing a bug. `tools/store-sync/check-distributed.sh`
+  reports both sides and deliberately refuses to pick.
 - Why: the drift is invisible from the side that matters. The machine that needs
   the config never sees a missing push - it just quietly runs an old
   configuration, and the failure surfaces as "why doesn't my hook exist over
@@ -388,3 +399,29 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   the top level) and would have made its assertion vacuous had a second test not
   pinned the matcher itself.
 - Added: 2026-09-09 (home-matt)
+
+### The Bash tool collapses doubled backslashes - including inside a QUOTED heredoc
+
+- Doubled backslashes are collapsed to one before the command runs. A quoted
+  heredoc (`<<'PY'`) does NOT protect them, which is the surprising part: quoting is
+  exactly the mechanism you would reach for to pass bytes through untouched, and it
+  does not work here. A Python raw string inside that heredoc does not save it
+  either - the collapse happens before Python ever sees the text.
+- Consequence: a regex character class written as `[\\/]` reaches the file as
+  `[\/]`, which silently stops matching backslashes. It compiles, it looks right in
+  a diff, and on Windows paths it matches nothing.
+- What to do: write files containing backslashes with the Write or Edit tool, whose
+  arguments are not shell-parsed. When a script must generate them, build the
+  character from `chr(92)` rather than a literal. Verify by reading the bytes back
+  programmatically - not by eye and not with a grep whose own pattern went through
+  the same collapse, which will appear to confirm the wrong content.
+- Why: it fails silently in the direction that looks correct, and the natural
+  verification (grep for the pattern) is subject to the identical corruption, so it
+  agrees with the bug.
+- Evidence: 2026-09-09 session, three occurrences. A `toUnpackedPath` regex reached
+  disk as forward-slash-only and would have shipped a Windows-only bug had an
+  ablation test not caught it; a `grep -F` check for the correct form matched the
+  incorrect file because the pattern collapsed identically; and a heredoc containing
+  a lone doubled backslash produced a Python SyntaxError on an unterminated string.
+- Added: 2026-09-09 (home-matt)
+

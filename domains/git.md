@@ -153,3 +153,28 @@ and does not prove. Format per `README.md` in this directory.
   request". Recovered by restoring `fix/flaky-fleet-heartbeat-test` at `2bfeae1`,
   reopening, retargeting, and re-deleting the branch.
 - Added: 2026-09-06 (home-matt)
+
+### A conflicted PR does not fail CI - it stops CI running at all
+
+- A workflow triggered on `pull_request` builds against the PR's MERGE REF. When the
+  PR conflicts with its base, no merge ref can be produced and the workflow never
+  fires. Nothing reports a failure, because nothing ran. Judge CI by the check
+  ROLLUP COUNT, not only by whether any check failed: "0 failing" and "not running"
+  look identical from a failure list.
+- Scope condition: this bites when the workflow's only applicable trigger is
+  `pull_request`. A `push:` trigger that also matches the branch keeps running and
+  masks the symptom, so check the workflow's triggers before concluding.
+- What to do: on any "CI seems quiet" symptom, read `mergeStateStatus` first. DIRTY
+  means conflicts, which means no CI - resolve the conflict and the runs return by
+  themselves.
+- Why: merging one PR silently breaks CI on every other open PR that touches a
+  common file. The second PR looks green-ish (no failures listed) while being
+  entirely unverified, which is more dangerous than a red build.
+- Evidence: 2026-09-09 session, Aether-OS PR #75. Merging #74 to master left #75
+  conflicting on `.gitignore`; commit 27f4907 received NO CI run and the check
+  rollup silently fell from 10 checks to 4, while zero checks reported failure.
+  Merging master back in restored the merge ref and CI ran green on the next push,
+  rollup back to 10. Both directions observed, and other workflows ran on the same
+  commit, ruling out a runner outage.
+- Added: 2026-09-09 (home-matt)
+
