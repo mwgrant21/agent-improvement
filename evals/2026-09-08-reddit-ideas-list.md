@@ -30,6 +30,45 @@ agent-designer, agent-learn, android-development, evaluate-repo, find-skills,
 frontend-design, humanizer, loop-design, penpot-uiux-design, skill-designer). Either it
 is home-machine-only or the note is wrong. Flagged, not assumed.
 
+## Vantage-point caveat — added 2026-09-09 from Claude Code on home-matt
+
+This evaluation was produced **from the GUI**, against a different environment than
+Claude Code sees. That is not a defect in the reasoning, but it bounds which of its
+verdicts can be used as-is.
+
+Measured on home-matt: the report inventories **10** skills; Claude Code here has **21**.
+Six overlap (`agent-designer`, `agent-learn`, `evaluate-repo`, `humanizer`, `loop-design`,
+`skill-designer`). Four it lists are absent from Code here (`android-development`,
+`find-skills`, `frontend-design`, `penpot-uiux-design`). **Fifteen Code skills were
+invisible to it**, including `runtime-router`, `mutation-test`, `port-gap`,
+`mcp-server-adopter`, `sdd-tracking`, `doubt-driven-review`, `ps-codex`, `interview-me`.
+
+So the verdicts split by source:
+
+- **Sound** — anything drawn from `~/agent-improvement/` (`loops/README.md`, `LESSONS.md`,
+  `domains/`, `prototyping-tasks/`). That store is git-synced, so both surfaces read the
+  same bytes. The two top-ranked adoptions (#2 adversarial promotion, #4 quota axis) rest
+  entirely on those files and stand unchanged.
+- **Needs a Code-side re-check** — every "our equivalent" cell that names a skill or agent.
+  A verdict of "we have nothing" or "worse" may only mean the GUI could not see it. This
+  applies to #4, #6, #12 and #19 at minimum.
+
+Two specific items re-checked from Code on 2026-09-09:
+
+- **`matt-writing-voice` (report's "factual error about our own setup").** The skill does
+  not exist on either machine, so that much is right -- but the *capability* does, which
+  the report could not see: `voice-profiles/` in this store holds `matt-default.md` and
+  `matt-jira.md` (plus portable variants), wired into humanizer's Voice Calibration section
+  and specified in `docs/specs/2026-08-15-voice-profile-persistence-design.md`.
+  reddit-ideas.md was right in substance, wrong in form. Do not carry "the note is wrong"
+  forward.
+- **Adoption #1's premise (humanizer has no scripts).** The file inventory in that section
+  does not describe Code's humanizer here, which is a symlink to `~/.agents/skills/humanizer`
+  and does contain `scripts/`, `agents/` and `docs/` (and no `WARP.md`). The premise
+  nevertheless **holds**: `scripts/validate-package.py` validates the skill's own package
+  surfaces, not prose. There is still no deterministic detector pass, so #1 remains valid --
+  on verified evidence rather than the inventory quoted there.
+
 ## Summary
 
 Nineteen ideas spanning agent messaging, model routing, config versioning, context

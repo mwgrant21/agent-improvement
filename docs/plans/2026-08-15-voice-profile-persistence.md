@@ -529,6 +529,15 @@ git push
 
 - [ ] **Step 1: Replace the Voice Calibration section**
 
+> **[2026-09-09] The replacement text below is HISTORICAL and has since drifted.**
+> The live section was later refined -- this copy still says the register file and
+> `matt-default.md` "apply both together", where live now reads "follow the register
+> file's own stated precedence ... Do not blindly merge both in full". Restoring from
+> here would silently reinstate the blind-merge behaviour the current text prevents.
+> For recovery use `forks/humanizer-voice-calibration.md`, which is kept verbatim and
+> carries a drift check. This plan is left unedited as a record of what was done then.
+
+
 Find this exact existing text in `C:\Users\Matt\.claude\skills\humanizer\SKILL.md` (lines 30-38):
 
 ```markdown
