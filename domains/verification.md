@@ -354,7 +354,20 @@
   rounds, nine real findings, all in `submitPatch`'s apply/rollback path, several
   involving silent data loss. Moving the canonical repo to bare removed
   `untrackedCollisions` and `syncWorkingTree` outright.
-- Added: 2026-08-21 (work-it)
+- Sharper variant, and the strongest form of the signal: a round finds a defect
+  that the PREVIOUS round's fix introduced. That is no longer "the design has
+  more edge cases than we enumerated" - it is "the fix surface itself is
+  generating them", and the count will not converge by patching. Treat the first
+  self-inflicted finding as the trigger to stop and reconsider the shape, not as
+  round N+1.
+- Evidence: 2026-09-09 session (aether-os PR #75, home-matt) - round 5 fixed an
+  uninstall that trusted a case-sensitive `includes()` substring test, by adding a
+  "this belongs to a second live install, leave it alone" guard. Round 6 found
+  that the new guard swallowed a merely differently-CASED spelling of the current
+  install, so the uninstaller would report success and then delete the script out
+  from under a live command - a worse failure than the one round 5 fixed, in code
+  one hour old. Six rounds, all on the same ~120-line statusline ownership path.
+- Added: 2026-08-21 (work-it), evidence extended 2026-09-09 (home-matt)
 
 ### Make a shared helper fail loudly, then let the failures enumerate its call sites
 

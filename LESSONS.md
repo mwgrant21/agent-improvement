@@ -149,3 +149,4 @@ at work).
 | git | Retarget a stacked PR before merging its parent with --delete-branch, or GitHub closes it | 2026-09-06 |
 | testing | A test for an injectable bound must use the production ratio, not a convenient one | 2026-09-06 |
 | testing | Poll for a positive assertion; a negative assertion is the one case a fixed sleep is correct | 2026-09-06 |
+| testing | A path fixture in a plain quoted string is silently rewritten by the language's own escapes | 2026-09-09 |

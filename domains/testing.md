@@ -393,3 +393,36 @@ itself). Format per `README.md` in this directory.
   was non-negative, while the task it guarded existed to prevent double-counting.
 - Added: 2026-09-09 (home-matt)
 
+
+### A path fixture in a plain quoted string is silently rewritten by the language's own escapes
+
+- A Windows path written as an ordinary quoted literal in a test is not the string
+  you typed. The language consumes the backslash sequences first: in JS,
+  `'C:\Program Files\Aether OS\resources\scripts\aether-statusline.mjs'` becomes
+  `C:Program FilesAether OS<CR>esourcesscriptsaether-statusline.mjs` - `\r` is a
+  carriage return and the rest of the backslashes are simply gone. The fixture is
+  now a value the system under test can never receive.
+- The tests still pass, which is what makes it dangerous. Both sides of the
+  assertion use the same mangled constant, so any code that just carries the string
+  around agrees with itself. The fixture only betrays itself when something finally
+  INSPECTS the value's structure - a path parser, a separator split, a basename
+  check - and correctly refuses to recognise it.
+- What to do: write path fixtures with `String.raw` (JS/TS), `r''` (Python), `@""`
+  (C#), or single quotes (PowerShell) - or build them with `join()`. When a strict
+  new parser suddenly "breaks" several long-passing tests, suspect the fixture
+  before the parser: check whether the constant contains any separator at all.
+- Why: it defeats review twice over. The literal reads correctly in the diff
+  because the reader mentally applies no escaping, and the green suite certifies
+  behaviour that was never exercised against a realistic input. Distinct from
+  [[the Bash tool collapses doubled backslashes]] in tooling.md - that one is the
+  transport mangling a string in transit; this one is the source file's own
+  literal syntax, and it survives in the committed code.
+- Evidence: 2026-09-09 session (aether-os PR #75, home-matt) -
+  `statuslineUninstallCli.test.ts`'s `SCRIPT_PATH` had been a plain quoted string
+  since the file was written. Adding `parseOwnStatuslineCommand` as an ownership
+  gate made three long-passing tests fail, because the parser's
+  `split(/[\/]/)` leaf check correctly rejected a "path" with zero separators.
+  The parser was right; the fixture had always been wrong. `String.raw` fixed it,
+  and the same file's other tests then exercised a real Windows path for the first
+  time.
+- Added: 2026-09-09 (home-matt)
