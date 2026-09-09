@@ -296,6 +296,44 @@ L2 also requires worktree isolation. Not active at L1.
      `~/agent-improvement/candidates/<machineId>-buffer.jsonl`, days since the
      newest `Added:` date across `domains/*.md` (> 7 -> note it), and whether
      `git -C ~/agent-improvement status -sb` shows ahead/behind or dirty.
+     - **Distributed-file drift** (added 2026-09-09): run
+       `bash ~/agent-improvement/tools/store-sync/check-distributed.sh`. This
+       compares the store's `skills/` and `hooks/` copies against the live
+       files under `~/.claude/` and REPORTS ONLY - it never writes to either
+       side, so it needs no carve-out from this loop's L1 boundary.
+       - **Skills drift is a finding on every machine.** The `Skill` tool
+         always loads from `~/.claude/skills/`, so a `DRIFT` line means a
+         change already committed to the store is not yet active here.
+         Report each drifted file as one Watch List item: `store-sync drift:
+         <path> (store <N>L/<date> vs live <N>L/<date>) - reconcile with the
+         script's printed diff command`.
+       - **Hooks are not always distributed-copy - check `settings.json`
+         first, per machine, before treating a hook line as a finding.** If
+         this machine's `~/.claude/settings.json` invokes that hook directly
+         from the store path (`agent-improvement/hooks/<name>` appears in
+         its `command` field), the hook has no live copy to compare and a
+         `MISSING LIVE` line for it is EXPECTED - state once, in one line,
+         "hooks run directly from the store on this machine" and do not
+         list any of them as findings. If the hook's command instead points
+         at a `~/.claude/hooks/` copy (or the pattern is absent), a `DRIFT`
+         or `MISSING LIVE` line for it is real and escalates straight to
+         **High Priority**, not Watch List - a stale copy-based hook can be
+         silently RUNNING broken logic, not merely inactive.
+         Rationale: on 2026-09-09 two of the three files this script was
+         written to catch were exactly that - `capture-lesson-buffer.ps1`
+         was seven weeks stale on `home-matt` and silently wrote unusable
+         records for any session whose cwd was a project directory (62 of
+         194 buffered records affected there). The script made the sweep
+         repeatable, but nothing ran it again until this loop was wired to
+         it. Same class of per-machine assumption as `domains/loop-design.md`,
+         "A loop must assert its scan root exists" - work-it's hooks run
+         directly from the store (verified against `settings.json` the day
+         this check was added), so the identical `MISSING LIVE` output means
+         something different here than it would on a copy-based machine.
+       - If the script itself fails to run (missing, `bash` unavailable),
+         report `store-sync drift check unavailable: <reason>` as one line
+         and move on - do not fail the run over it (Operational failure
+         ladder, tier 4, `loops/README.md`).
    - **Local repo hygiene**: DISCOVER the repos, never hardcode a root
      (revised by the 2026-08-06 retrospective, refinement 3). The previous
      protocol scanned `~/projects/*`, which does not exist on `work-it` at
