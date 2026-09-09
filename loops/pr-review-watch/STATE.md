@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-09-06
-runs_since_retro: 3
+last_run: 2026-09-08
+runs_since_retro: 4
 constrained_scopes: []
 ---
 ## State Ownership
@@ -47,6 +47,15 @@ than one machine's read marking the other's as seen.
 
 ## Watch List
 
+- **Aether-OS#75 — Local Windows packaging (electron-builder + NSIS).** Two
+  Codex threads still unresolved: `build/installer.nsh:14` (P1, statusline not
+  removed on NSIS uninstall) and `package.json:19` (P2, AppContainer ACE not
+  granted for `--dir` builds). Both were remediated in `badd161` and verified
+  against the tree on 2026-09-08 (customUnInstall macro guarded on
+  `${isUpdated}`; `dist:dir` chains `grant-appcontainer-acl.js`), but Codex has
+  not re-reviewed since, so the threads stand open and the PR reads BLOCKED
+  while all 10 checks are green. Awaiting a human-posted `@codex review`.
+
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
 
@@ -82,3 +91,6 @@ than one machine's read marking the other's as seen.
   landed; the human decides whether to ask for more.
 
 ## Resolved since last run
+
+- **2026-09-08 — Aether-OS#74 merged** (`07f9639`, squash). All 4 Codex threads
+  resolved, 10/10 checks green. Pruned from the cursor this run.
