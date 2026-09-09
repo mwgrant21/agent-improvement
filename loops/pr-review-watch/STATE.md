@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-09-08
-runs_since_retro: 4
+last_run: 2026-09-09
+runs_since_retro: 5
 constrained_scopes: []
 ---
 ## State Ownership
