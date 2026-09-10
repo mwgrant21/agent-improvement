@@ -425,3 +425,29 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   a lone doubled backslash produced a Python SyntaxError on an unterminated string.
 - Added: 2026-09-09 (home-matt)
 
+
+### A usage counter that counts loads, not calls, will recommend keeping the thing you never use
+
+- `pluginUsage.usageCount` in `~/.claude.json` is the obvious field to sort by when
+  deciding which Claude Code plugins to prune. It does not count invocations. It
+  increments on startup asset scans, and it keeps incrementing for plugins that are
+  DISABLED - which by definition cannot have been invoked at all.
+- Consequence: on 2026-09-10 the disabled `model-apps` plugin ranked second on the
+  whole machine at 2355 "uses" with a `lastUsedAt` timestamp from that same morning,
+  above heavily-used `superpowers` at 341. Sorting by this field to find dead weight
+  ranks the deadest weight at the top and reads as a strong keep signal.
+- What to do: for skills, use `skillUsage` in the same file, which does record real
+  invocations by name. For MCP servers, count actual tool calls by scanning the
+  transcripts under `~/.claude/projects` for a tool_use whose `name` begins with
+  `mcp__<server>__`. Do not settle for grepping the server NAME - it appears in the
+  system-prompt tool listing echoed into every transcript, so a dead server shows
+  100+ "mentions" and looks alive. Name mentions and tool_use records differ by two
+  orders of magnitude on the same server.
+- Why: the field name promises exactly the semantics the task needs, so it invites
+  being trusted without a sanity check. The check that exposes it is cheap and
+  general: cross-reference the metric against a fact you already know
+  (enabled/disabled state) and confirm the two can coexist. They could not here.
+- Evidence: 2026-09-10 (work-it), MCP/plugin cleanup pass. Transcript scan of 578
+  files found 0 real invocations for `codebase-memory`, `git-arbiter`, `marm`,
+  Microsoft 365 and Context7, against 113/100/143/54/66 bare name mentions.
+- Added: 2026-09-10 (work-it)
