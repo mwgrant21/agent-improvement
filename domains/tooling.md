@@ -451,3 +451,29 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   files found 0 real invocations for `codebase-memory`, `git-arbiter`, `marm`,
   Microsoft 365 and Context7, against 113/100/143/54/66 bare name mentions.
 - Added: 2026-09-10 (work-it)
+
+### npx overhead is the spawn, not the version lookup - pinning a version does not fix it
+
+- The intuitive read of a slow `npx -y pkg@latest` is that `@latest` costs a registry
+  round-trip, so pinning an exact version should make it fast. Measured on 2026-09-10:
+  `npx -y ccstatusline@latest` averaged 1865ms and `npx -y ccstatusline@2.2.29`
+  averaged 1934ms - the pinned form was marginally SLOWER. The cost is npx's own
+  resolution and spawn machinery, which a pin does not avoid.
+- Consequence: pinning looks like a fix, ships as a fix, and changes nothing. It is
+  worse than no change, because the number now carries a comment claiming it was
+  optimised and the next person does not re-measure.
+- What to do: install the package globally and invoke the binary or its entry script
+  directly. Same workload went to 338ms via `node <entry>.js` and 362ms via the PATH
+  shim - 5.5x faster than npx. Prefer the PATH shim when the config is synced across
+  machines, since an absolute path under one home directory will not resolve on
+  another; document the `npm i -g` prerequisite, and do NOT paper over it with an
+  `|| npx ...` fallback, which hides a missing install behind exactly the cost being
+  removed.
+- Why: this is the general "measure the uncached path before adding a cache" discipline
+  pointed at a different target. The hypothesis was stated, it was plausible, and it was
+  wrong - and a single measurement separated the two before any config was edited. When
+  a fix is cheap to measure, measure it rather than reasoning about it.
+- Evidence: 2026-09-10 (work-it), statusLine cleanup. Three runs per variant. The
+  original hypothesis (pin the version) was proposed to the user and then withdrawn on
+  the measurement.
+- Added: 2026-09-10 (work-it)
