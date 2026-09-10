@@ -5,7 +5,7 @@ paused: false
 attempt_cap: 3
 budget: soft
 last_run: 2026-09-10
-runs_since_retro: 10
+runs_since_retro: 0
 constrained_scopes: []
 ---
 ## State Ownership
@@ -44,6 +44,20 @@ than one machine's read marking the other's as seen.
 <!-- Human-added only (Intervention ladder step 2). Empty by default. -->
 
 ## High Priority (waiting on human)
+
+Carried from the 2026-09-10 retrospective. Both were proposed and DECLINED this
+round - recorded here so a later run does not rediscover them as if they were new.
+
+- **R3: `check.mjs` cannot see a Codex CLEAN verdict.** It polls
+  `/pulls/{n}/reviews` and `/pulls/{n}/comments`; a clean Codex result arrives as
+  an `/issues/{n}/comments` entry with a `Reviewed commit:` SHA. LOOP.md step 3
+  names this case explicitly, and `domains/loop-design.md` carries the general
+  lesson, but the script has never implemented either. Consequence: a clean
+  verdict and a job still running are indistinguishable to this loop.
+- **R5: the attempt cap is decorative for adjustments.** The stale-Watch-List
+  item was re-proposed across 6 consecutive runs against `attempt_cap: 3` and was
+  never escalated here. Nothing in step 5 requires a runner to count prior
+  occurrences of an adjustment, so the cap has no mechanism behind it.
 
 ## Watch List
 

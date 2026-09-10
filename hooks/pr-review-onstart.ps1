@@ -32,7 +32,11 @@ try {
     if (Test-Path $cursorPath) {
         try {
             $cursor = Get-Content $cursorPath -Raw | ConvertFrom-Json
-            $n = @($cursor.prs).Count
+            # ConvertFrom-Json yields a PSCustomObject, and @(<one object>).Count is 1 for
+            # ANY content - empty or twenty PRs. That made this note a constant reporting
+            # '1 tracked PR(s)' against an empty cursor for the loop's whole life.
+            # Count the PROPERTIES instead. R4, retrospective 2026-09-10.
+            $n = @($cursor.prs.PSObject.Properties).Count
             $cursorNote = "cursor has $n tracked PR(s)"
         } catch {
             $cursorNote = 'cursor unreadable; treat as first run and rebuild it'

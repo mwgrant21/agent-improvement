@@ -210,3 +210,29 @@ ps-script-learner. Reusable CODE patterns stay in codex.md / the `ps-codex` skil
   SARAHC_L3 prescan capture, taken while the machine was blocked, contradicted the
   comment directly.
 - Added: 2026-09-02 (work-it)
+
+### Counting a ConvertFrom-Json object with @(...).Count returns 1 for every possible input
+
+- `ConvertFrom-Json` turns a JSON object into a PSCustomObject, not a hashtable and not
+  a collection. Wrapping one in `@(...)` produces an array containing that single
+  object, so `.Count` is 1 whether the JSON held zero keys or twenty. It is a constant
+  wearing the shape of a count.
+- Consequence: a status line built this way reports the same number forever and reads
+  as plausible the entire time. `pr-review-onstart.ps1` announced "cursor has 1 tracked
+  PR(s)" at every session start for the life of the loop - against a cursor holding
+  `{}`. It sent a session chasing a tracked PR that did not exist, and it would equally
+  have hidden nineteen of twenty real ones.
+- What to do: count the PROPERTIES - `@($obj.PSObject.Properties).Count`. If the JSON
+  is genuinely a map you will iterate, convert it explicitly with
+  `ConvertFrom-Json -AsHashtable` (PS 7+) or walk `PSObject.Properties` directly. Prove
+  a counter with two fixtures that must disagree - an empty object and a 3-key object.
+  A single fixture cannot distinguish a working count from a constant, which is the
+  same trap as a test whose fixture values are all identical.
+- Why: this is the `@()` / `.Count` family already recorded for CIM objects, but it
+  fails in the opposite direction and is easier to miss. The CIM case returns `$null`
+  and tends to break a comparison loudly; this one returns a confident, believable `1`
+  and breaks nothing, so nothing ever points at it.
+- Evidence: 2026-09-10 (work-it), pr-review-watch retrospective. Proven with both
+  fixtures at once: `@($empty.prs).Count` and `@($three.prs).Count` both returned 1,
+  while `@($x.prs.PSObject.Properties).Count` returned 0 and 3 correctly.
+- Added: 2026-09-10 (work-it)

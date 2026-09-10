@@ -24,13 +24,28 @@ only platform the app targets. CI status is not review status.
 
 ## L1 boundary (what report-only means here)
 
-The loop MAY: read PRs, reviews, comments, check runs; write its own
-`cursor.local.json`; write `STATE.md` and `runs.jsonl`; report into the session.
+**"Report-only" scopes GitHub, not this loop's own bookkeeping.** Those are two
+different things and conflating them cost six consecutive runs (2026-09-09/10),
+each of which spotted a stale `STATE.md` entry, declined to fix it citing L1, and
+re-reported it instead. The rule below is rewritten so that cannot happen again.
 
-The loop MAY NOT, at any level below an explicit promotion: post a comment,
-post `@codex review`, reply to a review, resolve a thread, react, push a
-commit, merge, close, or reopen. It does not decide whether a finding is
-correct - it surfaces it and stops.
+**GitHub is strictly read-only.** The loop MAY NOT, at any level below an explicit
+promotion: post a comment, post `@codex review`, reply to a review, resolve a
+thread, react, push a commit, merge, close, or reopen. It does not decide whether
+a finding is correct - it surfaces it and stops.
+
+**The loop's own state files ARE writable, and keeping them accurate is part of
+the job, not a violation of it.** The loop MUST write `cursor.local.json`, MUST
+append to `runs.jsonl`, and MUST keep the `STATE.md` Watch List in sync with
+reality (see step 5). Pruning an entry for a PR that GitHub reports as merged or
+closed is bookkeeping the loop observed first-hand - it is not a human decision
+and does not need one.
+
+The one part of `STATE.md` the loop does NOT write is a **verdict about a
+finding**: whether a review comment is correct, whether it should be actioned, or
+whether an item can be dismissed. Those belong to the human. Moving a merged PR
+out of the Watch List is not a verdict; recording "this P1 is a false positive"
+is.
 
 ## Policy gate
 
@@ -112,6 +127,14 @@ review findings, never posting them.
      that found nothing is NOT a run line** - logging one per 10-minute tick
      would bury the log and defeat its purpose. Carry the count in
      `notes.polls_since_report` instead, so the quiet time is still visible.
+   - **Prune the Watch List in the same pass as the cursor prune (step 2).**
+     Any `STATE.md` Watch List entry whose PR is no longer in the open set has
+     been decided by GitHub, not by the loop: move it to a short "Closed since
+     last report" note with its merge/close timestamp, and say in one line
+     whether anything on it was left outstanding. Do not re-report it as a
+     finding and do not leave it sitting as though it were still open - a Watch
+     List that disagrees with GitHub is worse than an empty one, because the
+     next run trusts it.
    - `STATE.md` is committed to the shared store on the normal cadence of
      whatever session is running - this loop does not commit on its own, and
      must never leave the store dirty at the end of a session it triggered.

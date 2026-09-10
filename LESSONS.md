@@ -20,6 +20,7 @@ at work).
 | powershell | schtasks stderr becomes a terminating error under Stop | 2026-07-12 |
 | powershell | Use ASCII only in scripts | 2026-07-12 |
 | powershell | Validate extracted config values before using them in a comparison | 2026-07-14 |
+| powershell | @(...).Count on a ConvertFrom-Json object is always 1 - count PSObject.Properties | 2026-09-10 |
 | verification | Inspect the artifact itself, not proxies (git history, hashes) | 2026-07-13 |
 | tooling | Write a script to inspect many files, rather than reading them all | 2026-09-09 |
 | git | A conflicted PR does not fail CI - it stops CI running at all | 2026-09-09 |

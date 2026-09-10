@@ -87,8 +87,11 @@ for (const pr of prs) {
   const newComments = comments.filter(
     (c) =>
       c.created_at > (seen.last_comment_at ?? '') &&
-      // Our own trigger comments are requests, not feedback.
-      !(c.user?.login === owner && /^@codex\s+review/i.test(c.body ?? ''))
+      // Anything the repo owner wrote is a request or a reply of ours, never
+      // feedback TO us. Narrowing this to the @codex-review prefix produced both
+      // of this loop's false positives (runs 1 and 3, 2026-09-07): a plain reply
+      // on a review thread is still ours. R1, retrospective 2026-09-10.
+      c.user?.login !== owner
   );
 
   if (newReviews.length || newComments.length) {
