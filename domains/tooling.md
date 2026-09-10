@@ -477,3 +477,35 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   original hypothesis (pin the version) was proposed to the user and then withdrawn on
   the measurement.
 - Added: 2026-09-10 (work-it)
+
+### A build artifact deliberately shared across git worktrees is a hidden coupling between "isolated" lanes
+
+- When parallel task lanes each run in their own git worktree but share a build
+  artifact by design (e.g. a monorepo's compiled core package, kept shared so each
+  worktree does not have to install its own full dependency tree), the isolation
+  worktrees appear to give is not real for anything that depends on that artifact. A
+  lane that rebuilds/recompiles the shared package changes what every other lane's
+  tests run against mid-flight.
+- Why: the resulting failure surfaces as one lane's OWN tests going red, which reads
+  as a defect in that lane's change - not as "another lane just recompiled a
+  dependency out from under you." Diagnosing it as a local regression sends you down
+  the wrong path; the actual fix is sequencing (hold lanes that consume the shared
+  artifact until the lane editing its source has landed and the baseline is
+  re-verified green) or giving the dependency-installing task its own full copy of
+  the tree instead of sharing.
+- Mitigation used: held the four parallel lanes until the task editing the shared
+  package landed, then re-verified the baseline green before restarting them; routed
+  the one task that needed a fresh dependency install (which would require its own
+  full copy of the tree, Electron included) to run last, in the main clone, against
+  a settled tree, instead of inside a worktree.
+- Related but distinct from [[serialize-fix-implementer-dispatches-that-may-touch-shared-files]]:
+  that entry is about simultaneous writers to the same source file; this is about a
+  shared *compiled/build* artifact, where the collision shows up as a spurious test
+  failure in an unrelated lane rather than a lost edit or merge conflict.
+- Evidence: 2026-09-10 session (TokenMonitorV2 v2.0.0 multi-agent release work,
+  work-it) - four parallel worktree lanes deliberately shared the compiled core
+  package with the main clone to avoid each worktree installing its own copy of the
+  dependency tree. A lane's test failure traced back to a concurrent rebuild of that
+  shared package by another task; holding the lanes and re-verifying the baseline
+  (439+89 tests green) before restarting resolved it.
+- Added: 2026-09-10 (work-it)

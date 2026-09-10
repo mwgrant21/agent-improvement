@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-09
+last-updated: 2026-09-10
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -154,3 +154,4 @@ at work).
 | testing | Poll for a positive assertion; a negative assertion is the one case a fixed sleep is correct | 2026-09-06 |
 | testing | A path fixture in a plain quoted string is silently rewritten by the language's own escapes | 2026-09-09 |
 | loop-design | A "nothing found" result may arrive in a different channel than a "found something" result | 2026-09-09 |
+| tooling | A build artifact deliberately shared across git worktrees is a hidden coupling between "isolated" lanes | 2026-09-10 |
