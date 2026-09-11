@@ -37,7 +37,7 @@ constrained_scopes: []
      token spend, store health, and a lighter local-hygiene sweep (fetch --prune + unpushed + dirty
      + stale-lock check on 18 standalone repos, no branch_tips ahead/behind API diffing, bare-hub
      worktrees not re-verified). Flagged clearly below rather than silently presented as a full run. -->
-- **NEW - Retrospective 5 is OVERDUE and was DEFERRED this run.** `runs_since_retro` hit 10 at the start of run 41 (per LOOP.md step 0, this should have triggered the Retrospective instead of a normal run). This run executed a normal gather pass instead - the retrospective's full scope (R1 ledger reconciliation across ~44 rows, full `runs.jsonl` history analysis, numbered R2 proposals) did not fit a routine daily-check dispatch. `runs_since_retro` was deliberately left at 10 (not incremented) so this remains visibly overdue rather than silently pushed further out. [action: run the Retrospective as its own dedicated session per LOOP.md's "every 10th run" section before the next normal run] [machine: any]
+- **UPDATED 2026-09-11 (home-matt, dedicated retrospective session) - Retrospective 5's R1 (ledger reconciliation) and R2 (numbered proposals) are DONE; R3 (apply) is deliberately NOT done.** Per explicit instruction this session stopped after proposing - see "## Retrospective 5 - R1/R2 analysis" below for the full ledger standing and numbered proposals. `runs_since_retro` and `last_run` were deliberately left UNCHANGED (still 10 / 2026-09-10) so the loop's own state keeps reading "retrospective due" until a human decides the R2 proposals and R3 is actually run via the loop-design skill - only R3 resets the counter. [action: a human reviews the numbered proposals below and directs which to apply; then run R3 (apply + reset counters) as its own step] [machine: any]
 - **NEW - `agent-improvement/loops/daily-triage/STATE.md` breached the ~50KB rotation trigger.** 51,121 bytes at this run's start (run 40 measured 49,792, 208 bytes under). [action: run log-archivist rotation per the `rotate-state-md-past-50kb` adjustment's established pattern] [machine: any]
 - **RESOLVED (both) - the two run-39 sole-copy escalations are no longer sole-copy: both branches are now pushed to GitHub with an upstream.** `Aether-OS/feat/quota-normalized-cost` (SHA `72b1853`, author date 2026-09-08T12:24:02Z) and `TokenMonitorV2/feat/quota-normalized-cost` (SHA `ae53189`, author date 2026-09-08T13:20:02Z) both now appear in the GitHub branch listing and were confirmed via `git fetch --prune` on this machine's clones (`* [new branch] ... -> origin/...`) - neither is checked out locally on work-it. The `flag-branches-20-commits-ahead` no-upstream risk this ledger escalated at run 39 is CLOSED for both; see Watch List for the residual (divergence / mergeability) each now carries. [action: none required for the exposure itself] [machine: any]
 - **`Aether-OS` GitHub churn: a SECOND PR merged today without closing the 6 open issues.** PR #74 (merged 2026-09-09T03:04 UTC) and now also **PR #75 "Local Windows packaging (electron-builder + NSIS) and icon tooling"** (merged 2026-09-09T15:43:14Z, was open at run 39) both show empty `closingIssuesReferences`. Issues #65, #67, #69, #71, #72, #73 (all `atomicWrite`/`hookInstaller`) are still open, unchanged set since run 38. `#22` (white screen after desktop lock) unchanged, now 28 days idle. [action for a human: #65-73 remain unaddressed by anything currently merged or open] [machine: any]
@@ -54,8 +54,104 @@ has never been met (evaluated at 2026-08-06 held-not-promoted, 2026-08-17 NOT ME
 proposals were decided the same day (8 landed, 1 closed-moot, 2 accept-as-reported).
 Retrospective 5 triggers at `runs_since_retro >= 10`.
 
-## Adjustment ledger
-<!-- COMPRESSED 2026-08-29 by log-archivist (adjustment rotate-state-md-past-50kb). Ledger rows landed before 2026-08-28 keep their id/date/times/status here and point to their full original prose in STATE.archive-2026-08-29.md - no row was removed, so retrospective R1 still sees every landed id and none reads as REGRESSED. -->
+## Retrospective 5 - R1/R2 analysis (2026-09-11, PENDING human decision, R3 NOT applied)
+<!-- Dedicated retrospective session (home-matt), triggered because runs_since_retro hit 10 at
+     run 41 per LOOP.md step 0. Per explicit instruction this session did R1 (reconcile) and R2
+     (propose) ONLY and stopped - no LOOP.md edit, no counter reset. Step 0 audit passed first:
+     run 41's store-sync line (commit 12965ac, committed:true, pushed:true) is confirmed an
+     ancestor of this session's pulled HEAD (3f6d00b) - run 41's step 5 succeeded, no escalation
+     needed there. -->
+
+### R1 - ledger reconciliation
+Standing UNCHANGED from run 40's count: 44 rows - 39 LANDED, 2 CLOSED-MOOT, 3 OUTSTANDING, 0
+declined, 0 held, 0 ESCALATED. None of the 3 OUTSTANDING rows are at `attempt_cap` (3) yet.
+Verification method: grepped LOOP.md for each OUTSTANDING id's landing text (absent, confirmed
+still-outstanding for all 3) and spot-checked 8 of the trickiest-to-grep LANDED rows named in the
+ledger's own "Note for the next retrospective's step R1" hints (`count-reconfirmation-as-
+reproposal`, `verify-repo-can-change-before-noise-graduation`, `per-machine-spend-baseline`,
+`stale-lock-sweep-independent-of-noise-graduation`, `record-step-5-commit-push-result-in-notes`,
+`dirty-repo-cache-key-is-ambiguous-across-machines`, `adjustment-field-must-be-an-array`,
+`discover-bare-repo-worktree-hubs`) - all 8 still present, 0 regressions found in that sample.
+**Not exhaustively re-diffed: the remaining 31 LANDED rows were not individually re-grepped this
+session** (budget); no evidence of regression in any of them, but this is a real coverage gap, not
+a clean bill of health for the full 39.
+- `scope-step5-git-add-to-own-loop-paths` (first_proposed 2026-09-09/run 39) - still literal
+  `add -A` in LOOP.md step 5, still OUTSTANDING. Ledger's recorded `times_proposed` stays at **1**
+  this session deliberately, even though this session ALSO worked around it ad hoc (scoped
+  `git add` to `loops/daily-triage/` paths only at step 5, same as runs 39-41) - see R2 proposal 1
+  below for why the counter is not simply bumped here.
+- `detect-content-duplicate-branches` (first_proposed 2026-09-08) - still OUTSTANDING,
+  `times_proposed:1`, not triggered this session (no gather ran, no untracked-LIVE branch to test
+  it against).
+- `record-remote-repo-name-in-local-hygiene` (first_proposed run 40/2026-09-09) - still
+  OUTSTANDING, `times_proposed:1`.
+- `constrained_scopes` reconsidered per R2 instructions: empty, nothing to lift or keep - no
+  change proposed.
+- Graduation gate re-evaluated (last 10 run-log lines, ending at run 41): `false_positives` sum =
+  **2** (meets `<=2`), but `escalations` is **NOT 0** - run 41 alone currently carries 2 unresolved
+  High Priority items (this retrospective's own deferral, and the STATE.md >50KB breach). Gate
+  **NOT MET**, same outcome as every prior evaluation (2026-08-06, 2026-08-17, 2026-08-28). Stay at
+  L1. The inputs ARE being genuinely measured (false_positives is a real sum of loop-derived +
+  human-marked items, not a stuck zero) - the gate is real, just unmet.
+- Duration trend (11 runs since retro 4, i.e. runs 31-41): median approx. **840s**, essentially
+  flat against retro 4's recorded 870s baseline and well under the 1,200s watch-only trigger. No
+  action from this axis.
+- STATE.md size trend: 52,506 bytes at this session's start - already past the ~50KB rotation
+  trigger again, the 3rd re-breach in under 2 weeks (rotations 2026-08-29, 09-02, 09-08 each
+  bought progressively less runway: ~47,000 -> 48,772 -> 47,531 bytes post-rotation, each re-tripped
+  within days). See R2 proposal 3.
+
+### R2 - numbered proposals (none applied - human decision required, then apply via loop-design)
+
+1. **Close the gap in `count-reconfirmation-as-reproposal` itself: require prose reliance and the
+   structured `notes.adjustment` array to match before a run's step-3 append.** Evidence: run 41's
+   own digest text credits `scope-step5-git-add-to-own-loop-paths` ("per the ... adjustment's
+   already-established workaround") but its `notes.adjustment` array contains only
+   `retrospective-5-deferred-not-silently-skipped` - the reliance was real but never structurally
+   recorded, so `times_proposed` for that id is undercounted right now (still reads 1, should
+   arguably be higher given at least 4 consecutive ad hoc reliances: runs 39, 40's implicit
+   workaround, 41, and this session). This is the identical failure class
+   `count-reconfirmation-as-reproposal` was written to close, recurring one layer up: a metric
+   that depends on a run remembering to also update the structured field measures the run's
+   diligence, not the underlying reality. Add a write-time cross-check: if an outstanding
+   adjustment's id appears in a run's prose critique/digest as "relied on"/"workaround", it MUST
+   also appear in that run's `notes.adjustment` array, or the round-trip validation
+   (`validate-jsonl-line-before-append`) should refuse the line.
+2. **Land `scope-step5-git-add-to-own-loop-paths` now rather than re-proposing it again.** It has
+   been worked around ad hoc for at least 3-4 consecutive sessions (39, 41, this one) with zero
+   downside ever observed, it is a one-line low-risk change (replace `add -A` with explicit
+   `loops/daily-triage/STATE.md loops/daily-triage/runs.jsonl` paths), and the risk it guards
+   against (silently committing a concurrently-running sibling loop's uncommitted writes under
+   daily-triage's own commit message) was already observed for real at run 39. No reason to wait
+   for the attempt cap on something this cheap and already re-validated repeatedly by direct
+   execution.
+3. **Re-derive the STATE.md rotation trigger, or widen what log-archivist rotates, since 50KB is
+   being re-breached faster than the rotation cadence absorbs it.** Evidence in R1 above: three
+   rotations in under two weeks, each buying progressively less headroom, and the file re-crossed
+   50KB only ~1 run/3 days after the last one. Either raise the threshold (e.g. 55-60KB) to reduce
+   rotation churn, or have log-archivist also compress the per-run regenerating boilerplate
+   (machine-tag Watch List lines, "Resolved since last run") rather than only the ledger/history
+   sections targeted so far.
+4. **Standardize the run-log schema's count fields for the Graduation gate.** Evidence: this
+   retrospective had to hand-reconcile an older flat `"escalations":N` field (used through roughly
+   run 40) against run 41's newer nested `"findings":{"high_priority":N,"watch_list":N,
+   "resolved":N}` shape, which drops `escalations` entirely. A future retrospective without a
+   human doing that reconciliation by hand could silently miscompute "0 unresolved escalations."
+   Pick one shape and require every run line to carry it.
+5. **Carry forward `detect-content-duplicate-branches`** (OUTSTANDING since 2026-09-08,
+   `times_proposed:1`) - still needs a human scope decision (patch-id match vs.
+   message+file-set heuristic vs. bounded commit window) before it can land in LOOP.md.
+6. **Carry forward `record-remote-repo-name-in-local-hygiene`** (OUTSTANDING since
+   2026-09-09/run 40, `times_proposed:1`) - still needs a human decision on where the resolved-
+   remote field lives (new top-level `notes.local_repo_remotes` map vs. a `remote` key per
+   `dirty_repos` entry).
+7. **Promotion gate: report NOT MET, no LOOP.md change proposed.** See R1 above - false_positives
+   condition met (2 <= 2) but escalations condition failed (2 currently unresolved). Stay at L1;
+   re-evaluate at retrospective 6.
+8. **Duration: report watch-only, no action.** Window median ~840s, flat vs. the 870s baseline,
+   well under the 1,200s trigger.
+
+ Ledger rows landed before 2026-08-28 keep their id/date/times/status here and point to their full original prose in STATE.archive-2026-08-29.md - no row was removed, so retrospective R1 still sees every landed id and none reads as REGRESSED. -->
 <!-- Seeded 2026-08-06 from the prose critiques of runs 1-10, which predate the structured notes.adjustment field. Retrospective step R1 reconciles this every 10th run by grepping LOOP.md and scripts/ - never by trusting this table's own text. Landed rows STAY here and get re-checked; a landed row that goes missing is REGRESSED and escalates. -->
 | id | first_proposed | times | status |
 |---|---|---|---|
