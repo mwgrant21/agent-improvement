@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-09-10
-runs_since_retro: 2
+last_run: 2026-09-11
+runs_since_retro: 4
 constrained_scopes: []
 ---
 ## State Ownership
@@ -48,12 +48,16 @@ than one machine's read marking the other's as seen.
 Carried from the 2026-09-10 retrospective. Both were proposed and DECLINED this
 round - recorded here so a later run does not rediscover them as if they were new.
 
-- **R3: `check.mjs` cannot see a Codex CLEAN verdict.** It polls
-  `/pulls/{n}/reviews` and `/pulls/{n}/comments`; a clean Codex result arrives as
-  an `/issues/{n}/comments` entry with a `Reviewed commit:` SHA. LOOP.md step 3
-  names this case explicitly, and `domains/loop-design.md` carries the general
-  lesson, but the script has never implemented either. Consequence: a clean
-  verdict and a job still running are indistinguishable to this loop.
+- **R3: IMPLEMENTED 2026-09-11 - no longer pending.** Declined at the
+  2026-09-10 retrospective and parked here so a later run would not rediscover
+  it as new. A home-matt session on 2026-09-11 rediscovered it as new anyway -
+  it had not pulled, so it never read this entry - proposed it, and Matt
+  approved building it once that history was on the table. `check.mjs` now
+  reads `/issues/{n}/comments` and the PR head, reporting clean-current vs
+  clean-stale (`selectVerdicts`; 11 tests; replayed against the real #75
+  verdict). **The parking mechanism worked - the pull discipline did not.** A
+  decision recorded only in the shared store cannot bind a machine that has not
+  synced.
 - **R5: the attempt cap is decorative for adjustments.** The stale-Watch-List
   item was re-proposed across 6 consecutive runs against `attempt_cap: 3` and was
   never escalated here. Nothing in step 5 requires a runner to count prior
@@ -61,18 +65,49 @@ round - recorded here so a later run does not rediscover them as if they were ne
 
 ## Watch List
 
-_(empty - no open PRs authored by mwgrant21 as of 2026-09-10)_
+_Empty: 0 open PRs fleet-wide as of 2026-09-11._
 
 ### Closed since last report
 
 - **Aether-OS#75 - Local Windows packaging (electron-builder + NSIS).** MERGED
-  2026-09-09T15:43:14Z. The two Codex threads (`build/installer.nsh:14` P1,
-  `package.json:19` P2) were never re-reviewed by Codex, so they were open at
-  merge time - but both fixes had been landed in `badd161` and verified
-  against the working tree by hand on 2026-09-08. Recording this because the
-  *shape* is the 2026-09-06 incident (merged with unresolved bot threads);
-  the difference is that the findings were verified remediated first rather
-  than unread. No action outstanding.
+  2026-09-09T15:43:14Z. **Corrected 2026-09-11:** an earlier version of this
+  entry said the two Codex threads (`build/installer.nsh:14` P1,
+  `package.json:19` P2) "were never re-reviewed by Codex, so they were open at
+  merge time". Checked directly against the API: all **11** review threads were
+  RESOLVED before the merge, and Codex *did* re-review - posting a CLEAN verdict
+  at 2026-09-09T15:00:38Z on `ca7cd18a1c`, the head, 43 minutes before the
+  merge. The loop could not see it because a clean Codex result is an issue
+  comment, which `check.mjs` did not read until 2026-09-11. So this was not a
+  near-miss of the 2026-09-06 shape; the merge was better-supported than the
+  loop could tell. No action outstanding.
+
+## Machine coverage (verified)
+
+- **2026-09-11 - work-it gh VERIFIED.** `gh auth status` on the work PC reads
+  logged in, **account `mwgrant21`**, scopes `gist, read:org, repo, workflow` -
+  identical to home-matt, closing the "unverified on work-it" note LOOP.md step
+  1 had carried since 2026-09-06 (step 1 updated the same day, human-approved).
+  1. **Same account on both machines**, so `--author @me` resolves to the same
+     PR set. A PR opened on either machine is visible to the other's watcher.
+  2. **`repo` scope present**, so a zero from work-it is a real zero, not a
+     private-repo blind spot masquerading as a quiet fleet.
+  Provenance: relayed from the work-it session, not run by home-matt.
+  Re-verify rather than assume if a token is ever rotated.
+
+## Watcher outage log
+
+- **2026-09-11 03:51 MST - gh keyring token read back invalid.** The in-session
+  watcher stopped at poll 43 rather than reporting a false all-clear, per
+  LOOP.md step 1. Auth was restored by a human reauth, not on its own - Matt
+  received the reauth prompt at 03:51. Same scopes after. Catch-up check: 0 open
+  PRs, nothing missed in the ~4h gap. First time the silent-zero guard fired for
+  real.
+  **Consequence:** the watcher was given a retry-twice-before-giving-up
+  behaviour on the assumption this was a transient blip. It was not - the token
+  needed human action - so retries would not have saved it. Retry still helps a
+  genuine blip, but an exit 2 that persists must stay loud, because the fix is a
+  human running `gh auth refresh`. Proposed for the next retrospective: have
+  exit 2 name that remedy outright.
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
@@ -108,7 +143,3 @@ _(empty - no open PRs authored by mwgrant21 as of 2026-09-10)_
   policy gate for it (see LOOP.md, "Policy gate"). The loop reports what has
   landed; the human decides whether to ask for more.
 
-## Resolved since last run
-
-- **2026-09-08 — Aether-OS#74 merged** (`07f9639`, squash). All 4 Codex threads
-  resolved, 10/10 checks green. Pruned from the cursor this run.

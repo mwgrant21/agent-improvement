@@ -14,13 +14,17 @@ only platform the app targets. CI status is not review status.
 - **Level:** 1 (report-only). No exceptions.
 - **Trigger:** SessionStart hook (`hooks/pr-review-onstart.ps1`), plus an
   in-session background watcher the session launches when the hook asks for it.
-- **Budget:** soft. Costs ~2 `gh api` calls per open PR per check and **zero
+- **Budget:** soft. Costs ~4 `gh api` calls per open PR per check and **zero
   model tokens while idle** - the background watcher only wakes the session
   when it finds something.
 - **Attempt cap:** 3. An item re-reported 3 times without being decided is
   escalated to High Priority in STATE.md rather than re-reported a 4th time.
 - **Sources/scopes:** GitHub, **read-only**, via `gh`. Open PRs authored by
-  Matt; per-PR `/pulls/{n}/reviews` and `/pulls/{n}/comments`. Nothing else.
+  Matt; per PR: `/pulls/{n}/reviews`, `/pulls/{n}/comments`,
+  `/issues/{n}/comments` (where a clean Codex verdict lives - it is not a
+  review record, see step 3) and `/pulls/{n}` for the head SHA a verdict must
+  be matched against. Nothing else. Every one of these is a read; the L1
+  boundary below is unchanged by the two added in 2026-09-11.
 
 ## L1 boundary (what report-only means here)
 
@@ -78,8 +82,14 @@ review findings, never posting them.
    and stop - never report "no new reviews", which is indistinguishable from a
    clean check and is exactly the silent-zero failure
    `domains/loop-design.md`'s "A loop must assert its scan root exists"
-   describes. `gh` is confirmed working on home-matt; **unverified on work-it**
-   as of 2026-09-06.
+   describes. `gh` is verified on **both** machines as of
+   2026-09-11 - account `mwgrant21`, scopes including `repo`, on each - so a
+   zero from either is a real zero and both resolve `--author @me` to the same
+   PR set. That records a past check, not a standing guarantee: home-matt's own
+   token read back invalid at 03:51 on 2026-09-11 and needed a human reauth
+   to come back - Matt got the reauth prompt at that time. This
+   step therefore runs every time regardless, and each machine is re-verified
+   after a token rotation rather than assumed from this line.
 2. **Enumerate open PRs** authored by Matt:
    `gh search prs --author @me --state open --json repository,number,title,url`.
    One call, fleet-wide. Prune `cursor.local.json` entries whose PR is no
@@ -105,6 +115,9 @@ review findings, never posting them.
      clean verdict on what you pushed. (Codex's own blurb claims it reacts 👍
      when it has no suggestions; on 2026-09-09 it commented instead. Poll for
      both, and never wait on the 👍 alone.)
+     Implemented in `check.mjs` on 2026-09-11 (`selectVerdicts`); before that
+     this rule was written down but never executed, and the clean verdict on
+     Aether-OS#75 went unseen 43 minutes before that PR merged.
    - **`commit_id` on an inline comment is not proof of a re-review.** GitHub
      re-anchors comments onto newer commits when their lines still resolve, so
      an old finding can appear to be attached to the newest commit. Trust the
