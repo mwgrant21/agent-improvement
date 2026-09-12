@@ -95,3 +95,28 @@ test('parses the label bolded with the colon outside the bold', () => {
   const v = parseCodexVerdict("Codex Review: Didn't find any major issues.\n\n**Reviewed commit**: `ca7cd18a1c`");
   assert.equal(v?.sha, 'ca7cd18a1c');
 });
+
+test('a contributor QUOTING a clean verdict is not a verdict', () => {
+  // Found by Codex review 2026-09-11 (P2), reproduced locally. Only the owner
+  // was excluded; nothing checked that Codex actually authored the comment, so
+  // anyone quoting a past clean result produced a fresh CLEAN. Every fixture
+  // above defaults to the Codex login, so no existing test varied the author.
+  const out = selectVerdicts({
+    issueComments: [issue(ago(1), `Quoting the bot for discussion:\n> ${CLEAN}`, 'another-contributor')],
+    owner: 'mwgrant21', headSha: HEAD, seen: {}, now: NOW,
+  });
+
+  assert.deepEqual(out, [], 'a quotation is not a verdict, whoever quotes it');
+});
+
+test('the real Codex bot login (with the [bot] suffix) still counts', () => {
+  // Issue comments carry "chatgpt-codex-connector[bot]"; the GraphQL thread
+  // view carries it without the suffix. Both are Codex.
+  const out = selectVerdicts({
+    issueComments: [issue(ago(1), CLEAN, 'chatgpt-codex-connector[bot]')],
+    owner: 'mwgrant21', headSha: HEAD, seen: {}, now: NOW,
+  });
+
+  assert.equal(out.length, 1, 'the genuine bot must still be recognised');
+  assert.equal(out[0].status, 'clean-current');
+});

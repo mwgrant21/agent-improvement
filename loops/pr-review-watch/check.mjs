@@ -37,6 +37,14 @@ const WINDOW_H = Number(process.env.PR_WATCH_WINDOW_H ?? 24);
 // thread is still ours. R1, retrospective 2026-09-10.
 const isOwn = (c, owner) => c.user?.login === owner;
 
+// Only Codex itself can issue a Codex verdict. Without this, anyone quoting a
+// past "didn't find any major issues" comment produced a fresh CLEAN on the
+// current head - a false all-clear, which is the exact failure this loop
+// exists to prevent. Found by a Codex cross-runtime review, 2026-09-11.
+// Issue comments carry the `[bot]` suffix; the GraphQL thread view does not.
+const CODEX_LOGIN = /^chatgpt-codex-connector(\[bot\])?$/i;
+const isCodex = (c) => CODEX_LOGIN.test(c.user?.login ?? '');
+
 /**
  * Decide what to report for one PR.
  *
@@ -108,6 +116,7 @@ export function selectVerdicts({ issueComments = [], owner, headSha, seen, now =
   for (const c of issueComments) {
     if (c.created_at <= since) continue;
     if (isOwn(c, owner)) continue;
+    if (!isCodex(c)) continue;
 
     const v = parseCodexVerdict(c.body ?? '');
     if (!v?.clean) continue;
