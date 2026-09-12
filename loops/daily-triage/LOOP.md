@@ -492,10 +492,13 @@ L2 also requires worktree isolation. Not active at L1.
          Record the evidence with the finding: the upstream ref compared against and
          the `-` commit SHAs, so a reader can re-check the downgrade without
          re-deriving it.
-         **Two things an all-`-` result does NOT prove** (both found by a Codex
-         cross-runtime review of this rule on 2026-09-11, and both reproduced
-         locally before being written down here). Each one, left unguarded, produces
-         the false DEAD this rule is otherwise careful to avoid:
+         **Three things an all-`-` result does NOT prove.** The first two came
+         from a Codex cross-runtime review of this rule on 2026-09-11 and each
+         produces the false DEAD this rule is otherwise careful to avoid. The
+         third was found the same evening, by accident, when this very check was
+         run against a squashed backup branch and confidently reported 8 commits
+         of sole-copy work that were already in master. All three were reproduced
+         locally before being written down here:
          1. **`git cherry` omits merge commits.** It walks non-merge commits only, so
             a branch holding one already-upstream patch PLUS a local merge whose
             conflict resolution is unique prints only `-` lines while carrying
@@ -515,7 +518,26 @@ L2 also requires worktree isolation. Not active at L1.
             whitespace-sensitive mode, so this is a separate comparison, and it is
             reasonable to bound it (same file set, recent upstream history) - the
             bound belongs on the CONFIRMATION step, never on detection.
-         If either guard cannot be established for a branch, the answer is LIVE and
+         3. **A SQUASH-merged branch reads as fully unpushed.** Squashing N
+            commits into 1 produces a patch-id matching none of the originals, so
+            `git cherry` marks every one `+`. Reproduced 2026-09-11: a 2-commit
+            branch squash-merged into master left the two trees IDENTICAL, and
+            `git cherry` still reported both commits as not upstream. This is not a
+            corner case here - squash IS the normal merge style in these repos
+            (Aether-OS #74 and #75 both merged squash), so the content-duplicate
+            downgrade will essentially never fire on the most common real shape.
+            It fails toward LIVE, so it is noise rather than danger, and nothing
+            above needs weakening for it. But do not read "the check did not
+            downgrade it" as "this branch really is sole-copy work".
+            The remedy, when someone builds it, is a TREE comparison rather than a
+            per-commit one: if the branch tip and the base have identical trees, or
+            the branch's combined diff against its merge-base is already contained
+            in the base, the work is upstream however it got there. That is the same
+            graph-versus-content distinction the `TarotApp` "phantom behind" ruling
+            records in STATE.standing-decisions.md - `git cherry` is still a
+            per-patch comparison, and a squash is a content-level equivalence it
+            cannot express.
+         If guard 1 or 2 cannot be established for a branch, the answer is LIVE and
          inconclusive. That is the whole asymmetry again: noise costs a line the human
          dismisses; a wrong DEAD deletes the only copy of real work.
          Worked example (reproduced 2026-09-11): with a patch cherry-picked onto

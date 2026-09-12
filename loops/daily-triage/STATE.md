@@ -116,7 +116,7 @@ Each row's full rationale is in `STATE.archive-2026-09-11.md`.
 | adjustment-field-must-be-an-array | 2026-09-06 | 1 | LANDED 2026-09-06 |
 | discover-bare-repo-worktree-hubs | 2026-09-08 | 1 | LANDED 2026-09-08 |
 | scope-step5-git-add-to-own-loop-paths | 2026-09-09 | 2 | LANDED 2026-09-11 |
-| detect-content-duplicate-branches | 2026-09-08 | 2 | LANDED 2026-09-11 |
+| detect-content-duplicate-branches | 2026-09-08 | 2 | LANDED 2026-09-11 **Third blind spot documented 2026-09-11 (LANDED, rule unchanged):** `git cherry` also marks every commit of a SQUASH-merged branch as `+`, because squashing N commits into 1 yields a patch-id matching none of the originals. Reproduced: a squash-merged branch left both trees IDENTICAL while `git cherry` still reported both commits not upstream. Found by running this very check against the session's own squashed backup branch, which it confidently reported as 8 commits of sole-copy work already present in master. Matters because squash is the normal merge style in these repos, so the downgrade will essentially never fire on the most common shape. Fails toward LIVE, so it is noise not danger and no guard was weakened; the real remedy is a TREE comparison rather than a per-commit one, which is the same graph-versus-content distinction the TarotApp "phantom behind" ruling records. |
 | record-remote-repo-name-in-local-hygiene | 2026-09-09 | 2 | LANDED 2026-09-11 |
 
 **Ledger standing 2026-09-11: 44 rows - 42 LANDED, 2 CLOSED-MOOT, 0 OUTSTANDING.**
