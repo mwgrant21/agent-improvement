@@ -602,6 +602,34 @@ L2 also requires worktree isolation. Not active at L1.
        `dirty_lines` instead of `dirty_paths` as a miss and re-baseline that
        repo's `unchanged_runs` to 0 rather than guessing membership from a
        bare count.
+       **Record every enumerated repo's resolved remote in
+       `notes.local_repo_remotes`** (adjustment
+       `record-remote-repo-name-in-local-hygiene`, proposed run 40 / 2026-09-09,
+       human-approved and applied 2026-09-11). Local hygiene keys findings by LOCAL
+       DIRECTORY name; the GitHub sources key by REPO name. They usually match, and
+       when they do not there is nothing linking the two halves of the digest: run 40
+       found work-it's `Desktop/TriageDesk` clone actually points at
+       `mwgrant21/Jira-Autoticketing`, and no repo named TriageDesk exists at all, so
+       its local line and its GitHub findings read as unrelated repos.
+       Shape: a top-level map, sibling to `notes.branch_tips`, NOT a `remote` key on
+       each `dirty_repos` entry. The mismatch affects dirty-repo, worktree AND branch
+       findings, so a per-entry key fixes one surface of three and duplicates the
+       value; one map serves all three and stores it once. It also matches the shape
+       `notes.branch_tips` already uses rather than inventing a second convention.
+       **Key it `<repo-dir-name>@<machineId>`, exactly like `dirty_repos` above.** A
+       bare directory name is ambiguous across machines - the same name can be a
+       different clone on each - which is the precise failure
+       `dirty-repo-cache-key-is-ambiguous-across-machines` was written to close, and
+       `TriageDesk` exists only on work-it, so this is live rather than hypothetical.
+       Value: the `origin` remote resolved to `owner/repo` where it is a GitHub URL;
+       otherwise the raw remote URL; otherwise `null`. If a repo has remotes but no
+       `origin`, use the first and say which one in the entry.
+       **Record `null` explicitly - never omit the entry.** A missing key would be
+       ambiguous between "no remote" and "not checked", and "no remote" is itself a
+       finding: it is the sole-copy condition the 20-commit rule escalates on
+       (`Miriels-publish` is exactly this shape).
+       Record it for EVERY repo the sweep enumerates, not only the dirty ones, since
+       the worktree and branch findings need the same correlation.
      - **A run that did not OBSERVE a repo must carry its `unchanged_runs`
        forward FROZEN, never incremented** (adjustment
        `freeze-unchanged-runs-when-not-verified`, proposed by run 23 /
@@ -747,7 +775,10 @@ L2 also requires worktree isolation. Not active at L1.
    cache flags read on later runs. Also include this run's full
    `branch_tips` map (`{repo: {branch: {sha, author_date, ahead_by, behind_by}}}`) from step 1's
    staleness cache, so the next run can diff against it. Also include
-   `dirty_repos` (step 1's stale-WIP cache) and `fp_source` (step 2).
+   `dirty_repos` (step 1's stale-WIP cache), `fp_source` (step 2), and
+   `local_repo_remotes` (step 1's local-dir -> `owner/repo` map, keyed
+   `<repo-dir-name>@<machineId>`). A map described in step 1 but not carried here
+   is never actually written, so any new one must be added to this list too.
    Record step 4's adjustments as STRUCTURED entries (refinement 9), not
    only as prose inside `critique`. **`notes.adjustment` is an ARRAY** (ruled
    2026-09-06, adjustment `adjustment-field-must-be-an-array`) - always an array,
