@@ -752,13 +752,18 @@ L2 also requires worktree isolation. Not active at L1.
    apart. If that same `id` already sits in STATE.md's Adjustment ledger as
    OUTSTANDING, say how many times it has now been proposed.
 5. Commit and push this run's own writes (refinement 6). `git -C
-   ~/agent-improvement add -A && git commit && git push`, then VERIFY with
+   ~/agent-improvement add loops/daily-triage/STATE.md
+   loops/daily-triage/runs.jsonl && git commit && git push`, then VERIFY with
    `git status -sb` that the tree is clean and not ahead of origin. Never end
    a run with a dirty tree: `~/agent-improvement` is shared with the
    agent-learn loop, and uncommitted dirt breaks the other loop's opening
    `git pull --rebase` - see `domains/loop-design.md`, "When two loops share
    one git-backed store". If the push fails (offline/blocked), keep the local
    commit and say so once in the digest; never block on it.
+   **Stage only this loop's own paths - never `-A`, never `.`.** Run 39 found
+   the store mid-flight holding another loop's uncommitted state; `add -A`
+   would have committed that sibling's unfinished work under this loop's
+   commit message. See `loops/README.md`, "Committing from a loop".
    **Then append a `store-sync` line to `runs.jsonl`** recording what step 5
    actually did (adjustment `record-step-5-commit-push-result-in-notes`, APPROVED
    and applied 2026-09-06):

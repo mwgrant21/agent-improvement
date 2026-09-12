@@ -108,6 +108,30 @@ present), Human Decisions, Watch List, and any cache/map a loop maintains
 across runs. Sections a loop already prunes each run (e.g. "Resolved since
 last run") are self-bounding and get a row saying so rather than a number.
 
+## Committing from a loop
+
+Every loop that commits to this store MUST stage only its own `loops/<name>/`
+paths:
+
+```
+git -C ~/agent-improvement add loops/<name>/STATE.md loops/<name>/runs.jsonl
+```
+
+**Never `git add -A`, never `git add .`.** More than one loop runs against this
+single working tree, sometimes concurrently on the same machine, so a blanket
+add stages whatever a sibling loop has in flight and commits its unfinished
+state under your loop's commit message.
+
+Not hypothetical: daily-triage run 39 (2026-09-09) found the store mid-flight
+with two uncommitted `loops/pr-review-watch/` files written by a concurrently
+running watcher session. Runs 39, 41 and 42 each worked around it by hand before
+the rule was written down - which is the signal that it belonged in the protocol
+rather than in each runner's memory.
+
+`domains/loop-design.md`'s "When two loops share one git-backed store" covers the
+READ side: a dirty tree breaks the next loop's `pull --rebase`. This is the WRITE
+side of the same hazard. Both apply - scope the add, AND end the run clean.
+
 ## Graduation
 
 - Every loop STARTS at L1. No exceptions.
