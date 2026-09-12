@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-10
+last-updated: 2026-09-12
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -10,6 +10,7 @@ paths - home directories differ between machines (`mwgrant21` at home, `matthewg
 at work).
 
 | Domain | Lesson | Added |
+| tooling | MCP discovery (`tools/list`) does not prove authenticated readiness | 2026-09-12 |
 |---|---|---|
 | powershell | Escape curly braces correctly in strings | 2026-07-12 |
 | powershell | Save scripts as UTF-8 without BOM | 2026-07-12 |

@@ -452,6 +452,23 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   Microsoft 365 and Context7, against 113/100/143/54/66 bare name mentions.
 - Added: 2026-09-10 (work-it)
 
+### MCP discovery (`tools/list`) does not prove authenticated readiness
+
+- A successful MCP discovery call proves only that the server is connected enough
+  to enumerate tools; it does not prove that an authenticated operation can run.
+  Treat readiness as a separate, explicitly verified state. Before presenting a
+  connected/ready indicator or starting a workflow that depends on credentials,
+  run a harmless authenticated probe and classify the result separately from
+  discovery.
+- Why: a server can return a complete tool list while its authenticated transport
+  is unavailable. A UI keyed only to discovery tells an operator it is ready when
+  it cannot perform the requested work.
+- Evidence: 2026-09-11 Aether-OS visible-communication U0 re-probe: discovery
+  completed normally, but the authenticated path had no usable backing transport.
+  The resulting review required readiness to distinguish discovery from
+  authenticated capability.
+- Added: 2026-09-12 (home-matt)
+
 ### npx overhead is the spawn, not the version lookup - pinning a version does not fix it
 
 - The intuitive read of a slow `npx -y pkg@latest` is that `@latest` costs a registry
