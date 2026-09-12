@@ -463,7 +463,39 @@ L2 also requires worktree isolation. Not active at L1.
        - **untracked-LIVE** (unpushed > 0): real sole-copy exposure - this work
          exists on one disk only. Report as a genuine risk, and apply the
          20-commit volume rule above to decide Watch List vs High Priority.
-         `NMMToolkit`'s `fix/dispatch-command-not-found-message` is this shape.
+         `NMMToolkit`'s `fix/dispatch-command-not-found-message` READ as this
+         shape and is in fact the motivating false positive - see the
+         content-duplicate check immediately below, which reclassifies it.
+         **Before reporting LIVE, confirm the work is really absent upstream,
+         not just absent by SHA** (adjustment `detect-content-duplicate-branches`,
+         proposed 2026-09-08, human-approved and applied 2026-09-11). SHA
+         reachability cannot see a CONTENT duplicate: a cherry-picked or rebased
+         commit carries the same patch under a different SHA and reads as unpushed
+         forever. That is the same class as the `TarotApp` "phantom behind" lesson
+         in Human Decisions - graph comparison and content comparison answer
+         different questions.
+         Use git's own patch-id equivalence rather than a hand-rolled heuristic:
+         `git cherry <upstream> <branch>`, where `<upstream>` is the branch's
+         tracking ref if it has one, else `origin/<default>`. Each commit prints
+         `-` if an equivalent patch is ALREADY upstream, `+` if it is genuinely
+         absent. Downgrade to untracked-DEAD (content-duplicate) only when EVERY
+         line is `-`; if any line is `+`, it stays LIVE. This needs no commit-window
+         bound - `git cherry` walks only the branch's own commits - and no
+         message/file-set heuristic, which would false-positive on different work
+         touching the same files.
+         **Fail toward LIVE, never toward DEAD.** If the upstream ref is not present
+         locally (never fetched), if `git cherry` exits non-zero, or if its output is
+         empty or unparseable, keep the branch LIVE and say the check was
+         inconclusive. The two errors are not symmetric: a false LIVE repeats a noisy
+         line the human can dismiss, while a false DEAD silences a real sole-copy
+         exposure - the exact risk this whole split exists to surface.
+         Record the evidence with the finding: the upstream ref compared against and
+         the `-` commit SHAs, so a reader can re-check the downgrade without
+         re-deriving it.
+         Worked example (reproduced 2026-09-11): with a patch cherry-picked onto
+         master under a new SHA, `git rev-list feature --not master --count` returns
+         1 - today's LIVE verdict - while `git cherry -v master feature` returns
+         `- 78fe6b1 fix: the thing`, correctly identifying it as already upstream.
        The split is the point of the adjustment, not an optional refinement.
        Reporting the two identically would repeat exactly the severity
        flattening that `flag-branches-20-commits-ahead` was written to fix - a
