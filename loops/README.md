@@ -50,6 +50,20 @@ the full 40-char SHA; `ahead_by`/`behind_by` come from one compare call and are
 always refreshed together, since both go stale when the DEFAULT branch moves
 even if the branch itself has not.
 
+### The four count fields are required scalars
+
+`findings`, `actions`, `escalations` and `false_positives` are REQUIRED on every
+`type:"run"` line and are plain integers. Do not replace one with an object and
+do not drop one: a loop wanting a breakdown puts it in `notes` (e.g.
+`notes.findings_by_bucket`) and still emits the scalar.
+
+Why it is worth a rule: daily-triage run 41 emitted a nested
+`"findings":{"high_priority":N,...}` and dropped `escalations` entirely, so
+retrospective 5 had to hand-reconcile two shapes to compute the graduation gate -
+which turns on "0 unresolved escalations". A future retrospective doing that
+without a human noticing could silently miscompute the gate and promote a loop
+that had not earned it. (Retrospective 5, proposal 4, human-approved 2026-09-11.)
+
 Append-only. Never rewrite or delete lines.
 
 ### `notes.adjustment` is an ARRAY (ruled 2026-09-06)

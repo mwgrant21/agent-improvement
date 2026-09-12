@@ -741,6 +741,17 @@ L2 also requires worktree isolation. Not active at L1.
    line 27 sat as corpus damage undetected until a full-file read (this
    retrospective) happened to hit it - a write-time check catches it for free
    instead of leaving it for whichever future reader parses the whole file.
+   **Then the prose-reliance cross-check, before the same append** (retrospective 5,
+   proposal 1, human-approved 2026-09-11). If this run's critique or digest text says
+   it relied on, worked around, or re-confirmed an OUTSTANDING adjustment, that
+   adjustment's id MUST also appear in this line's `notes.adjustment` array. If it
+   does not, do NOT append: add the id and re-validate. Evidence: run 41's digest
+   credited `scope-step5-git-add-to-own-loop-paths` in prose while its
+   `notes.adjustment` array omitted it, so `times_proposed` read 1 against at least
+   four consecutive real reliances (runs 39, 40, 41, 42). This is exactly the failure
+   `count-reconfirmation-as-reproposal` exists to close, recurring one layer up: a
+   metric fed by a run remembering to update a second field measures the run's
+   diligence, not the thing it claims to measure.
 4. Return the digest: High Priority first, then Watch List, then one-line
    source summaries. Include an explicit **Untriaged noise** line naming any
    Recent Noise item still unmarked after 2+ runs and asking for a decision
