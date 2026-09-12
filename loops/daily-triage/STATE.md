@@ -8,6 +8,9 @@ last_run: 2026-09-11
 runs_since_retro: 10
 constrained_scopes: []
 ---
+<!-- Compressed 2026-09-11: full history in STATE.archive-2026-09-11.md;
+     binding rulings in STATE.standing-decisions.md. Nothing was deleted. -->
+
 ## State Ownership
 <!-- Retrofitted 2026-08-22 adopting the loop-design "state ownership ledger"
      convention (loops/README.md, stolen from lidge-jun/opencodex during
@@ -56,165 +59,68 @@ has never been met (evaluated at 2026-08-06 held-not-promoted, 2026-08-17 NOT ME
 proposals were decided the same day (8 landed, 1 closed-moot, 2 accept-as-reported).
 Retrospective 5 triggers at `runs_since_retro >= 10`.
 
-## Retrospective 5 - R1/R2 analysis (2026-09-11, PENDING human decision, R3 NOT applied)
-<!-- Dedicated retrospective session (home-matt), triggered because runs_since_retro hit 10 at
-     run 41 per LOOP.md step 0. Per explicit instruction this session did R1 (reconcile) and R2
-     (propose) ONLY and stopped - no LOOP.md edit, no counter reset. Step 0 audit passed first:
-     run 41's store-sync line (commit 12965ac, committed:true, pushed:true) is confirmed an
-     ancestor of this session's pulled HEAD (3f6d00b) - run 41's step 5 succeeded, no escalation
-     needed there. -->
+## Retrospective 5 - CLOSED 2026-09-11
 
-### R1 - ledger reconciliation
-Standing UNCHANGED from run 40's count: 44 rows - 39 LANDED, 2 CLOSED-MOOT, 3 OUTSTANDING, 0
-declined, 0 held, 0 ESCALATED. None of the 3 OUTSTANDING rows are at `attempt_cap` (3) yet.
-Verification method: grepped LOOP.md for each OUTSTANDING id's landing text (absent, confirmed
-still-outstanding for all 3) and spot-checked 8 of the trickiest-to-grep LANDED rows named in the
-ledger's own "Note for the next retrospective's step R1" hints (`count-reconfirmation-as-
-reproposal`, `verify-repo-can-change-before-noise-graduation`, `per-machine-spend-baseline`,
-`stale-lock-sweep-independent-of-noise-graduation`, `record-step-5-commit-push-result-in-notes`,
-`dirty-repo-cache-key-is-ambiguous-across-machines`, `adjustment-field-must-be-an-array`,
-`discover-bare-repo-worktree-hubs`) - all 8 still present, 0 regressions found in that sample.
-**Not exhaustively re-diffed: the remaining 31 LANDED rows were not individually re-grepped this
-session** (budget); no evidence of regression in any of them, but this is a real coverage gap, not
-a clean bill of health for the full 39.
-- `scope-step5-git-add-to-own-loop-paths` (first_proposed 2026-09-09/run 39) - still literal
-  `add -A` in LOOP.md step 5, still OUTSTANDING. Ledger's recorded `times_proposed` stays at **1**
-  this session deliberately, even though this session ALSO worked around it ad hoc (scoped
-  `git add` to `loops/daily-triage/` paths only at step 5, same as runs 39-41) - see R2 proposal 1
-  below for why the counter is not simply bumped here.
-- `detect-content-duplicate-branches` (first_proposed 2026-09-08) - still OUTSTANDING,
-  `times_proposed:1`, not triggered this session (no gather ran, no untracked-LIVE branch to test
-  it against).
-- `record-remote-repo-name-in-local-hygiene` (first_proposed run 40/2026-09-09) - still
-  OUTSTANDING, `times_proposed:1`.
-- `constrained_scopes` reconsidered per R2 instructions: empty, nothing to lift or keep - no
-  change proposed.
-- Graduation gate re-evaluated (last 10 run-log lines, ending at run 41): `false_positives` sum =
-  **2** (meets `<=2`), but `escalations` is **NOT 0** - run 41 alone currently carries 2 unresolved
-  High Priority items (this retrospective's own deferral, and the STATE.md >50KB breach). Gate
-  **NOT MET**, same outcome as every prior evaluation (2026-08-06, 2026-08-17, 2026-08-28). Stay at
-  L1. The inputs ARE being genuinely measured (false_positives is a real sum of loop-derived +
-  human-marked items, not a stuck zero) - the gate is real, just unmet.
-- Duration trend (11 runs since retro 4, i.e. runs 31-41): median approx. **840s**, essentially
-  flat against retro 4's recorded 870s baseline and well under the 1,200s watch-only trigger. No
-  action from this axis.
-- STATE.md size trend: 52,506 bytes at this session's start - already past the ~50KB rotation
-  trigger again, the 3rd re-breach in under 2 weeks (rotations 2026-08-29, 09-02, 09-08 each
-  bought progressively less runway: ~47,000 -> 48,772 -> 47,531 bytes post-rotation, each re-tripped
-  within days). See R2 proposal 3.
+All proposals decided. 1, 2, 4, 5 and 6 landed 2026-09-11 (human-approved,
+applied via the loop-design skill); 7 (promotion gate NOT MET - stay at L1)
+and 8 (duration watch-only) were report-only by design.
+Full R1/R2 analysis, evidence and the ledger rationales:
+`STATE.archive-2026-09-11.md`.
 
-### R2 - numbered proposals (none applied - human decision required, then apply via loop-design)
+### Adjustment ledger (compact)
 
-1. **Close the gap in `count-reconfirmation-as-reproposal` itself: require prose reliance and the
-   structured `notes.adjustment` array to match before a run's step-3 append.** Evidence: run 41's
-   own digest text credits `scope-step5-git-add-to-own-loop-paths` ("per the ... adjustment's
-   already-established workaround") but its `notes.adjustment` array contains only
-   `retrospective-5-deferred-not-silently-skipped` - the reliance was real but never structurally
-   recorded, so `times_proposed` for that id is undercounted right now (still reads 1, should
-   arguably be higher given at least 4 consecutive ad hoc reliances: runs 39, 40's implicit
-   workaround, 41, and this session). This is the identical failure class
-   `count-reconfirmation-as-reproposal` was written to close, recurring one layer up: a metric
-   that depends on a run remembering to also update the structured field measures the run's
-   diligence, not the underlying reality. Add a write-time cross-check: if an outstanding
-   adjustment's id appears in a run's prose critique/digest as "relied on"/"workaround", it MUST
-   also appear in that run's `notes.adjustment` array, or the round-trip validation
-   (`validate-jsonl-line-before-append`) should refuse the line.
-2. **[APPLIED 2026-09-11 - human-approved] Land `scope-step5-git-add-to-own-loop-paths` now rather than re-proposing it again.** It has
-   been worked around ad hoc for at least 3-4 consecutive sessions (39, 41, this one) with zero
-   downside ever observed, it is a one-line low-risk change (replace `add -A` with explicit
-   `loops/daily-triage/STATE.md loops/daily-triage/runs.jsonl` paths), and the risk it guards
-   against (silently committing a concurrently-running sibling loop's uncommitted writes under
-   daily-triage's own commit message) was already observed for real at run 39. No reason to wait
-   for the attempt cap on something this cheap and already re-validated repeatedly by direct
-   execution.
-3. **Re-derive the STATE.md rotation trigger, or widen what log-archivist rotates, since 50KB is
-   being re-breached faster than the rotation cadence absorbs it.** Evidence in R1 above: three
-   rotations in under two weeks, each buying progressively less headroom, and the file re-crossed
-   50KB only ~1 run/3 days after the last one. Either raise the threshold (e.g. 55-60KB) to reduce
-   rotation churn, or have log-archivist also compress the per-run regenerating boilerplate
-   (machine-tag Watch List lines, "Resolved since last run") rather than only the ledger/history
-   sections targeted so far.
-4. **Standardize the run-log schema's count fields for the Graduation gate.** Evidence: this
-   retrospective had to hand-reconcile an older flat `"escalations":N` field (used through roughly
-   run 40) against run 41's newer nested `"findings":{"high_priority":N,"watch_list":N,
-   "resolved":N}` shape, which drops `escalations` entirely. A future retrospective without a
-   human doing that reconciliation by hand could silently miscompute "0 unresolved escalations."
-   Pick one shape and require every run line to carry it.
-5. **[APPLIED 2026-09-11 - human-approved, option A] Carry forward `detect-content-duplicate-branches`** (OUTSTANDING since 2026-09-08,
-   `times_proposed:1`) - still needs a human scope decision (patch-id match vs.
-   message+file-set heuristic vs. bounded commit window) before it can land in LOOP.md.
-6. **[APPLIED 2026-09-11 - human-approved] Carry forward `record-remote-repo-name-in-local-hygiene`** (OUTSTANDING since
-   2026-09-09/run 40, `times_proposed:1`) - still needs a human decision on where the resolved-
-   remote field lives (new top-level `notes.local_repo_remotes` map vs. a `remote` key per
-   `dirty_repos` entry).
-7. **Promotion gate: report NOT MET, no LOOP.md change proposed.** See R1 above - false_positives
-   condition met (2 <= 2) but escalations condition failed (2 currently unresolved). Stay at L1;
-   re-evaluate at retrospective 6.
-8. **Duration: report watch-only, no action.** Window median ~840s, flat vs. the 870s baseline,
-   well under the 1,200s trigger.
+Mechanical fields only - `count-reconfirmation-as-reproposal` reads these.
+Each row's full rationale is in `STATE.archive-2026-09-11.md`.
 
- Ledger rows landed before 2026-08-28 keep their id/date/times/status here and point to their full original prose in STATE.archive-2026-08-29.md - no row was removed, so retrospective R1 still sees every landed id and none reads as REGRESSED. -->
-<!-- Seeded 2026-08-06 from the prose critiques of runs 1-10, which predate the structured notes.adjustment field. Retrospective step R1 reconciles this every 10th run by grepping LOOP.md and scripts/ - never by trusting this table's own text. Landed rows STAY here and get re-checked; a landed row that goes missing is REGRESSED and escalates. -->
-| id | first_proposed | times | status |
+| adjustment | first_proposed | times_proposed | status |
 |---|---|---|---|
-| retro-reconcile-adjustment-ledger | 2026-08-06 | 1 | **LANDED 2026-08-06** (refinement 9). [full text: STATE.archive-2026-08-29.md] |
-| batch-branch-commit-date-lookups | 2026-07-14 | 5 | **LANDED 2026-08-03** (branch_tips cache, step 1) [full text: STATE.archive-2026-08-29.md] |
-| fix-spend-summary-date-window | 2026-07-17 | 1 | **LANDED 2026-07-22** (scripts/spend-summary.mjs local-day bucketing) [full text: STATE.archive-2026-08-29.md] |
-| record-output-token-baseline | 2026-07-17 | 1 | **LANDED 2026-07-18** (step 3 notes) [full text: STATE.archive-2026-08-29.md] |
-| flag-branches-20-commits-ahead | 2026-07-18 | 1 | **LANDED 2026-08-06** (step 1, local hygiene - promotes a >20-ahead branch to High Priority). [full text: STATE.archive-2026-08-29.md] |
-| branch-staleness-by-commits-ahead | 2026-07-21 | 1 | **LANDED 2026-08-06** (step 1, GitHub - implemented as author-date staleness + ahead_by as a separate signal, NOT as the literal "replace date with... [full text: STATE.archive-2026-08-29.md] |
-| verify-loop-own-commit-completed | 2026-07-24 | 1 | **LANDED 2026-08-06** (retro refinement 6, step 5) [full text: STATE.archive-2026-08-29.md] |
-| self-confirming-noise-without-fp-mark | 2026-07-24 | 1 | **LANDED 2026-08-06** (retro refinement 1, step 2) [full text: STATE.archive-2026-08-29.md] |
-| promote-tokenmonitor-pr1-to-human-decisions | 2026-08-03 | 2 | **LANDED 2026-08-06** (Human Decisions section) [full text: STATE.archive-2026-08-29.md] |
-| cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | **LANDED 2026-08-06** (step 1, GitHub - implemented by ELIMINATING the per-repo sweep via one fleet-wide gh search prs/gh search issues call, NOT by... [full text: STATE.archive-2026-08-29.md] |
-| drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | **LANDED 2026-08-06** (retro refinement 5, step 1) [full text: STATE.archive-2026-08-29.md] |
-| machine-tag-watchlist-items | 2026-08-06 | 1 | **LANDED 2026-08-06** (retro refinement 4, step 2) [full text: STATE.archive-2026-08-29.md] |
-| exclude-default-branches-from-staleness | 2026-08-06 | 1 | **LANDED 2026-08-06** (step 1, GitHub) [full text: STATE.archive-2026-08-29.md] |
-| gate-cache-flag-on-min-volume | 2026-08-07 | 3 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 2) - this OVERTURNED the 2026-08-17 DECLINE.** Below 50,000 output tokens/day the cache check reports `not evaluated - insufficient volume`, never a silent pass. Caveat: the floor came from a window mixing two machines' corpora - re-check at retrospective 5. [full text: STATE.archive-2026-09-02.md] |
-| noise-match-on-finding-identity-not-text | 2026-08-10 | 1 | **LANDED 2026-08-17** [full text: STATE.archive-2026-08-29.md] |
-| distinguish-broken-probe-from-dead-source | 2026-08-11 | 3 | **LANDED 2026-08-17** [full text: STATE.archive-2026-08-29.md] |
-| specify-branch-tips-cache-key-format | 2026-08-11 | 2 | **LANDED 2026-08-17** [full text: STATE.archive-2026-08-29.md] |
-| record-behind-by-alongside-ahead-by | 2026-08-21 | 1 | **LANDED 2026-08-21** (human decision, applied via loop-design skill). [full text: STATE.archive-2026-08-29.md] |
-| clarify-repo-discovery-depth-definition | 2026-08-18 | 3 | **LANDED 2026-08-21** (human decision, applied via loop-design skill). [full text: STATE.archive-2026-08-29.md] |
-| freeze-unchanged-runs-when-not-verified | 2026-08-21 | 1 | **LANDED 2026-08-21** (human decision, applied via loop-design skill). [full text: STATE.archive-2026-08-29.md] |
-| dedupe-same-day-spend-baseline | 2026-08-21 | 1 | **LANDED 2026-08-21** (human decision, applied via loop-design skill). [full text: STATE.archive-2026-08-29.md] |
-| dirty-count-blind-to-content-churn | 2026-08-13 | 1 | **LANDED 2026-08-17** [full text: STATE.archive-2026-08-29.md] |
-| expand-home-matt-discovery-root | 2026-08-15 | 1 | **CLOSED-MOOT 2026-08-28 (human decision, retrospective 4 proposal 7).** Superseded - the root it proposed adding is already reached. Prior status: **HELD 2026-08-17 (human decision).** Rests on a single home-matt-only observation unverifiable from work-it. Re-propose with home-matt confirmation. |
-| validate-jsonl-line-before-append | 2026-08-17 | 1 | **LANDED 2026-08-17** [full text: STATE.archive-2026-08-29.md] |
-| worktree-hygiene-report | 2026-08-21 | 1 | **LANDED 2026-08-21** (human decision, applied via loop-design skill, same day as proposed). [full text: STATE.archive-2026-08-29.md] |
-| gitignore-and-auth-drift-check | 2026-08-21 | 1 | **LANDED 2026-08-21** (human decision, applied via loop-design skill, same day as proposed). [full text: STATE.archive-2026-08-29.md] |
-| close-expand-home-matt-discovery-root | 2026-08-22 | 1 | **CLOSED-MOOT 2026-08-28 (human decision, retrospective 4 proposal 7).** No LOOP.md change; supersedes and closes the held `expand-home-matt-discovery-root`. Stop carrying either forward. [full text: STATE.archive-2026-09-02.md] |
-| clarify-unchanged-runs-flag-threshold | 2026-08-24 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 8, applied via loop-design skill).** Threshold pinned to `unchanged_runs >= 3`, counting only runs that OBSERVED the item, firing identically for every item at the same value. [full text: STATE.archive-2026-09-02.md] |
-| fetch-prune-before-unpushed-check | 2026-08-25 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 5, applied via loop-design skill).** `git fetch --prune` now runs BEFORE the unpushed check, so a deleted-upstream branch reads as `[gone]` rather than as unpushed work. [full text: STATE.archive-2026-09-02.md] |
-| detect-no-upstream-local-branches | 2026-08-26 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 6, applied via loop-design skill).** Landed WITH run 30's amendment: the check splits untracked-DEAD (0 unpushed, cleanup candidate, Watch List at most) from untracked-LIVE (unpushed>0,... [full text: STATE.archive-2026-09-02.md] |
-| pull-store-before-step-0 | 2026-08-28 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 1, applied via loop-design skill).** Step 0 now begins with `git -C ~/agent-improvement pull --rebase`; on failure the run continues against the local store but MUST state the staleness... [full text: STATE.archive-2026-09-02.md] |
-| verify-repo-can-change-before-noise-graduation | 2026-08-28 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 3, applied via loop-design skill).** Before graduating an item to loop-derived noise, sweep for a stale `. [full text: STATE.archive-2026-09-02.md] |
-| count-reconfirmation-as-reproposal | 2026-08-28 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 4, applied via loop-design skill).** A run that re-confirms, executes ad hoc, or relies on an outstanding adjustment MUST re-emit it as its structured `notes. [full text: STATE.archive-2026-09-02.md] |
-| per-machine-spend-baseline | 2026-08-28 | 1 | **LANDED 2026-08-28 (human decision, retrospective 4 proposal 11, applied via loop-design skill).** Trailing-5 spend and cache medians are computed ONLY from run-log lines whose `notes. [full text: STATE.archive-2026-09-02.md] |
-| rotate-state-md-past-50kb | 2026-08-28 | 2 | **LANDED 2026-08-29, re-executed 2026-09-02 and 2026-09-08 (human decision each time, applied via log-archivist).** STATE.md 54,156 -> ~47,000 (2026-08-29); 54,831 -> 48,772 (2026-09-02); 62,850 -> 47,531 (2026-09-08, scope widened to also archive the Retrospective-outcome sections and the ledger's Prior-standing history trail after two narrow rotations re-hit the trigger in 2-6 runs each). No row ever removed, so none reads as REGRESSED. See State Ownership table and `STATE.archive-*.md` files for what moved each time. |
-| normalize-machine-label-in-run-notes | 2026-08-29 | 1 | **LANDED 2026-08-29 (human decision, applied via loop-design skill).** `notes.machine` is the bare machine id; hostname goes in `notes.hostname`. Normalize both sides (trim, lowercase, take the part before the first `/`) before matching a historic line. [full text: STATE.archive-2026-09-02.md] |
-| stale-lock-sweep-independent-of-noise-graduation | 2026-08-30 | 3 | **LANDED 2026-09-02** (human APPROVED at attempt cap, applied via the loop-design skill; first adjustment in the loop's history to reach the attempt cap and be resolved by it). [full text: STATE.archive-2026-09-08.md] |
-| record-step-5-commit-push-result-in-notes | 2026-09-06 | 1 | **LANDED 2026-09-06** (human APPROVED same day, applied via the loop-design skill; RESHAPED on application into two append-only halves - step 5's `store-sync` line plus step 0's prior-run audit - since a line cannot record its own commit result). [full text: STATE.archive-2026-09-08.md] |
-| dirty-repo-cache-key-is-ambiguous-across-machines | 2026-09-03 | 2 | **LANDED 2026-09-06** (human APPROVED at `times_proposed: 2`, applied via the loop-design skill; `notes.dirty_repos` keys now `<repo-dir-name>@<machineId>` with explicit `path`). [full text: STATE.archive-2026-09-08.md] |
-| adjustment-field-must-be-an-array | 2026-09-06 | 1 | **LANDED 2026-09-06** (human ruling on the protocol collision run 36 escalated, applied via the loop-design skill; `notes.adjustment` is now always an ARRAY). [full text: STATE.archive-2026-09-08.md] |
-| discover-bare-repo-worktree-hubs | 2026-09-08 | 1 | **LANDED 2026-09-08 (human APPROVED same day, applied via the loop-design skill, same day as proposed).** Step 1's local-hygiene discovery (`find <root> -maxdepth 3 -name .git`) structurally cannot see a BARE repo (no `.git` entry - the repo dir IS the git dir). New sub-step runs a separate pass over the same scan roots at the same depth bound, testing each depth-1-2 directory with `git rev-parse --is-bare-repository` (requiring the candidate be its own resolved git-dir via `--absolute-git-dir`, normalized with `cygpath -u`, to avoid false-positiving on a bare repo's own subdirectories - caught and fixed during same-session verification) rather than trusting the `*.git` naming convention alone; each bare repo's worktrees (`git worktree list --porcelain`) are folded into the same discovered-repo set so they get the same dirty/unpushed/worktree-hygiene/gitignore-drift coverage as ordinary repos. No cache, per `domains/loop-design.md`'s uncached-path-first lesson - same reasoning as Worktree hygiene. Evidence: run 38 found `cli-shared-memory.git` this way ad hoc, a bare hub with 2 worktrees invisible to every prior check. |
-| scope-step5-git-add-to-own-loop-paths | 2026-09-09 | 2 | **LANDED 2026-09-11** (retrospective 5, proposal 2; human-approved, applied via loop-design). LOOP.md step 5 now stages `loops/daily-triage/STATE.md loops/daily-triage/runs.jsonl` instead of `-A`, and the rule is stated once for every loop in `loops/README.md` -> "Committing from a loop", since pr-review-watch shares the same store and had the same exposure. Worked around by hand in runs 39, 41 and 42 before landing; the hazard itself fired at run 39. Rationale now lives in the protocol, not in this row. |
-| detect-content-duplicate-branches | 2026-09-08 | 2 | **LANDED 2026-09-11** (retrospective 5, proposal 5; human-approved option A). LOOP.md now runs `git cherry <upstream> <branch>` before reporting untracked-LIVE and downgrades to content-duplicate DEAD only when every commit prints `-`. Chose git's own patch-id equivalence over a hand-rolled patch-id comparison, a message+file-set heuristic (false-positives on different work touching the same files) or a bounded commit window (unnecessary - `git cherry` walks only the branch's own commits). Fails toward LIVE on any inconclusive check, because a false DEAD silences a real sole-copy exposure while a false LIVE is only noise. Verified on a local reproduction: rev-list says 1 unpushed, `git cherry` says already-upstream. Motivating case `NMMToolkit/fix/dispatch-command-not-found-message` is work-it-only and could not be re-checked from home-matt. **Hardened the same day after a Codex cross-runtime review returned two P2s, both reproduced locally before being acted on: `git cherry` omits merge commits (rev-list counted 2, cherry listed 1), and patch-id ignores whitespace (an addition indented 4 spaces and the same addition indented 8 share a patch-id). Both produce exactly the false DEAD this rule was written to avoid, and the original fail-toward-LIVE guard covered neither. The downgrade now additionally requires 0 unpushed merge commits and a whitespace-sensitive byte-for-byte confirmation; either one unestablished means LIVE/inconclusive. |
-| record-remote-repo-name-in-local-hygiene | 2026-09-09 | 2 | **LANDED 2026-09-11** (retrospective 5, proposal 6; human-approved). Local hygiene now records every enumerated repo in a top-level `notes.local_repo_remotes` map rather than a `remote` key per `dirty_repos` entry: the local-dir/GitHub-name mismatch affects dirty-repo, worktree AND branch findings, so a per-entry key fixes one surface of three and duplicates the value, and a top-level map matches the shape `notes.branch_tips` already uses. Keyed `<repo-dir-name>@<machineId>` like `dirty_repos` - a bare name is ambiguous across machines, the exact failure `dirty-repo-cache-key-is-ambiguous-across-machines` closed, and the motivating case (`TriageDesk` -> `mwgrant21/Jira-Autoticketing`) exists only on work-it. `null` is recorded explicitly rather than omitted, since a missing key cannot be told from "not checked" and "no remote" is itself the sole-copy finding. Also added to step 3's carried-notes list, without which a map described in step 1 is never written. |
+| retro-reconcile-adjustment-ledger | 2026-08-06 | 1 | LANDED 2026-08-06 |
+| batch-branch-commit-date-lookups | 2026-07-14 | 5 | LANDED 2026-08-03 |
+| fix-spend-summary-date-window | 2026-07-17 | 1 | LANDED 2026-07-22 |
+| record-output-token-baseline | 2026-07-17 | 1 | LANDED 2026-07-18 |
+| flag-branches-20-commits-ahead | 2026-07-18 | 1 | LANDED 2026-08-06 |
+| branch-staleness-by-commits-ahead | 2026-07-21 | 1 | LANDED 2026-08-06 |
+| verify-loop-own-commit-completed | 2026-07-24 | 1 | LANDED 2026-08-06 |
+| self-confirming-noise-without-fp-mark | 2026-07-24 | 1 | LANDED 2026-08-06 |
+| promote-tokenmonitor-pr1-to-human-decisions | 2026-08-03 | 2 | LANDED 2026-08-06 |
+| cache-quiet-repo-pr-issue-results | 2026-08-04 | 1 | LANDED 2026-08-06 |
+| drop-bare-uncommitted-changes-signal | 2026-08-04 | 1 | LANDED 2026-08-06 |
+| machine-tag-watchlist-items | 2026-08-06 | 1 | LANDED 2026-08-06 |
+| exclude-default-branches-from-staleness | 2026-08-06 | 1 | LANDED 2026-08-06 |
+| gate-cache-flag-on-min-volume | 2026-08-07 | 3 | LANDED 2026-08-28 |
+| noise-match-on-finding-identity-not-text | 2026-08-10 | 1 | LANDED 2026-08-17 |
+| distinguish-broken-probe-from-dead-source | 2026-08-11 | 3 | LANDED 2026-08-17 |
+| specify-branch-tips-cache-key-format | 2026-08-11 | 2 | LANDED 2026-08-17 |
+| record-behind-by-alongside-ahead-by | 2026-08-21 | 1 | LANDED 2026-08-21 |
+| clarify-repo-discovery-depth-definition | 2026-08-18 | 3 | LANDED 2026-08-21 |
+| freeze-unchanged-runs-when-not-verified | 2026-08-21 | 1 | LANDED 2026-08-21 |
+| dedupe-same-day-spend-baseline | 2026-08-21 | 1 | LANDED 2026-08-21 |
+| dirty-count-blind-to-content-churn | 2026-08-13 | 1 | LANDED 2026-08-17 |
+| expand-home-matt-discovery-root | 2026-08-15 | 1 | CLOSED-MOOT |
+| validate-jsonl-line-before-append | 2026-08-17 | 1 | LANDED 2026-08-17 |
+| worktree-hygiene-report | 2026-08-21 | 1 | LANDED 2026-08-21 |
+| gitignore-and-auth-drift-check | 2026-08-21 | 1 | LANDED 2026-08-21 |
+| close-expand-home-matt-discovery-root | 2026-08-22 | 1 | CLOSED-MOOT |
+| clarify-unchanged-runs-flag-threshold | 2026-08-24 | 1 | LANDED 2026-08-28 |
+| fetch-prune-before-unpushed-check | 2026-08-25 | 1 | LANDED 2026-08-28 |
+| detect-no-upstream-local-branches | 2026-08-26 | 1 | LANDED 2026-08-28 |
+| pull-store-before-step-0 | 2026-08-28 | 1 | LANDED 2026-08-28 |
+| verify-repo-can-change-before-noise-graduation | 2026-08-28 | 1 | LANDED 2026-08-28 |
+| count-reconfirmation-as-reproposal | 2026-08-28 | 1 | LANDED 2026-08-28 |
+| per-machine-spend-baseline | 2026-08-28 | 1 | LANDED 2026-08-28 |
+| rotate-state-md-past-50kb | 2026-08-28 | 2 | LANDED 2026-08-29 |
+| normalize-machine-label-in-run-notes | 2026-08-29 | 1 | LANDED 2026-08-29 |
+| stale-lock-sweep-independent-of-noise-graduation | 2026-08-30 | 3 | LANDED 2026-09-02 |
+| record-step-5-commit-push-result-in-notes | 2026-09-06 | 1 | LANDED 2026-09-06 |
+| dirty-repo-cache-key-is-ambiguous-across-machines | 2026-09-03 | 2 | LANDED 2026-09-06 |
+| adjustment-field-must-be-an-array | 2026-09-06 | 1 | LANDED 2026-09-06 |
+| discover-bare-repo-worktree-hubs | 2026-09-08 | 1 | LANDED 2026-09-08 |
+| scope-step5-git-add-to-own-loop-paths | 2026-09-09 | 2 | LANDED 2026-09-11 |
+| detect-content-duplicate-branches | 2026-09-08 | 2 | LANDED 2026-09-11 |
+| record-remote-repo-name-in-local-hygiene | 2026-09-09 | 2 | LANDED 2026-09-11 |
 
-**Ledger standing UPDATED 2026-09-11 (retrospective 5 application, home-matt): 44 rows - 42 LANDED, 2 CLOSED-MOOT, 0 OUTSTANDING, 0 declined, 0 held, 0 ESCALATED.** Retrospective 5 proposals 1, 2, 4, 5 and 6 all landed this date; 7 and 8 were report-only by design. The ledger has no outstanding adjustments for the first time since it was created.
-
-**Ledger standing UPDATED 2026-09-09 (run 39): 43 rows - 39 LANDED, 2 CLOSED-MOOT, 2 OUTSTANDING (`detect-content-duplicate-branches` times_proposed:1, `scope-step5-git-add-to-own-loop-paths` times_proposed:1), 0 declined, 0 held, 0 ESCALATED.**
-
-**Ledger standing UPDATED 2026-09-08 (interactive session, post run-38 NMMToolkit cleanup): 42 rows - 39 LANDED, 2 CLOSED-MOOT, 1 OUTSTANDING (`detect-content-duplicate-branches`, `times_proposed: 1`), 0 declined, 0 held, 0 ESCALATED.**
-
-**Ledger standing UPDATED 2026-09-08 (human decision, run-38 proposal, applied same day): 41 rows - 39 LANDED, 2 CLOSED-MOOT, 0 OUTSTANDING, 0 declined, 0 held, 0 ESCALATED.** `discover-bare-repo-worktree-hubs` decided and applied same-day rather than waiting for retrospective 5, at the user's explicit direction.
-
-**Ledger standing history 2026-08-28 through 2026-09-06 (10 superseded "Ledger standing"/"Prior standing" entries plus the 2026-08-29 ORPHAN-ID SWEEP note) moved to `STATE.archive-2026-09-08.md` by the 2026-09-08 log-archivist pass - only the current standing line above is needed live.**
-
-Note for the next retrospective's step R1, ADDED 2026-08-28: `count-reconfirmation-as-reproposal` is present in LOOP.md but LINE-WRAPPED (`count-reconfirmation-as-` / `reproposal`), so a naive grep of the bare id reads 0. Same trap as `noise-match-on-finding-identity-not-text`. Grep a distinctive phrase from the rule's body, not the bare id, for these four rows. Also note `verify-repo-can-change-before-noise-graduation` and `per-machine-spend-baseline` verify by id normally.
-
-Note for the next retrospective's step R1: two rows deviate from their original proposal text ON PURPOSE, and each row says how - `branch-staleness-by-commits-ahead` became author-date staleness plus a separate `ahead_by` signal, and `cache-quiet-repo-pr-issue-results` became a fleet-wide search that removes the calls rather than a cache of their answers. Both would read as never-landed under a naive text match. Also: when reading `runs.jsonl` in full for R1, line 27 is invalid JSON - use a tolerant per-line parse that logs-and-skips rather than aborting.
+**Ledger standing 2026-09-11: 44 rows - 42 LANDED, 2 CLOSED-MOOT, 0 OUTSTANDING.**
+No outstanding adjustments for the first time since the ledger was created.
 
 ## Watch List
 <!-- Run 42 (2026-09-11, home-matt, FULL gather run - first home-matt run since run 29). Machine-tag
@@ -253,42 +159,11 @@ Note for the next retrospective's step R1: two rows deviate from their original 
 - **`Aether-OS-livetest` WIP (work-it clone) - crossed to `unchanged_runs:3` at run 41, still awaiting a human decision (commit/discard vs. intentional ongoing WIP).** Not re-verifiable from home-matt this run - frozen at 3, not incremented. [machine: work-it]
 
 ## Human Decisions (overrides the loop must respect)
-- **2026-09-02: `IT-KB-Pipeline` BUNDLED - both branches, restore-tested. Exposure REDUCED, not closed.** Matt chose the `git bundle` option from run 34's High Priority item. `git bundle create ... --all` from `C:\Users\IT\Desktop\IT-KB-Pipeline` to **`C:\Users\IT\backups\it-kb-pipeline-2026-09-02.bundle`** (85 KB), following the `tarot` precedent's naming and location convention. Contents verified two ways: `git bundle verify` reports okay / complete history, AND a throwaway `git clone --bare` from the bundle reproduced `master` at `d087e711f667cd5482e8d30091ffdf3ed6e9cf07` / 27 commits and `feat/phase1-pipeline` at `efe97271b18d45c430bf5c739b3ee32f6d4fc01d` / 23 commits, `git fsck` clean. The restore test is the evidence; `bundle verify` alone runs against the SOURCE repo and can lean on objects the bundle does not itself carry. The repo had no tags, no stashes and no unreachable commits, so `--all` is the complete picture. Source repo untouched - still no remote, tree still clean.
-  **SUPERSEDED THE SAME DAY - 2026-09-02: private remote created, finding CLOSED.** Matt reversed the 2026-08-25 no-remote decision after being shown it and the scan of what the history carries. `mwgrant21/IT-KB-Pipeline`, visibility PRIVATE, both branches pushed and verified at 0 ahead / 0 behind against the remote tips (`master` d087e711, `feat/phase1-pipeline` efe97271). Default branch was corrected to `master` - `gh repo create --source` had set it to `feat/phase1-pipeline`, which would have made every future ahead/behind reading in this loop nonsense. `feat/phase1-pipeline` read 0 ahead / 4 behind master and was **DELETED 2026-09-02, local and remote** (tip was `efe97271`), after three independent confirmations that it was contained in master: `git rev-list feat/phase1-pipeline --not master` returned 0, `git branch --merged master` listed it, and `git merge-base --is-ancestor` passed; the delete used `git branch -d`, which would have refused an unmerged branch, as a fourth. Recoverable from `master` itself, which provably contains every one of its commits, and from the local reflog. NOT from the bundle any more: the bundle was REFRESHED 2026-09-02 after this deletion and no longer carries the `feat/phase1-pipeline` ref - see the bundle note above. Nothing is lost by that, but do not cite the bundle as the recovery path for this branch. `master` intact at 27 commits, `d087e711`, tree clean. **Bundle REFRESHED 2026-09-02** after the `.gitattributes` commit and the branch deletion: same path `C:\Users\IT\backups\it-kb-pipeline-2026-09-02.bundle` (86 KB), now `master` only at `00992f73bb9c8499a12b4ab1ab3d7d4122e71525` / 28 commits, restore-tested the same way (bare clone from the bundle, 28 commits, fsck clean). It SUPERSEDES the 27-commit two-branch version whose SHAs this entry records above; those SHAs describe the FIRST bundle, which no longer exists at that path. The bundle stays as the local second copy. **No OneDrive copy was made** - offered 2026-09-02 and declined: the only OneDrive folder on work-it is the PERSONAL consumer account (`C:\Users\IT\OneDrive`; the NMM business account is signed in but syncs no local folder), and the private GitHub remote already provides the off-machine copy the original finding asked for. Pre-push scan of all 27 commits found no credentials (env-var driven, `.env` gitignored) and no real employee names; it does carry NMM tenant identifiers, which was the substance of the decision Matt reversed. Drop this from High Priority AND from Watch List - it is closed, not downgraded.
-  Superseded text follows, kept because the reasoning still applies if the remote is ever removed: **this is NOT resolved, it is DOWNGRADED.** The bundle sits on the SAME DISK as the repo, so it covers tree damage, a bad rebase, or accidental deletion - it does NOT address the original finding, which was that one disk holds the only copy. Report the residual at **Watch List** severity, worded as "bundled 2026-09-02, still no off-disk copy" - not High Priority, and never as resolved. It returns to High Priority if the bundle goes missing, or if the repo gains commits past `d087e711` with no newer bundle beside them. Closing it properly needs a private remote or a copy to removable / another-machine storage; no removable drive was mounted on 2026-09-02 to copy it to. [machine: work-it]
-- **2026-09-02: `stale-lock-sweep-independent-of-noise-graduation` APPROVED at the attempt cap.** Decided by Matt on the run-34 digest, the same day the cap fired; applied to LOOP.md via the loop-design skill in that session. The loop did not edit its own LOOP.md. What changed: the stale-`.git`-lock sweep is now a first-class source in step 1, run over EVERY repo local hygiene enumerates, every run - its coverage no longer depends on whether some other finding is a noise-graduation candidate. The step-2 graduation gate stops sweeping and instead READS `notes.stale_locks`; an absent or failed sweep BLOCKS graduation rather than passing it, so a broken sweep can never read as a clean one. Runs must record `notes.stale_locks` AND the swept-repo count, and phrase a clean result as `0 stale locks fleet-wide (N/N repos swept)`. **L1 unchanged: the sweep REPORTS a lock and never deletes one, at any age, on any machine** - clearing a lock stays a human action, because a lock the loop misjudges as stale is a lock a live process is holding. Standing consequence: the 8 home-matt locks in High Priority are still a human remediation, not something the loop will now clear for you.
-- **2026-08-28 (post-retrospective-4): ALL 11 R2 proposals DECIDED in one pass.** Decided interactively by Matt, one proposal at a time; applied to LOOP.md via the loop-design skill in the same session. The loop did not edit its own LOOP.md - every edit traces to an explicit approval here.
-  - **APPROVED and applied (8 LOOP.md edits):** (1) `pull-store-before-step-0` - step 0 pulls first, staleness caveat on failure. (2) `gate-cache-flag-on-min-volume` **re-opened, overturning the 2026-08-17 decline** - 50,000-output-token floor, reported as `not evaluated`, never silent. (3) `verify-repo-can-change-before-noise-graduation` - stale-lock sweep before noise graduation. (4) `count-reconfirmation-as-reproposal` - the RUN re-emits (chosen over the R1-counts-rows variant), so the increment lands at the point of observation. (5) `fetch-prune-before-unpushed-check`. (6) `detect-no-upstream-local-branches` **with the DEAD/LIVE split mandatory**. (8) `clarify-unchanged-runs-flag-threshold` - pinned to `>=3`, **explicitly sequenced to land AFTER (3)**, since consistency without the can-it-change check only makes a wrong graduation reliable. (11) `per-machine-spend-baseline`.
-  - **CLOSED-MOOT:** (7) `close-expand-home-matt-discovery-root` and the held `expand-home-matt-discovery-root` it supersedes. No LOOP.md change. Stop carrying either forward.
-  - **ACCEPTED as reported, no LOOP.md change:** (9) **stay at L1**; the promotion gate stays LIVE and is re-evaluated at retrospective 5 - L1 is a gate outcome here, not a settled preference, so do not stop computing it. (10) run-cost baseline recorded watch-only: median 349s -> 870s, triggers are STATE.md >~50KB or median duration >~1,200s.
-  - **Known consequence to weigh at retrospective 5:** proposals 5 and 6 add per-repo fetch and branch work across ~24 repos, so duration will RISE this window. Read that against proposal 10's baseline as expected cost, not unexplained drift.
-  - **Known caveat carried forward:** the 50,000-token floor in (2) was derived from a window whose medians mixed home-matt and work-it corpora - the very defect (11) fixes. Re-derive it from home-matt-only readings once >=3 same-machine baselines exist.
-- **2026-08-25 (post-run-28): run 28's High Priority and dead-weight findings AUTHORIZED and EXECUTED out-of-band.** L1 boundary intact - the loop reported, the human authorized each item explicitly, a separate session acted. Do not re-raise any of these.
-  - **`tarot` orphaned pre-rewrite history - BUNDLED, then DELETED.** All 5 branches verified first: `git merge-base` empty against `origin/master` for every one. Bundled to `C:\Users\Matt\backups\tarot-prerewrite-2026-08-25.bundle` (**1.9 GB** - the deck art is in that history), `git bundle verify` reporting "okay / complete history" with all 5 tips matching (`b4b9fc0`, `836d594`, `b0bbc3c`, `4b824c0`, `ef7924c`). Only then deleted with `-D`. **`tarot` is now `master` only, 0 unpushed.** The bundle is the sole surviving copy - if it is ever moved or deleted, the history is gone.
-  - **11 `[gone]` dead-weight branches DELETED** across `TarotApp` (5), `TokenMonitor` (4), `aether-os` (1, closing the 2026-08-21 cleanup residue), `nmmtools` (1). Each was re-verified at 0 commits not on a remote immediately before deletion, not trusted from the run-28 digest.
-  - **`TarotApp` divergence RESOLVED - merged and pushed (`37a480a..941b7de`).** The `behind 1` was a phantom: remote `37a480a` and local `f84f60a` were DUPLICATE merges of the same two parents with byte-identical trees. **Note for future runs: `ahead/behind` correctly flagged this as not-fast-forwardable, but "behind" did NOT mean "the remote has work you lack" - only a tree comparison settles graph-vs-content divergence.**
-  - **ROOT CAUSE FOUND for `TarotApp`'s 5-run-identical dirty paths: a stale, empty `.git/index.lock` dated 2026-08-12** - removed; fleet-wide sweep found no others. The loop had read "unchanged for 5 runs" as idle WIP when the repo was actually unable to commit.
-  - **`Miriels-publish` and `tarot` GPU-debug leftovers DISCARDED 2026-08-25 (user-authorized).** Diffs preserved at `C:\Users\Matt\backups\{tarot,Miriels-publish}-gpu-debug-leftovers-2026-08-25.patch`. Both 5-run noise findings genuinely CLOSED.
-  - **`tarot/GPU-CRASH-NOTES.md` DELIBERATELY KEPT** - untracked, its own only copy, records the crash occurring on Electron 35.7.5. [action for a human: commit it so the record stops being one `rm` from gone] [machine: home-matt]
-  - **FACT CORRECTION for future runs: neither `tarot` nor `Miriels-publish` has moved off Electron 35** (`"electron": "^35.0.0"` at HEAD, no `node_modules`). Do not assume the fleet is uniformly on a current Electron.
-- **2026-08-25 (post-run-28): project-status decisions given directly by the user.**
-  - **`tarot` - project is COMPLETE**; dirty working-tree paths are deliberate. Do not re-raise the dirty-path finding. (The orphaned-branch question was separate and is now closed above.)
-  - **`About-me` - FROZEN by explicit request.** Do not re-raise, never propose committing or discarding `README.md`.
-  - **`TokenMonitor` (v1) - FINAL.** v2 is the current line. Report v1 findings only if something genuinely CHANGES there.
-  - **`TarotApp` (Android) - NOT NOISE, RECLASSIFIED.** Divergence clause SATISFIED AND RETIRED 2026-08-26 (run 29); the not-noise clause STANDS - the 3 dirty paths remain a real Watch List finding.
-  - **`Miriels-publish` - CLOSED 2026-08-26 (run 29) without needing a decision** (leftovers reverted under the authorization above; tree clean).
-- **2026-08-22: `TokenMonitorV2` branch disappearance - HELD, pending Monday 2026-08-24.** Superseded by the follow-up below.
-- **2026-08-24 FOLLOW-UP: `TokenMonitorV2` confirmed ACTIVE on work-it, not silently trimmed.** Merged cleanly and pushed (`5a76f39`); routine-cleanup explanation confirmed. RESOLVED, do not re-raise. (Run 30's `footerVersion.js` Watch List item is the narrow one-file remainder, not a reopening of this.)
-- TokenMonitor PR #1 was the user's own active PR. **MERGED**; override satisfied and retired.
-- **2026-08-17: adjustment `gate-cache-flag-on-min-volume` DECLINED.** Treat as closed; do not re-propose absent materially new evidence.
-- **2026-08-17: adjustment `distinguish-broken-probe-from-dead-source` APPLIED.** User delegated the accept/decline call to the agent.
-- **2026-08-17: remaining 5 OUTSTANDING adjustments decided in one pass.** 4 APPLIED, 1 HELD (`expand-home-matt-discovery-root`).
-- **2026-08-21: `Aether-OS` branch cleanup APPROVED and EXECUTED out-of-band.** Baseline zero extra branches. Run 30: GitHub still `master` only; the work-it clone's new DIRTY PATHS are working-tree WIP, not branches - baseline not contradicted.
-- **2026-08-21: fleet-wide branch cleanup APPROVED and EXECUTED out-of-band.** Do not re-raise.
-- **2026-08-21: `TokenMonitor` `worktree-packages-core-wiring` ABANDONED.** Commit preserved for recovery: `43fde10ab80909e50cf0d6c2768a96d29108ac28`. Do not re-raise.
-- **2026-08-21: `EFIPartitionRemediation` `feature/fleet-migration-runbook` MERGED; branch deliberately kept** (checked out in live worktree `~/Desktop/EFI-wt-migration`). Run 30 measures it `0a/0b`, author-date 2026-08-06 (22 days), worktree present and clean - **suppressed by this decision, not re-raised, including by the new worktree-hygiene check.**
-- **2026-08-21: `cli-shared-memory` (home-matt) untracked `.claude/` - DECISION IS `commit it`. SATISFIED AND RETIRED 2026-08-25 (run 28).** Recorded rather than deleted.
-- **2026-08-21: adjustments `worktree-hygiene-report` and `gitignore-and-auth-drift-check` APPLIED** by direct human request. Run 28 closed both gaps on home-matt; run 30 ran both checks on work-it for the first time (0 stale worktrees, auth OK, drift only in lagging clones).
+
+**Moved to `STATE.standing-decisions.md` on 2026-09-11 - read that file.**
+It is binding policy rather than history, so it is never compressed, and it
+was 22% of this file and the section that would re-breach any size trigger on
+its own. Nothing was dropped in the move.
 
 ## Resolved since last run
 <!-- Pruned each run per step 2. Prior entries remain in git history. -->
