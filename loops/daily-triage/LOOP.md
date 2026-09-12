@@ -492,6 +492,32 @@ L2 also requires worktree isolation. Not active at L1.
          Record the evidence with the finding: the upstream ref compared against and
          the `-` commit SHAs, so a reader can re-check the downgrade without
          re-deriving it.
+         **Two things an all-`-` result does NOT prove** (both found by a Codex
+         cross-runtime review of this rule on 2026-09-11, and both reproduced
+         locally before being written down here). Each one, left unguarded, produces
+         the false DEAD this rule is otherwise careful to avoid:
+         1. **`git cherry` omits merge commits.** It walks non-merge commits only, so
+            a branch holding one already-upstream patch PLUS a local merge whose
+            conflict resolution is unique prints only `-` lines while carrying
+            sole-copy work. Reproduced: `git rev-list feature --not master --count`
+            returned 2 while `git cherry` listed 1, the merge commit invisible to it.
+            So before downgrading, count unpushed merges
+            (`git rev-list --merges <upstream>..<branch> --count`); if it is not 0,
+            keep the branch LIVE and report the check inconclusive.
+         2. **patch-id ignores whitespace.** `-` means "equivalent ignoring
+            whitespace", not "identical". Reproduced: adding `    return 2` and
+            adding `        return 2` yield the SAME `git patch-id --stable` - a
+            difference that changes which block the statement belongs to in Python,
+            and that matters inside string literals in any language. So a `-` alone
+            may not be treated as a content duplicate: confirm the matched commits
+            byte-for-byte (compare the diff bodies without ignoring whitespace) and
+            downgrade only if they are identical. `git patch-id` has no
+            whitespace-sensitive mode, so this is a separate comparison, and it is
+            reasonable to bound it (same file set, recent upstream history) - the
+            bound belongs on the CONFIRMATION step, never on detection.
+         If either guard cannot be established for a branch, the answer is LIVE and
+         inconclusive. That is the whole asymmetry again: noise costs a line the human
+         dismisses; a wrong DEAD deletes the only copy of real work.
          Worked example (reproduced 2026-09-11): with a patch cherry-picked onto
          master under a new SHA, `git rev-list feature --not master --count` returns
          1 - today's LIVE verdict - while `git cherry -v master feature` returns
