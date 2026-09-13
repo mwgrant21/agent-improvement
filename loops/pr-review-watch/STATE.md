@@ -5,7 +5,7 @@ paused: false
 attempt_cap: 3
 budget: soft
 last_run: 2026-09-13
-runs_since_retro: 5
+runs_since_retro: 6
 constrained_scopes: []
 ---
 ## State Ownership
