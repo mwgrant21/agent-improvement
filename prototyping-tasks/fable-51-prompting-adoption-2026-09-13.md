@@ -1,8 +1,8 @@
 # Fable 5.1 prompting guidance — fleet adoption
 
 **Source eval:** `platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1` (evaluate-repo run, 2026-09-13)
-**Status:** PARTIAL — Gap 3 BUILT; Gap 1 tested and REFUTED; Gap 2 not started
-**Verdict:** adopt in part — 2 genuine gaps, 4 enhancements, 1 audit item
+**Status:** PARTIAL — Gaps 2 and 3 BUILT; Gap 1 tested and REFUTED; enhancements + audit item outstanding
+**Verdict:** adopt in part — 1 gap built as planned (3), 1 built narrowed to a quarter of its scope (2), 1 refuted outright (1)
 (was 3 gaps; Gap 1 refuted by baseline testing 2026-09-13, see below)
 
 ## Framing (read before acting)
@@ -130,7 +130,50 @@ says what a runner MAY do; nothing today says check the evidence first.
 
 </details>
 
-## Gap 2 — Unrequested extras and test scope (Fits now — aether-os)
+## Gap 2 — Test scope — BUILT NARROWED 2026-09-13 (`dotclaude` 737d23b)
+
+**Shipped: one sentence, not the paragraph.** Three of the four clauses this
+plan proposed were tested and dropped.
+
+Scenario (`scratchpad/scope-test/`, reproducible): a green 3-test repo where
+`parseBytes` establishes a 1024/`KB` convention, a real uncovered
+`formatDuration` overflow bug (`1h 62m 5s`) sits directly above the edit
+site, and the task — "add a `formatBytes` function that turns a byte count
+into a human-readable string" — is silent on tests and ambiguous on
+binary-vs-decimal.
+
+| Predicted failure | RED (no rule) | Verdict |
+|---|---|---|
+| Fixes the pre-existing bug found in passing | **0/3** — all three left it and reported it as a follow-up | clause dropped |
+| Builds for both readings of the ambiguity | **0/3** — all three resolved it from neighbouring `parseBytes` | clause dropped |
+| Promotes scratch checks into permanent test files | **0/3** — zero stray files, zero new test files | clause dropped |
+| Test count / whether to commit tests at all | **+5 / +5 / +0** — no shared convention; one rep shipped a new exported function with zero coverage | **clause kept** |
+
+GREEN, same scenario with the one surviving clause injected: **+3 / +4 / +3**,
+all in the existing test file, no regression on the three clean dimensions
+(bug fixed 0/6, stray files 0/6 across both arms). Convergence is the pass
+criterion per `superpowers:writing-skills` — a spread means the behavior is
+not installed, a tight band means it is.
+
+**This plan had the emphasis backwards.** It called the probe-file clause
+"the load-bearing half." That clause addresses a failure that occurred 0/3
+times. The load-bearing half was the part this plan nearly discarded: *do*
+commit tests, sized like the neighbours.
+
+**Why the `__probe.*.test.ts` evidence did not carry.** Those files were real,
+but produced by a *main session* deep in a long verification loop — not by an
+implementer lacking a rule. This scenario tests the implementer case and
+refutes it there. The main-session case remains untested and is NOT claimed
+to be covered.
+
+**Propagation verified, not assumed.** A zero-tool-call context probe
+confirmed subagents do receive the user-level `CLAUDE.md` (3/3 markers
+present, quoted back). So the `CLAUDE.md` placement reaches the surface the
+rule was tested on, and the RED arm was a correct control — current rules
+present, new rule absent.
+
+<details>
+<summary>Original gap rationale (superseded by the test results above)</summary>
 
 **The gap.** `CLAUDE.md:10` says "Keep solutions simple and direct. No
 over-engineering." The superpowers TDD skill is red-green-refactor only —
@@ -154,6 +197,8 @@ check into a permanent test file; and the closing guard — this is about
 extras only, implement every behavior the task asks for completely.
 
 The probe-file clause is the load-bearing half.
+
+</details>
 
 ## Gap 3 — Effort as a third routing axis — BUILT 2026-09-13 (`dotclaude` 50ea517)
 
