@@ -1,0 +1,7 @@
+# Control-scenario fixtures are executed as-is by test reps on any machine.
+# A CRLF checkout breaks bash scripts ($'\r': command not found) and makes a
+# working fixture look defective, so pin line endings for everything here.
+* text eol=lf
+*.sh text eol=lf
+*.js text eol=lf
+*.json text eol=lf
