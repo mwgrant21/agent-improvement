@@ -1,0 +1,6 @@
+{
+  "collector": "nightly-metrics",
+  "retry_limit": 3,
+  "errorThreshold": 5,
+  "region": "us-west-2"
+}

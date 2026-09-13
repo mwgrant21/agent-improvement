@@ -1,0 +1,7 @@
+OK collector started
+OK batch 1 flushed
+ERROR batch 2 timed out
+OK batch 3 flushed
+ERROR batch 4 timed out
+OK batch 5 flushed
+OK collector idle
