@@ -27,7 +27,14 @@ LIVE="$HOME/.claude"
 strict=0
 [ "${1:-}" = "--strict" ] && strict=1
 
-drift=0; missing=0; ok=0
+drift=0; missing=0; ok=0; nosrc=0
+
+# Files whose ORIGIN lives outside this store (e.g. a skill versioned in an
+# application repo and installed into ~/.claude). Copying those into the store
+# would create a third copy and monitor the wrong pair -- store vs live --
+# while the real origin drifted unwatched. The manifest instead points the
+# check straight at the origin. See external-origins.tsv for the format.
+EXTERNAL="$STORE/tools/store-sync/external-origins.tsv"
 
 printf '%-50s %s\n' "DISTRIBUTED FILE" "STATUS"
 printf '%-50s %s\n' "----------------" "------"
@@ -50,10 +57,37 @@ while IFS= read -r rel; do
   fi
 done < <(cd "$STORE" && find skills hooks -type f 2>/dev/null | grep -v '/tests/' | sort)
 
-echo
-echo "in sync: $ok | drift: $drift | missing live: $missing"
+if [ -f "$EXTERNAL" ]; then
+  while IFS=$'\t' read -r rel src; do
+    case "${rel:-}" in ''|'#'*) continue ;; esac
+    [ -n "${src:-}" ] || continue
+    l="$LIVE/$rel"
+    if [ ! -e "$src" ]; then
+      # Never let an unreachable origin read as agreement: with no source there
+      # is nothing to compare, and silence here is exactly the failure this
+      # script exists to catch.
+      printf '%-50s %s\n' "$rel" "MISSING SOURCE  $src"
+      nosrc=$((nosrc + 1))
+    elif [ ! -e "$l" ]; then
+      printf '%-50s %s\n' "$rel" "MISSING LIVE"
+      missing=$((missing + 1))
+    elif diff --strip-trailing-cr -q "$src" "$l" >/dev/null 2>&1; then
+      printf '%-50s %s\n' "$rel" "in sync (external)"
+      ok=$((ok + 1))
+    else
+      s_lines=$(wc -l < "$src"); l_lines=$(wc -l < "$l")
+      s_when=$(date -r "$src" '+%Y-%m-%d' 2>/dev/null)
+      l_when=$(date -r "$l" '+%Y-%m-%d' 2>/dev/null)
+      printf '%-50s %s\n' "$rel" "DRIFT  origin=${s_lines}L/${s_when}  live=${l_lines}L/${l_when}"
+      drift=$((drift + 1))
+    fi
+  done < "$EXTERNAL"
+fi
 
-if [ "$drift" -gt 0 ] || [ "$missing" -gt 0 ]; then
+echo
+echo "in sync: $ok | drift: $drift | missing live: $missing | missing source: $nosrc"
+
+if [ "$drift" -gt 0 ] || [ "$missing" -gt 0 ] || [ "$nosrc" -gt 0 ]; then
   cat <<'NOTE'
 
 Resolve each file on its own evidence -- do NOT sync wholesale in either
@@ -68,5 +102,5 @@ mtime changes when a file is copied, so a stale copy can look recent.
 NOTE
 fi
 
-[ "$strict" -eq 1 ] && [ $((drift + missing)) -gt 0 ] && exit 1
+[ "$strict" -eq 1 ] && [ $((drift + missing + nosrc)) -gt 0 ] && exit 1
 exit 0

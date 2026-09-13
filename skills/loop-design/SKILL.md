@@ -32,6 +32,17 @@ Refuse to scaffold until ALL are explicit:
 - **Trigger** - SessionStart hook / cron / scheduled agent / manual /loop.
 - **Level** - ALWAYS 1 at creation. Do not accept a higher starting level.
 - **Budget** - `soft` or a token cap.
+- **Effort** - `low`/`medium`/`high`/`xhigh`/`max` for the runner, stated
+  explicitly. A loop fires unattended on a cadence, so an unexamined default
+  silently sets a recurring bill. Pair with Budget, don't conflate them:
+  Budget caps total spend, effort sets per-run depth. Mechanical
+  gather-and-report runners generally want `low`; a runner that makes
+  judgment calls about finding quality wants `high`. Mechanism: effort is
+  read from the runner agent's frontmatter - the `Agent` tool can override
+  `model` per dispatch but NOT effort - so a loop that needs a non-default
+  effort must dispatch a named agent declaring it, never a bare
+  `general-purpose` dispatch. Never pair an effort with a `haiku` pin;
+  Haiku 4.5 does not support the parameter.
 - **Attempt cap** - default 3.
 - **Sources/scopes** - what it reads; external connectors start read-only.
 - **L1 boundary** - what "report-only" means for this loop, stated in LOOP.md.

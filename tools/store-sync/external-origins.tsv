@@ -1,0 +1,23 @@
+# external-origins.tsv -- distributed files whose ORIGIN is not in this store.
+#
+# Format, TAB-separated:
+#   <path under ~/.claude>	<absolute path to the authoritative source>
+#
+# Why this exists: some files Claude Code loads are versioned in an application
+# repo, not here. Copying such a file into skills/ would make a THIRD copy and
+# have check-distributed.sh compare store-vs-live -- leaving the real origin
+# free to drift unnoticed, which is the whole failure this tooling exists to
+# catch. Listing it here points the comparison at the origin instead.
+#
+# An unreachable source reports MISSING SOURCE and fails --strict. It never
+# reads as "in sync".
+
+skills/aether-cross-check/SKILL.md	/c/Users/Matt/projects/aether-os/.worktrees/visible-communication-u1/skills/aether-cross-check/SKILL.md
+
+# NOTE (2026-09-13): the aether-cross-check origin above points into the
+# feat/visible-communication-u1 WORKTREE, because that is the only place the
+# file exists today (commit 86b7c1b, Task 7). When that branch merges and the
+# worktree is removed, this path dies and the check will report MISSING SOURCE
+# -- repoint it at /c/Users/Matt/projects/aether-os/skills/aether-cross-check/SKILL.md
+# rather than deleting the row. The loud failure is deliberate: a silently
+# dropped row is how the 2026-09-09 stale-hook incident happened.
