@@ -153,7 +153,7 @@ It reached 0 outstanding earlier this date for the first time since the ledger w
 - `TokenMonitorV2` `codesign/` / `dist/` / `buildInfo.json` - still ignored; the repo reported 0 dirty paths this run, consistent with staying ignored. [machine: home-matt]
 
 ## Untriaged noise
-- **`Aether-OS-livetest` WIP (work-it clone) - at `unchanged_runs:3` since run 41, still awaiting a human decision (commit/discard vs. intentional ongoing WIP).** Not re-verifiable from home-matt this run - frozen at 3, not incremented. Now unmarked across 2+ runs. [machine: work-it]
+- ~~`Aether-OS-livetest` WIP (work-it clone) - awaiting a human decision.~~ **DECIDED 2026-09-13: intentional, ongoing WIP.** Moved to `STATE.standing-decisions.md` as a binding override - do not re-raise as untriaged noise or as a graduation candidate while it stays dirty. [machine: work-it]
 - **No home-matt item reached the `unchanged_runs >= 3` threshold this run.** The five identical dirty repos sit at 2; they become graduation candidates next home-matt run if unchanged. The stale-lock gate is CLEAR for all of them (0 locks fleet-wide, 25/25 swept), so nothing is blocked-but-reading-as-settled.
 
 ## Human Decisions (overrides the loop must respect)
