@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-09-11
-runs_since_retro: 4
+last_run: 2026-09-13
+runs_since_retro: 5
 constrained_scopes: []
 ---
 ## State Ownership
@@ -65,7 +65,9 @@ round - recorded here so a later run does not rediscover them as if they were ne
 
 ## Watch List
 
-_Empty: 0 open PRs fleet-wide as of 2026-09-11._
+_Empty: 0 open PRs fleet-wide as of 2026-09-13 (re-verified; the zero was
+cross-checked three ways against a search index proven live by a closed-PR
+query, not believed from a single call)._
 
 ### Closed since last report
 
@@ -108,6 +110,19 @@ _Empty: 0 open PRs fleet-wide as of 2026-09-11._
   genuine blip, but an exit 2 that persists must stay loud, because the fix is a
   human running `gh auth refresh`. Proposed for the next retrospective: have
   exit 2 name that remedy outright.
+
+- **2026-09-12 ~04:38 MST - watcher died silently (no exit-2, no log line).**
+  Found by the 2026-09-13 check, not announced by the watcher. No `node` process
+  holds `check.mjs`, and `cursor.local.json` was last written
+  2026-09-12T10:38Z - ~20.5h of silence against a ~10-minute cadence, 182 polls
+  banked and none since. This is a *different* failure shape from the
+  2026-09-11 entry above: that one hit step 1's guard and said so out loud,
+  whereas this one is the watcher's owning session simply ending. The loop had
+  zero coverage for ~20h and nothing in its own state said so.
+  Harmless this time only because the fleet was at 0 open PRs the whole window.
+  **Proposed for the next retrospective:** have the SessionStart hook treat a
+  cursor mtime older than 2x the poll interval as "no watcher running" and
+  relaunch, instead of assuming an earlier session's watcher is still alive.
 
 ## Recent Noise (ignored this run)
 <!-- Mark an item [FP] if it was a false positive; the loop counts these next run -->
