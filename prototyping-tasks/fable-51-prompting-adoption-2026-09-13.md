@@ -1,7 +1,7 @@
 # Fable 5.1 prompting guidance — fleet adoption
 
 **Source eval:** `platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1` (evaluate-repo run, 2026-09-13)
-**Status:** PARTIAL — Gap 1 tested and REFUTED; Gaps 2 and 3 not started
+**Status:** PARTIAL — Gap 3 BUILT; Gap 1 tested and REFUTED; Gap 2 not started
 **Verdict:** adopt in part — 2 genuine gaps, 4 enhancements, 1 audit item
 (was 3 gaps; Gap 1 refuted by baseline testing 2026-09-13, see below)
 
@@ -153,7 +153,50 @@ extras only, implement every behavior the task asks for completely.
 
 The probe-file clause is the load-bearing half.
 
-## Gap 3 — Effort as a third routing axis (Fits now)
+## Gap 3 — Effort as a third routing axis — BUILT 2026-09-13 (`dotclaude` 50ea517)
+
+**Shipped:** `### Effort axis (orthogonal to both)` in `~/.claude/CLAUDE.md`;
+`### Effort Selection (required...)` + checklist item 5 in `agent-designer`;
+an effort paragraph in `skill-designer`'s tier section; an **Effort** required
+declaration in `loop-design`.
+
+**Three planned claims were refuted before writing**, by checking the bundled
+`claude-api` skill and the real `claude-security` plugin agents rather than
+trusting this doc. The shipped text carries the corrections:
+
+1. **The planned `haiku -> low` mapping is invalid.** Haiku 4.5 does not
+   support the `effort` parameter at all — the API rejects it. This is now a
+   hard constraint in all four files ("never pair `effort:` with
+   `model: haiku`"), naming our one haiku-pinned agent
+   (`it-fleet/change-documentation-agent`). Opus 4.5 additionally supports
+   only `low`/`medium`/`high`.
+2. **The `Agent` tool can override `model` per dispatch but NOT effort** —
+   effort is read from the agent definition's frontmatter. A skill or loop
+   needing a non-default effort must dispatch a *named* agent that declares
+   it; a bare `general-purpose` dispatch silently inherits the global
+   `effortLevel`. That is a design constraint, not a footnote, and it is
+   stated in both `skill-designer` and `loop-design`.
+3. **"Effort is absent from the environment" was wrong.** `settings.json`
+   already carries `"effortLevel": "high"`, and `effort:` is demonstrably a
+   valid frontmatter field — the official `claude-security` plugin ships 8
+   agents using it (e.g. `model: sonnet` + `effort: low` on a read-only
+   loader). The accurate gap was narrower: effort is live but absent from
+   *policy*, and **0 of our 27 agents set it**, so every one inherits a
+   default nobody chose.
+
+Also folded in from `claude-api`, and absent from the source doc: a
+multi-model cost cascade forfeits cache reuse, because caches are
+model-scoped. That argues for measuring the capable model at lower effort
+*before* dropping an agent to a cheaper tier — a direct qualification on the
+existing Model Tiering Policy.
+
+**Not done (deliberate).** No retrofit sweep across the 27 existing agents.
+Author-time enforcement only, matching the Model Tier precedent. A sweep is
+a separate, measurable decision — and per correction 1 it must skip the
+haiku-pinned agent.
+
+<details>
+<summary>Original gap rationale (superseded by the corrections above)</summary>
 
 **The gap.** Zero occurrences of `effort` in `~/.claude/CLAUDE.md`,
 `~/.claude/rules/`, `agent-designer`, `skill-designer`, `loop-design`, or
@@ -186,6 +229,8 @@ the quota-normalized-cost work already in flight
 
 Mirror as an Effort entry in `agent-designer` and `skill-designer` tier
 rubrics, and as a 13th required declaration in `loop-design`.
+
+</details>
 
 ## Enhancements (one-clause upgrades, no new structure)
 
