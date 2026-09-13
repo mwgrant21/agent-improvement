@@ -128,6 +128,8 @@ Mirror as a required declaration in `~/.claude/skills/loop-design/SKILL.md`
 bullet). Para 3 is a direct strengthening of the loop `level` model: `level`
 says what a runner MAY do; nothing today says check the evidence first.
 
+</details>
+
 ## Gap 2 — Unrequested extras and test scope (Fits now — aether-os)
 
 **The gap.** `CLAUDE.md:10` says "Keep solutions simple and direct. No
