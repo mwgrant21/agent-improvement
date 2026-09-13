@@ -65,9 +65,15 @@ round - recorded here so a later run does not rediscover them as if they were ne
 
 ## Watch List
 
-_Empty: 0 open PRs fleet-wide as of 2026-09-13 (re-verified; the zero was
-cross-checked three ways against a search index proven live by a closed-PR
-query, not believed from a single call)._
+- **Aether-OS#76 - Visible Claude-to-Codex communication: bridge, Comms
+  rendering, and cross-check composer.** Open.
+  <https://github.com/mwgrant21/Aether-OS/pull/76>
+  Reported 2026-09-13T08:01Z, no human decision recorded yet:
+  github-advanced-security[bot] COMMENTED on `92d2313` - CodeQL
+  `js/incomplete-sanitization` (high) at
+  `electron/communicationBridge/launchConfig.ts:102`. Codex reviewed the same
+  head and finished clean (summary table + reaction, no findings comment).
+  Nothing new since; checked 2026-09-13T18:12Z.
 
 ### Closed since last report
 
