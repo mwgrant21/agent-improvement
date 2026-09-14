@@ -277,3 +277,25 @@ modifying any loop.
   review, or a 👍 on the triggering comment, is an outcome") and was corrected in
   the same pass.
 - Added: 2026-09-09 (home-matt)
+
+### An iteration cap is not a time bound - a poller's own clock stops when the machine does
+
+- If a loop is meant to expire after a wall-clock lifetime, bound it on wall
+  clock. `N` iterations of `sleep 600` is a lower bound on elapsed time, not a
+  cap: anything that pauses the loop's own clock - machine sleep or hibernate
+  above all, but also a slow iteration - stretches the nominal window without
+  advancing the counter. Give a long-lived watcher two exit conditions, checked
+  each poll: has my wall-clock lifetime expired, and is the thing I report to
+  still there.
+- Why: "it self-terminates after ~8h" is the reassurance that makes leaving a
+  watcher running overnight look safe, and it is exactly the case where the
+  machine sleeps and the bound does not hold. The overshoot is invisible - the
+  loop is doing precisely what it was written to do. Compounds with
+  [[a-run-in-background-process-is-detached]]: a detached watcher cannot be
+  relied on to stop for either reason, so neither the session ending nor the
+  iteration cap is a real limit.
+- Evidence: 2026-09-10/11 session (pr-review-watch, work-it) - a watcher built
+  with a 48-poll cap at 10-minute intervals, described in-session as "bounded,
+  ~8h", was still running at 1218 minutes (20+ hours) after the machine slept
+  overnight. Verified by process creation time, not inferred.
+- Added: 2026-09-14 (work-it)

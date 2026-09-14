@@ -526,3 +526,28 @@ orchestration, notifications, memory. Format per `README.md` in this directory.
   shared package by another task; holding the lanes and re-verifying the baseline
   (439+89 tests green) before restarting resolved it.
 - Added: 2026-09-10 (work-it)
+
+### A `run_in_background` process is detached and outlives the session that started it
+
+- Do not assume a `run_in_background` Bash process dies when its Claude Code
+  session ends. The harness detaches it, so it is reparented and keeps running
+  with nothing left to report to - one orphan per session, accumulating. Anything
+  launched that way must carry its own termination condition; the session ending
+  is not one. When you need to know what is still running, enumerate the
+  processes and match them by the session id in their scratchpad path - a dead
+  parent PID alone proves nothing, because the per-call wrapper shell exits
+  normally anyway.
+- Why: a watcher built to notify its session is useless once that session is
+  gone, but it keeps making real API/`gh` calls, and the harness does not clean
+  it up. The failure is silent - it looks exactly like a healthy watcher.
+  Related: [[run-in-background-can-report-exit-code-0]] (the same tool's exit
+  status is also not what it appears).
+- Evidence: 2026-09-10 session (pr-review-watch, work-it) - three `sh.exe`
+  pollers alive at once; parent PIDs 20776/4116/25976 all DEAD while three other
+  `claude` processes were ALIVE as parents of unrelated shells. PID 9296 carried
+  `.../C--Users-IT/b7098395-.../scratchpad/pr-watch.sh` in its command line - a
+  session id matching none of the live sessions - and was still polling 273
+  minutes later. The session had been about to tell the user the opposite
+  ("tied to this terminal, so sleep or shutdown ends it") and reversed itself
+  only because it checked.
+- Added: 2026-09-14 (work-it)

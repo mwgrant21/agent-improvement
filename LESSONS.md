@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-12
+last-updated: 2026-09-14
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -156,3 +156,5 @@ at work).
 | testing | A path fixture in a plain quoted string is silently rewritten by the language's own escapes | 2026-09-09 |
 | loop-design | A "nothing found" result may arrive in a different channel than a "found something" result | 2026-09-09 |
 | tooling | A build artifact deliberately shared across git worktrees is a hidden coupling between "isolated" lanes | 2026-09-10 |
+| tooling | A `run_in_background` process is detached and outlives the session that started it | 2026-09-14 |
+| loop-design | An iteration cap is not a time bound - a poller's clock stops when the machine sleeps | 2026-09-14 |
