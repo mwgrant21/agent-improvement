@@ -43,10 +43,28 @@ drift=0; missing=0; ok=0; nosrc=0
 # check straight at the origin. See external-origins.tsv for the format.
 EXTERNAL="$STORE/tools/store-sync/external-origins.tsv"
 
+# Internal enumeration, with find's own status captured BEFORE anything is
+# compared. Codex showed (2026-09-13, review of 5ba4503) that a failing find
+# inside a process substitution was hidden whenever one external pair compared
+# healthy: the pipeline's exit was discarded and the zero-file guard counted
+# externals. A failed enumeration is now fatal on its own; a SUCCESSFUL empty
+# enumeration is reported as a note and is not an error.
+internal_raw="$(cd "$STORE" && find skills hooks -type f 2>/dev/null)"; find_rc=$?
+if [ "$find_rc" -ne 0 ]; then
+  echo "check-distributed: internal enumeration FAILED (find exit $find_rc) - refusing to compare anything" >&2
+  exit 2
+fi
+# grep -v exits 1 when nothing survives; that is a legitimate empty result.
+internal_list="$(printf '%s
+' "$internal_raw" | grep -v '/tests/' | sort)" || true
+internal_count=0
+
 printf '%-50s %s\n' "DISTRIBUTED FILE" "STATUS"
 printf '%-50s %s\n' "----------------" "------"
 
 while IFS= read -r rel; do
+  [ -n "$rel" ] || continue
+  internal_count=$((internal_count + 1))
   s="$STORE/$rel"
   l="$LIVE/$rel"
   if [ ! -e "$l" ]; then
@@ -62,7 +80,8 @@ while IFS= read -r rel; do
     printf '%-50s %s\n' "$rel" "DRIFT  store=${s_lines}L/${s_when}  live=${l_lines}L/${l_when}"
     drift=$((drift + 1))
   fi
-done < <(cd "$STORE" && find skills hooks -type f 2>/dev/null | grep -v '/tests/' | sort)
+done <<< "$internal_list"
+[ "$internal_count" -eq 0 ] && echo "check-distributed: internal enumeration succeeded but found 0 files under skills/ hooks/ (external pairs still checked)" >&2
 
 if [ -f "$EXTERNAL" ]; then
   while IFS=$'\t' read -r rel src; do
