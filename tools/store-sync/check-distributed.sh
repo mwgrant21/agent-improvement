@@ -22,6 +22,13 @@
 # via git normalisation while the live copies are LF, which is not drift.
 
 set -u
+# Prerequisite gate. Codex found (2026-09-13) that with dirname/grep absent
+# from PATH this script printed errors yet exited 0 having checked zero files -
+# a silent pass, the exact failure it exists to catch. Missing tools or an
+# empty enumeration are now hard failures in every mode, not just --strict.
+for tool in dirname find sort diff wc date grep; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "check-distributed: required tool '$tool' not on PATH - cannot check anything" >&2; exit 2; }
+done
 STORE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LIVE="$HOME/.claude"
 strict=0
@@ -86,6 +93,11 @@ fi
 
 echo
 echo "in sync: $ok | drift: $drift | missing live: $missing | missing source: $nosrc"
+checked=$((ok + drift + missing + nosrc))
+if [ "$checked" -eq 0 ]; then
+  echo "check-distributed: enumerated ZERO files - refusing to report a clean result over nothing" >&2
+  exit 2
+fi
 
 if [ "$drift" -gt 0 ] || [ "$missing" -gt 0 ] || [ "$nosrc" -gt 0 ]; then
   cat <<'NOTE'
