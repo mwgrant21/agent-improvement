@@ -54,9 +54,15 @@ if [ "$find_rc" -ne 0 ]; then
   echo "check-distributed: internal enumeration FAILED (find exit $find_rc) - refusing to compare anything" >&2
   exit 2
 fi
-# grep -v exits 1 when nothing survives; that is a legitimate empty result.
-internal_list="$(printf '%s
-' "$internal_raw" | grep -v '/tests/' | sort)" || true
+# No grep and no pipeline here (Codex, review of df35aa5: a failing grep was
+# masked by a succeeding sort, and sort's own failure was ignored by || true).
+# Ordering is done by sort alone, with its status checked; the /tests/ filter
+# is a Bash case inside the loop, which cannot fail silently.
+internal_list="$(sort <<< "$internal_raw")"; sort_rc=$?
+if [ "$sort_rc" -ne 0 ]; then
+  echo "check-distributed: sorting the enumeration FAILED (sort exit $sort_rc) - refusing to compare anything" >&2
+  exit 2
+fi
 internal_count=0
 
 printf '%-50s %s\n' "DISTRIBUTED FILE" "STATUS"
@@ -64,6 +70,7 @@ printf '%-50s %s\n' "----------------" "------"
 
 while IFS= read -r rel; do
   [ -n "$rel" ] || continue
+  case "$rel" in */tests/*) continue ;; esac
   internal_count=$((internal_count + 1))
   s="$STORE/$rel"
   l="$LIVE/$rel"
