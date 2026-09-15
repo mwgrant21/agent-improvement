@@ -552,3 +552,50 @@ Format per `README.md` in this directory.
   fail or a number standing in for missing data.
 - Added: 2026-09-09 (home-matt)
 
+### A running Vite/electron-vite dev instance's full-reload can kill an embedded pty terminal - route file-touching git ops around it
+
+- When an Electron app embeds a Claude/Codex terminal in a pty and its dev server
+  (Vite/electron-vite) is watching the main checkout, ANY change to a watched file -
+  not just an edit made by hand - can trigger a full-window reload that tears down
+  and restarts the embedded terminal's process. A `git pull`/`checkout` run directly
+  in the main checkout while that dev instance is up is one easy way to trigger this
+  by surprise, because it changes watched files without looking like "editing code".
+- What to do: perform file-touching git operations (pull, checkout, merge) either
+  from a separate worktree, or only after the dev instance is closed - never directly
+  in the main checkout of a running dev instance with an embedded terminal.
+- Distinct from "`electron-vite`'s main process does not hot-reload" in this same
+  file: that entry is about the OPPOSITE failure (stale main-process code silently
+  persisting); this one is about the reload actually firing and destroying live
+  terminal state.
+- Why: the reload is a property of the bundler's file watcher, not of git - so the
+  fix is procedural (isolate the operation), not a code change to suppress reloads.
+- Evidence: 2026-09-14 aether-cross-check session (home-matt, aether-os) - flagged
+  before the operation was run: pulling master into the main checkout while the dev
+  instance was up was called out as reload-risk to the embedded terminal, consistent
+  with a prior confirmed root cause in the same project (a Stryker sandbox
+  tsconfig.json add/unlink previously triggered the identical "Aether shut down"
+  full-reload failure).
+- Added: 2026-09-14 (home-matt)
+
+### An npm-script-launched dev pty inherits `node_modules/.bin` on PATH, ahead of the global bin - dev and packaged builds resolve the same bare command differently
+
+- `npm run <script>` prepends the project's `node_modules/.bin` to PATH for the
+  process it launches. If that process is an Electron dev instance that spawns an
+  embedded terminal (pty) by spreading its own env into the shell, the pty inherits
+  that prepended entry too. A bare command name that collides with a local
+  devDependency's bin (e.g. `codex`, pinned in `package.json`) then resolves to the
+  project-local/pinned version inside the dev instance, while the same bare command
+  in the PACKAGED app (normal user PATH, no npm injection) correctly resolves to the
+  global install. The two builds silently disagree about which binary a shared
+  command name means.
+- What to do: strip npm-injected `node_modules/.bin` entries from PATH in the pty's
+  env builder before spawning the shell, so dev-mode behavior matches packaged
+  behavior; add a version/source readout so a resolution mismatch is visible instead
+  of silent.
+- Evidence: 2026-09-14 aether-cross-check session (home-matt, aether-os) - verified
+  directly: `package.json` pinned `@openai/codex` to 0.153.2 and the local shim
+  reported that version, while the global launcher in AppData reported 0.154.0; the
+  terminal's bare `codex` in a pty spread from the Electron dev process resolved to
+  the pinned 0.153.2, confirming the PATH-order mechanism rather than assuming it.
+- Added: 2026-09-14 (home-matt)
+

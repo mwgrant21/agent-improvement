@@ -158,3 +158,5 @@ at work).
 | tooling | A build artifact deliberately shared across git worktrees is a hidden coupling between "isolated" lanes | 2026-09-10 |
 | tooling | A `run_in_background` process is detached and outlives the session that started it | 2026-09-14 |
 | loop-design | An iteration cap is not a time bound - a poller's clock stops when the machine sleeps | 2026-09-14 |
+| app-dev | A running Vite/electron-vite dev instance's full-reload can kill an embedded pty terminal - route file-touching git ops around it | 2026-09-14 |
+| app-dev | An npm-script-launched dev pty inherits `node_modules/.bin` on PATH ahead of the global bin - dev and packaged builds resolve the same bare command differently | 2026-09-14 |
