@@ -1,6 +1,6 @@
 # Agent-Improvement Lessons - Matt
 
-last-updated: 2026-09-14
+last-updated: 2026-09-15
 
 Cross-machine store of lessons the agent/tooling has learned from real work.
 The agent lane, parallel to `~/learning-profile` (which tracks the USER). One line
@@ -160,3 +160,4 @@ at work).
 | loop-design | An iteration cap is not a time bound - a poller's clock stops when the machine sleeps | 2026-09-14 |
 | app-dev | A running Vite/electron-vite dev instance's full-reload can kill an embedded pty terminal - route file-touching git ops around it | 2026-09-14 |
 | app-dev | An npm-script-launched dev pty inherits `node_modules/.bin` on PATH ahead of the global bin - dev and packaged builds resolve the same bare command differently | 2026-09-14 |
+| app-dev | When a build has no enforced version bump, a matching version string does not mean matching code - fingerprint the bundle instead | 2026-09-15 |

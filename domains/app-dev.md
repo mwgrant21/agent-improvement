@@ -599,3 +599,32 @@ Format per `README.md` in this directory.
   the pinned 0.153.2, confirming the PATH-order mechanism rather than assuming it.
 - Added: 2026-09-14 (home-matt)
 
+### When an app has no enforced per-build version bump, a matching version string does not mean matching code - fingerprint the bundle instead
+
+- An installed Electron app and a freshly rebuilt one can report the identical
+  version number while running different code, whenever the project has no CI-
+  enforced bump per release (no GitHub releases/tags, manual `version` in
+  `package.json`). Reinstalling is a step nothing forces, so it is easy to skip and
+  leave the OLD build running under a version string that now belongs to a newer
+  commit too. Do not conclude "up to date" from a matching version alone in this
+  situation - grep the running app's `app.asar` for a string known to be unique to
+  the target change (a string literal added by the specific commit/PR) to confirm
+  which build is actually deployed.
+- Scope: this only applies when the version bump is not guaranteed by process (no
+  release CI, no tag-gated build). A project with enforced semver-per-release makes
+  the version string sufficient on its own; this check is what to fall back to when
+  that guarantee does not exist - true for every solo/manual-release Electron app
+  in this fleet so far (Aether-OS, TokenMonitorV2, NMMToolkit dist artifacts).
+- Why: a version match is the exact kind of confirming-looking evidence that stops
+  further checking - it reads as "verified" when it has verified nothing.
+- Evidence: 2026-09-15 work-it session (Aether-OS). `Desktop\Aether-OS-livetest`
+  was pulled to 385bcde (PR #77) and a fresh installer built at 10:26; both the
+  newly built app and the running installed app (from
+  `AppData\Local\Programs\Aether OS`, last installed 2026-08-25) reported version
+  0.3.0. Grepping the running app's `app.asar` for strings PR #77 added found none,
+  and a screenshot of the running app's behavior matched the OLD code path (typed a
+  bare `codex` command) rather than the new one (a `Get-Command` selection line
+  added by PR #77) - confirming the installed build predated the pull despite the
+  identical version number.
+- Added: 2026-09-15 (work-it)
+
