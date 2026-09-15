@@ -4,8 +4,8 @@ level: 1
 paused: false
 attempt_cap: 3
 budget: soft
-last_run: 2026-09-14
-runs_since_retro: 8
+last_run: 2026-09-15
+runs_since_retro: 9
 constrained_scopes: []
 ---
 ## State Ownership
@@ -65,20 +65,21 @@ round - recorded here so a later run does not rediscover them as if they were ne
 
 ## Watch List
 
-- **Aether-OS#76 - Visible Claude-to-Codex communication: bridge, Comms
-  rendering, and cross-check composer.** Open.
-  <https://github.com/mwgrant21/Aether-OS/pull/76>
-  Reported 2026-09-13T08:01Z, no human decision recorded yet:
-  github-advanced-security[bot] COMMENTED on `92d2313` - CodeQL
-  `js/incomplete-sanitization` (high) at
-  `electron/communicationBridge/launchConfig.ts:102`. Codex reviewed the same
-  head and finished clean (summary table + reaction, no findings comment).
-  Nothing new since; checked 2026-09-13T18:12Z.
-  Also checked 2026-09-14T15:35Z from work-it (session-start run): baselined
-  into the work-it cursor on first sighting, nothing new since 18:12Z.
+Empty: 0 open PRs fleet-wide as of 2026-09-15T04:45Z (Aether-OS#76 merged, see below).
 
 ### Closed since last report
 
+- **Aether-OS#76 - Visible Claude-to-Codex communication: bridge, Comms
+  rendering, and cross-check composer.** MERGED 2026-09-15T04:43:07Z (squash,
+  master `ea7c3f0`, head `8299808`, 62 commits). The one item carried on this
+  entry - github-advanced-security[bot] CodeQL `js/incomplete-sanitization` at
+  `launchConfig.ts:102` on `92d2313` - was addressed by fix commit `33f69d6`
+  (`fix: avoid dynamic regex in Claude version gate`, 2026-09-13) and the
+  CodeQL check passed on every head after it, including the merged one. Whether
+  the bot's review thread was marked resolved on GitHub was not checked. No
+  human review, no Codex bot verdict on any head after `92d2313`; Codex
+  reviewed the branch out-of-band in the Aether session (current-head review
+  at `2bb550f`, Passed). Nothing left outstanding on this PR for the loop.
 - **Aether-OS#75 - Local Windows packaging (electron-builder + NSIS).** MERGED
   2026-09-09T15:43:14Z. **Corrected 2026-09-11:** an earlier version of this
   entry said the two Codex threads (`build/installer.nsh:14` P1,
